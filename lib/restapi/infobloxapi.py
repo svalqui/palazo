@@ -37,12 +37,14 @@ class IB(lib.restapimaster.RestApi):
         if "next_page_id" in self.page_decoded:
             self.next_page_id = self.page_decoded["next_page_id"]
             print(self.next_page_id)
+        #print(self.page_decoded["result"].keys())
         for record in self.page_decoded["result"]:
             print(record["network"], " ", record["comment"])
         return self.next_page_id
 
     def page_handler(self):
-        self.querying = "network?_paging=1&_return_as_object=1&_max_results=1000"
+        #network
+        self.querying = "permission?_paging=1&_return_as_object=1&_max_results=1000"
         print("##############")
         self.page_id = self.read_page()
         while self.page_id != "":
