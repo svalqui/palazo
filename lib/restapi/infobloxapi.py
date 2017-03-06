@@ -1,5 +1,7 @@
 # Source Class
-# https://ipam.unimelb.edu.au/wapi/v2.2.2/
+# https://
+# https://ipam.illinois.edu/wapidoc/objects/network.html
+# https://ipam.illinois.edu/wapidoc/objects/range.html
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -8,13 +10,15 @@ import json
 
 
 class IB(lib.restapimaster.RestApi):
-    def __init__(self, user_name, password, host_name):
+    def __init__(self, user_name, password, host_name, object_queried):
         super(IB, self).__init__()
         self.user_name = user_name
         self.password = password
         self.urlbase = "https://" + host_name + "/wapi/v2.2.2/"
+        self.object_queried = object_queried
         self.url_queried = ""
         self.page = ""
+        self.pages = ""
         self.page_decoded = ""
         self.next_page_id = ""
         self.querying = ""
@@ -28,23 +32,24 @@ class IB(lib.restapimaster.RestApi):
         print("Query: ", self.url_queried)
         print(self.page.status_code)
         if len(self.page.headers) > 0:
-            print(" Page headers ***************")
+            print("---- Page headers ***************")
             for key in self.page.headers.keys():
                 print(key, " -value: ", self.page.headers[key])
-            print(" End page headers.. *********")
+            print("---- End page headers.. *********")
 
         self.page_decoded = json.loads(self.page.text)
+        self.pages += self.page_decoded
         if "next_page_id" in self.page_decoded:
             self.next_page_id = self.page_decoded["next_page_id"]
             print(self.next_page_id)
-        #print(self.page_decoded["result"].keys())
-        for record in self.page_decoded["result"]:
-            print(record["network"], " ", record["comment"])
+        print(self.page_decoded["result"][0].keys())
+#        for record in self.page_decoded["result"]:
+#            print(record["network"], " ", record["comment"])
         return self.next_page_id
 
     def page_handler(self):
-        #network
-        self.querying = "permission?_paging=1&_return_as_object=1&_max_results=1000"
+        #permission
+        self.querying = "network?_paging=1&_return_as_object=1&_max_results=1000"
         print("##############")
         self.page_id = self.read_page()
         while self.page_id != "":
