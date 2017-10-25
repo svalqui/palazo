@@ -23,6 +23,7 @@ try:
     user_name = config['Settings']['default_user']
     URI = config['Settings']['uri']
     BASE = config['Settings']['default_base']
+    show_fields = config['Filters']['show_attributes'].split(',')
     proceed = True
 
 except BaseException as e:
@@ -50,15 +51,12 @@ def show_detail(detail): # List or Value
         print(" -> ", detail)
 
 
-def show_attributes(one_response, show_fields=[]):  # Attributes is a Dict
+def show_attributes(one_response, fields=[]):  # Attributes is a Dict
 
     attributes = one_response['attributes']
 
-    if len(show_fields) == 0:
-
+    if len(fields) == 0:
         for key in sorted(attributes.keys()):
-            # show_detail(one_response['attributes'][key])
-
             if isinstance(attributes[key], list):
                 print(key)
                 for element in attributes[key]:
@@ -71,7 +69,7 @@ def show_attributes(one_response, show_fields=[]):  # Attributes is a Dict
 
     else:
 
-        for field in show_fields:
+        for field in fields:
             if field in attributes.keys():
                 if isinstance(attributes[field], list):
                     print(field)
@@ -84,10 +82,10 @@ def show_attributes(one_response, show_fields=[]):  # Attributes is a Dict
 def show_response(one_response):  # response is a Dict
     if 'attributes' in one_response.keys():
         show_attributes(one_response)
-
-    else:
-        print("NO ATTRIBUTES for this response ", one_response.__class__)
-        print(one_response)
+        # show_attributes(one_response, show_fields)
+    # else:
+    #     print("NO ATTRIBUTES for this response ", one_response.__class__)
+    #     print(one_response)
 
 
 def ldap_search(uri, base, query):
@@ -109,7 +107,8 @@ def ldap_search(uri, base, query):
         print()
         print("****---****")
 
-        for one_response in conn.response:
+        for index, one_response in enumerate(conn.response):
+            print("---Response---", index)
             show_response(one_response)
 
     except BaseException as e:
