@@ -5,9 +5,10 @@
 
 import sys
 import getpass
+# import gssapi
 import configparser
 import pathlib
-from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
+from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES, SASL
 
 # Removing configuration from Project, configuration file 'ldapq.ini' moved 2 directories up
 file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
@@ -33,7 +34,8 @@ except BaseException as e:
 
 # Query
 look_for = input("Search AD for :")
-QUERY = '(|(cn=*' + look_for + '*)(&(objectcategory=computer)(name=*' + look_for + '*))(&(objectclass=group)(name=*' + look_for +'*)))'
+# QUERY = '(|(cn=*' + look_for + '*)(&(objectcategory=computer)(name=*' + look_for + '*))(&(objectclass=group)(name=*' + look_for +'*)))'
+QUERY = '(&(objectclass=domain)(dc=*' + look_for + '))'
 # QUERY = '(cn=*val*)'
 # QUERY = '(givenName=val*)'
 # QUERY = '(&(objectcategory=computer)(name=*11611*))'
@@ -42,7 +44,7 @@ QUERY = '(|(cn=*' + look_for + '*)(&(objectcategory=computer)(name=*' + look_for
 user_password = getpass.getpass()
 
 
-def show_detail(detail): # List or Value
+def show_detail(detail):  # List or Value
     if isinstance(detail, list):
         print(detail)
         for element in detail:
@@ -98,8 +100,9 @@ def ldap_search(uri, base, query):
     '''
 
     try:
-        server = Server(uri, get_info=ALL)
+        server = Server(uri, use_ssl=True, get_info=ALL)
         conn = Connection(server, user=user_name, password=user_password, auto_bind=True)
+        # conn = Connection(server, auto_bind=True, authentication=SASL, sasl_mechanism='GSSAPI')
         print(conn)
 #        print(server.schema)
         conn.search(base, query, attributes=ALL_ATTRIBUTES)
@@ -139,3 +142,4 @@ if __name__ == '__main__':
 # https://docs.python.org/3/library/pathlib.html
 # https://docs.python.org/3/library/configparser.html
 # http://ldap3.readthedocs.io/tutorial_intro.html
+# https://social.technet.microsoft.com/Forums/scriptcenter/en-US/191a7f47-d4a7-4e06-af78-e9d2699a464a/get-all-sub-domains?forum=ITCG
