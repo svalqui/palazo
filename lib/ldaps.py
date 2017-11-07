@@ -19,6 +19,10 @@ print('file_conf_name', file_conf_name)
 # Reading configuration
 config = configparser.ConfigParser()
 
+
+# Bases, list of domains and sub domains
+bases = []
+
 try:
     config.read(str(file_conf_name))
     user_name = config['Settings']['default_user']
@@ -35,11 +39,13 @@ except BaseException as e:
 # Query
 look_for = input("Search AD for :")
 # QUERY = '(|(cn=*' + look_for + '*)(&(objectcategory=computer)(name=*' + look_for + '*))(&(objectclass=group)(name=*' + look_for +'*)))'
-QUERY = '(&(objectclass=domain)(dc=*' + look_for + '))'
+
+QUERY = '(&(objectclass=domain)(dc=student))'
+#QUERY = '(&(objectclass=domain)(dc=*' + look_for + '))'
 # QUERY = '(cn=*val*)'
 # QUERY = '(givenName=val*)'
-# QUERY = '(&(objectcategory=computer)(name=*11611*))'
-# (&(objectclass=group)(name=*116109*))
+# QUERY = '(&(objectcategory=computer)(name=*116106*))'
+# QUERY = '(&(objectclass=group)(name=*116109*))'
 
 user_password = getpass.getpass()
 
@@ -81,15 +87,6 @@ def show_attributes(one_response, fields=[]):  # Attributes is a Dict
                     print(field, " : ", attributes[field])
 
 
-def show_response(one_response):  # response is a Dict
-    if 'attributes' in one_response.keys():
-        show_attributes(one_response)
-        # show_attributes(one_response, show_fields)
-    # else:
-    #     print("NO ATTRIBUTES for this response ", one_response.__class__)
-    #     print(one_response)
-
-
 def ldap_search(uri, base, query):
     '''
     ldap search
@@ -112,11 +109,20 @@ def ldap_search(uri, base, query):
 
         for index, one_response in enumerate(conn.response):
             print("---Response---", index)
-            show_response(one_response)
+            if 'attributes' in one_response.keys():
+                show_attributes(one_response)
+
 
     except BaseException as e:
         print('LDAPError: ', e)
         print('Exception Name :', type(e).__Name__)
+
+    return conn.response
+
+
+def find_bases(uri, base):
+    query = '(&(objectclass=domain)(dc=*))'
+    q_response = ldap_search(uri, base, query)
 
 
 def main():
