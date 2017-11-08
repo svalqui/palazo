@@ -19,10 +19,6 @@ print('file_conf_name', file_conf_name)
 # Reading configuration
 config = configparser.ConfigParser()
 
-
-# Bases, list of domains and sub domains
-bases = []
-
 try:
     config.read(str(file_conf_name))
     user_name = config['Settings']['default_user']
@@ -49,6 +45,8 @@ QUERY = '(&(objectclass=domain)(dc=student))'
 
 user_password = getpass.getpass()
 
+
+domains = []
 
 def show_detail(detail):  # List or Value
     if isinstance(detail, list):
@@ -96,6 +94,8 @@ def ldap_search(uri, base, query):
     :return:
     '''
 
+    conn = ''
+
     try:
         server = Server(uri, use_ssl=True, get_info=ALL)
         conn = Connection(server, user=user_name, password=user_password, auto_bind=True)
@@ -120,16 +120,27 @@ def ldap_search(uri, base, query):
     return conn.response
 
 
-def find_bases(uri, base):
+def find_bases(uri, base): # for main domains with sub-domains
     query = '(&(objectclass=domain)(dc=*))'
     q_response = ldap_search(uri, base, query)
+    for one_response in q_response:
+        if 'attributes' in one_response.keys():
+            if one_response['attributes']['distinguishedName'] not in domains:
+                domains.append(one_response['attributes']['distinguishedName'])
+                print(one_response['attributes']['distinguishedName'])
+            if 'subRefs' in one_response['attributes'].keys():
+                for ref in one_response['attributes']['subRefs']:
+
+                    print("ref -> ", ref)
+                    find_bases(uri, ref)
 
 
 def main():
     print('URI :', URI)
     print('BASE :', BASE)
     print('QUERY ;', QUERY)
-    ldap_search(URI, BASE, QUERY)
+    # ldap_search(URI, BASE, QUERY)
+    find_bases(URI, BASE)
 
 
 if __name__ == '__main__':
