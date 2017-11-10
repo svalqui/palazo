@@ -35,9 +35,8 @@ except BaseException as e:
 # Query
 look_for = input("Search AD for :")
 # QUERY = '(|(cn=*' + look_for + '*)(&(objectcategory=computer)(name=*' + look_for + '*))(&(objectclass=group)(name=*' + look_for +'*)))'
-
-QUERY = '(&(objectclass=domain)(dc=student))'
-#QUERY = '(&(objectclass=domain)(dc=*' + look_for + '))'
+# QUERY = '(&(objectclass=domain)(dc=student))'
+# QUERY = '(&(objectclass=domain)(dc=*' + look_for + '))'
 # QUERY = '(cn=*val*)'
 # QUERY = '(givenName=val*)'
 # QUERY = '(&(objectcategory=computer)(name=*116106*))'
@@ -46,7 +45,8 @@ QUERY = '(&(objectclass=domain)(dc=student))'
 user_password = getpass.getpass()
 
 
-domains = []
+domains = []  # List of Domains and sub-domains
+
 
 def show_detail(detail):  # List or Value
     if isinstance(detail, list):
@@ -85,7 +85,7 @@ def show_attributes(one_response, fields=[]):  # Attributes is a Dict
                     print(field, " : ", attributes[field])
 
 
-def ldap_search(uri, base, query):
+def ldap_search(uri, base, query, fields=[]):
     '''
     ldap search
     :param uri:
@@ -94,53 +94,82 @@ def ldap_search(uri, base, query):
     :return:
     '''
 
-    conn = ''
+    search_response = []
+
+    print()
+    print('URI :', uri)
+    print('BASE :', base)
+    print('QUERY :', query)
 
     try:
         server = Server(uri, use_ssl=True, get_info=ALL)
         conn = Connection(server, user=user_name, password=user_password, auto_bind=True)
         # conn = Connection(server, auto_bind=True, authentication=SASL, sasl_mechanism='GSSAPI')
-        print(conn)
-#        print(server.schema)
+        # print(conn)
         conn.search(base, query, attributes=ALL_ATTRIBUTES)
-        print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
-        print()
-        print("****---****")
+        # print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
+        # print()
+        search_response = conn.response
 
         for index, one_response in enumerate(conn.response):
-            print("---Response---", index)
+            # print("---Response---", index)
             if 'attributes' in one_response.keys():
-                show_attributes(one_response)
-
+                show_attributes(one_response, fields)
+            # print("---End response---",index)
 
     except BaseException as e:
         print('LDAPError: ', e)
-        print('Exception Name :', type(e).__Name__)
+        print('Exception Name :', type(e))
+        search_response = []
 
-    return conn.response
+    # print('---End LDAP SEARCH')
+    # print()
+
+    return search_response
 
 
-def find_bases(uri, base): # for main domains with sub-domains
+def find_bases(uri, base):  # for main domains with sub-domains
     query = '(&(objectclass=domain)(dc=*))'
-    q_response = ldap_search(uri, base, query)
-    for one_response in q_response:
-        if 'attributes' in one_response.keys():
-            if one_response['attributes']['distinguishedName'] not in domains:
-                domains.append(one_response['attributes']['distinguishedName'])
-                print(one_response['attributes']['distinguishedName'])
-            if 'subRefs' in one_response['attributes'].keys():
-                for ref in one_response['attributes']['subRefs']:
+    q_response = ldap_search(uri, base, query, ['dc', 'distinguishedName', 'subRefs'])
+    if len(q_response) > 0:
+        for one_response in q_response:
+            if 'attributes' in one_response.keys():
 
-                    print("ref -> ", ref)
-                    find_bases(uri, ref)
+                if one_response['attributes']['distinguishedName'].find('DomainDnsZones') < 0 and \
+                                one_response['attributes']['distinguishedName'].find('ForestDnsZones') < 0:
+                    if one_response['attributes']['distinguishedName'] not in domains:
+
+                        domains.append(one_response['attributes']['distinguishedName'])
+                        # print('+++ Adding Domain :', one_response['attributes']['distinguishedName'])
+                    if 'subRefs' in one_response['attributes'].keys():
+                        if len(one_response['attributes']['subRefs']) > 0:
+                            for ref in one_response['attributes']['subRefs']:
+                                # print("ref -> ", ref)
+                                find_bases(uri, ref)
+
+
+def find_users(uri, base):
+    query = '(&(objectClass=user)(objectCategory=person)(cn=*valq*))'
+    q_response = ldap_search(uri, base, query)
+
+
+def find_computers(uri, base):
+    query = '(&(objectcategory=computer)(name=*1161*))'
+    q_response = ldap_search(uri, base, query)
+
+
+def find_groups(uri, base):
+    query = '(&(objectclass=group)(name=*1161*))'
+    q_response = ldap_search(uri, base, query)
 
 
 def main():
-    print('URI :', URI)
-    print('BASE :', BASE)
-    print('QUERY ;', QUERY)
     # ldap_search(URI, BASE, QUERY)
     find_bases(URI, BASE)
+    print()
+    for base in domains:
+        print(">>>-------------->BASE : ", base)
+        find_computers(URI, base)
 
 
 if __name__ == '__main__':
@@ -160,3 +189,4 @@ if __name__ == '__main__':
 # https://docs.python.org/3/library/configparser.html
 # http://ldap3.readthedocs.io/tutorial_intro.html
 # https://social.technet.microsoft.com/Forums/scriptcenter/en-US/191a7f47-d4a7-4e06-af78-e9d2699a464a/get-all-sub-domains?forum=ITCG
+# https://stackoverflow.com/questions/1400933/active-directory-search-for-only-user-objects
