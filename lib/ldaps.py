@@ -35,17 +35,9 @@ except BaseException as e:
 # Query
 look_for = input("Search AD for :")
 # QUERY = '(|(cn=*' + look_for + '*)(&(objectcategory=computer)(name=*' + look_for + '*))(&(objectclass=group)(name=*' + look_for +'*)))'
-# QUERY = '(&(objectclass=domain)(dc=student))'
-# QUERY = '(&(objectclass=domain)(dc=*' + look_for + '))'
-# QUERY = '(cn=*val*)'
 # QUERY = '(givenName=val*)'
-# QUERY = '(&(objectcategory=computer)(name=*116106*))'
-# QUERY = '(&(objectclass=group)(name=*116109*))'
 
 user_password = getpass.getpass()
-
-
-domains = []  # List of Domains and sub-domains
 
 
 def show_detail(detail):  # List or Value
@@ -58,7 +50,6 @@ def show_detail(detail):  # List or Value
 
 
 def show_attributes(one_response, fields=[]):  # Attributes is a Dict
-
     attributes = one_response['attributes']
 
     if len(fields) == 0:
@@ -70,7 +61,7 @@ def show_attributes(one_response, fields=[]):  # Attributes is a Dict
             else:
                 print(key, " -> ", attributes[key])
 
-        print("-----End of above attribute")
+        print("-----End of above response")
         print()
 
     else:
@@ -91,6 +82,7 @@ def ldap_search(uri, base, query, fields=[]):
     :param uri:
     :param base:
     :param query:
+    :param fields:
     :return:
     '''
 
@@ -128,7 +120,8 @@ def ldap_search(uri, base, query, fields=[]):
     return search_response
 
 
-def find_bases(uri, base):  # for main domains with sub-domains
+def find_domains(uri, base):  # for main domains with sub-domains
+    domains = []  # List of Domains and sub-domains
     query = '(&(objectclass=domain)(dc=*))'
     q_response = ldap_search(uri, base, query, ['dc', 'distinguishedName', 'subRefs'])
     if len(q_response) > 0:
@@ -145,31 +138,31 @@ def find_bases(uri, base):  # for main domains with sub-domains
                         if len(one_response['attributes']['subRefs']) > 0:
                             for ref in one_response['attributes']['subRefs']:
                                 # print("ref -> ", ref)
-                                find_bases(uri, ref)
+                                find_domains(uri, ref)
+    return domains
 
 
 def find_users(uri, base):
-    query = '(&(objectClass=user)(objectCategory=person)(cn=*valq*))'
+    query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
     q_response = ldap_search(uri, base, query)
 
 
 def find_computers(uri, base):
-    query = '(&(objectcategory=computer)(name=*1161*))'
+    query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
     q_response = ldap_search(uri, base, query)
 
 
 def find_groups(uri, base):
-    query = '(&(objectclass=group)(name=*1161*))'
+    query = '(&(objectclass=group)(name=*' + look_for + '*))'
     q_response = ldap_search(uri, base, query)
 
 
 def main():
     # ldap_search(URI, BASE, QUERY)
-    find_bases(URI, BASE)
     print()
-    for base in domains:
-        print(">>>-------------->BASE : ", base)
-        find_computers(URI, base)
+    for base in find_domains(URI, BASE):
+        print(">>>-------------->DOMAIN BASE : ", base)
+        find_users(URI, base)
 
 
 if __name__ == '__main__':
