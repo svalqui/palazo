@@ -19,6 +19,8 @@ print('file_conf_name', file_conf_name)
 # Reading configuration
 config = configparser.ConfigParser()
 
+domains = []  # List of Domains and sub-domains
+
 try:
     config.read(str(file_conf_name))
     user_name = config['Settings']['default_user']
@@ -61,7 +63,7 @@ def show_attributes(one_response, fields=[]):  # Attributes is a Dict
             else:
                 print(key, " -> ", attributes[key])
 
-        print("-----End of above response")
+        print("-----End of above response @ show_attributes")
         print()
 
     else:
@@ -86,12 +88,11 @@ def ldap_search(uri, base, query, fields=[]):
     :return:
     '''
 
-    search_response = []
-
     print()
     print('URI :', uri)
     print('BASE :', base)
     print('QUERY :', query)
+    entry_counter = 0
 
     try:
         server = Server(uri, use_ssl=True, get_info=ALL)
@@ -99,15 +100,18 @@ def ldap_search(uri, base, query, fields=[]):
         # conn = Connection(server, auto_bind=True, authentication=SASL, sasl_mechanism='GSSAPI')
         # print(conn)
         conn.search(base, query, attributes=ALL_ATTRIBUTES)
-        # print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
+        print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
         # print()
         search_response = conn.response
 
         for index, one_response in enumerate(conn.response):
-            # print("---Response---", index)
             if 'attributes' in one_response.keys():
+                print("$$$$$$$$->", index+1, " of ", len(conn.response))
+                entry_counter += 1
+                print("$$$Ent->", entry_counter, " of ", len(conn.entries))
                 show_attributes(one_response, fields)
-            # print("---End response---",index)
+            else:
+                print("$$$$$$$$->", index+1, " of ", len(conn.response), " Response without attributes")
 
     except BaseException as e:
         print('LDAPError: ', e)
@@ -121,7 +125,7 @@ def ldap_search(uri, base, query, fields=[]):
 
 
 def find_domains(uri, base):  # for main domains with sub-domains
-    domains = []  # List of Domains and sub-domains
+
     query = '(&(objectclass=domain)(dc=*))'
     q_response = ldap_search(uri, base, query, ['dc', 'distinguishedName', 'subRefs'])
     if len(q_response) > 0:
@@ -133,7 +137,7 @@ def find_domains(uri, base):  # for main domains with sub-domains
                     if one_response['attributes']['distinguishedName'] not in domains:
 
                         domains.append(one_response['attributes']['distinguishedName'])
-                        # print('+++ Adding Domain :', one_response['attributes']['distinguishedName'])
+                        print('+++ Adding Domain :', one_response['attributes']['distinguishedName'])
                     if 'subRefs' in one_response['attributes'].keys():
                         if len(one_response['attributes']['subRefs']) > 0:
                             for ref in one_response['attributes']['subRefs']:
@@ -159,9 +163,10 @@ def find_groups(uri, base):
 
 def main():
     # ldap_search(URI, BASE, QUERY)
+    find_domains(URI, BASE)
     print()
-    for base in find_domains(URI, BASE):
-        print(">>>-------------->DOMAIN BASE : ", base)
+    for base in domains:
+        print(">>>-------------->DOMAIN BASE : ", base, domains)
         find_users(URI, base)
 
 
