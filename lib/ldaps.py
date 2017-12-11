@@ -42,17 +42,16 @@ look_for = input("Search AD for :")
 user_password = getpass.getpass()
 
 
-def show_detail(detail):  # List or Value
-    if isinstance(detail, list):
-        print(detail)
-        for element in detail:
-            print("   ", element)
-    else:
-        print(" -> ", detail)
+# def show_detail(detail):  # List or Value
+#     if isinstance(detail, list):
+#         print(detail)
+#         for element in detail:
+#             print("   ", element)
+#     else:
+#         print(" -> ", detail)
 
 
-def show_attributes(one_response, fields=[]):  # Attributes is a Dict
-    attributes = one_response['attributes']
+def get_attributes(attributes, fields=[]):  # Attributes is a Dict
 
     if len(fields) == 0:
         for key in sorted(attributes.keys()):
@@ -78,20 +77,22 @@ def show_attributes(one_response, fields=[]):  # Attributes is a Dict
                     print(field, " : ", attributes[field])
 
 
-def ldap_search(uri, base, query, fields=[]):
+def ldap_search(uri, base, query, fields=[], debug=False):
     '''
     ldap search
     :param uri:
     :param base:
     :param query:
     :param fields:
+    :param debug:
     :return:
     '''
 
-    print()
-    print('URI :', uri)
-    print('BASE :', base)
-    print('QUERY :', query)
+    if debug:
+        print()
+        print('URI :', uri)
+        print('BASE :', base)
+        print('QUERY :', query)
     entry_counter = 0
 
     try:
@@ -100,8 +101,9 @@ def ldap_search(uri, base, query, fields=[]):
         # conn = Connection(server, auto_bind=True, authentication=SASL, sasl_mechanism='GSSAPI')
         # print(conn)
         conn.search(base, query, attributes=ALL_ATTRIBUTES)
-        print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
-        # print()
+        if debug:
+            print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
+            # print()
         search_response = conn.response
 
         for index, one_response in enumerate(conn.response):
@@ -109,9 +111,10 @@ def ldap_search(uri, base, query, fields=[]):
                 print("$$$$$$$$->", index+1, " of ", len(conn.response))
                 entry_counter += 1
                 print("$$$Ent->", entry_counter, " of ", len(conn.entries))
-                show_attributes(one_response, fields)
+                get_attributes(one_response['attributes'], fields)
             else:
-                print("$$$$$$$$->", index+1, " of ", len(conn.response), " Response without attributes")
+                if debug:
+                    print("$$$$$$$$->", index+1, " of ", len(conn.response), " Response without attributes")
 
     except BaseException as e:
         print('LDAPError: ', e)
@@ -124,7 +127,7 @@ def ldap_search(uri, base, query, fields=[]):
     return search_response
 
 
-def find_domains(uri, base):  # for main domains with sub-domains
+def find_domains(uri, base, debug=False):  # for main domains with sub-domains
 
     query = '(&(objectclass=domain)(dc=*))'
     q_response = ldap_search(uri, base, query, ['dc', 'distinguishedName', 'subRefs'])
@@ -137,7 +140,8 @@ def find_domains(uri, base):  # for main domains with sub-domains
                     if one_response['attributes']['distinguishedName'] not in domains:
 
                         domains.append(one_response['attributes']['distinguishedName'])
-                        print('+++ Adding Domain :', one_response['attributes']['distinguishedName'])
+                        if debug:
+                            print('+++ Adding Domain :', one_response['attributes']['distinguishedName'])
                     if 'subRefs' in one_response['attributes'].keys():
                         if len(one_response['attributes']['subRefs']) > 0:
                             for ref in one_response['attributes']['subRefs']:
@@ -149,16 +153,19 @@ def find_domains(uri, base):  # for main domains with sub-domains
 def find_users(uri, base):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
     q_response = ldap_search(uri, base, query)
+    return q_response
 
 
 def find_computers(uri, base):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
     q_response = ldap_search(uri, base, query)
+    return q_response
 
 
 def find_groups(uri, base):
     query = '(&(objectclass=group)(name=*' + look_for + '*))'
     q_response = ldap_search(uri, base, query)
+    return q_response
 
 
 def main():
