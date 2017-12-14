@@ -5,10 +5,10 @@
 
 import sys
 import getpass
-# import gssapi
 import configparser
 import pathlib
-from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES, SASL
+import datetime
+from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 
 # Removing configuration from Project, configuration file 'ldapq.ini' moved 2 directories up
 file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
@@ -36,45 +36,104 @@ except BaseException as e:
 
 # Query
 look_for = input("Search AD for :")
-# QUERY = '(|(cn=*' + look_for + '*)(&(objectcategory=computer)(name=*' + look_for + '*))(&(objectclass=group)(name=*' + look_for +'*)))'
-# QUERY = '(givenName=val*)'
 
 user_password = getpass.getpass()
 
 
-# def show_detail(detail):  # List or Value
-#     if isinstance(detail, list):
-#         print(detail)
-#         for element in detail:
-#             print("   ", element)
-#     else:
-#         print(" -> ", detail)
+def object_to_text(item):
+
+    try:
+        if isinstance(item, datetime.datetime):
+            text = item.strftime("%Y-%m-%d %H:%M:%S")
+        elif isinstance(item, int):
+            text = str(item)
+        elif isinstance(item, bytes):
+            text = str(item)
+        else:
+            text = str(item) + " is instance of : " + str(item.__class__) + " needs to be added to object_to_text"
+
+    except BaseException as objtext_error:
+        text = 'ERROR - LDAPObjTextError: ' + str(objtext_error) + ' Exception Name :' + str(type(objtext_error))
+
+    return text
 
 
 def get_attributes(attributes, fields=[]):  # Attributes is a Dict
+    attributes_list = []
 
-    if len(fields) == 0:
-        for key in sorted(attributes.keys()):
-            if isinstance(attributes[key], list):
-                print(key)
-                for element in attributes[key]:
-                    print("   ", element)
-            else:
-                print(key, " -> ", attributes[key])
-
-        print("-----End of above response @ show_attributes")
-        print()
-
-    else:
-
-        for field in fields:
-            if field in attributes.keys():
-                if isinstance(attributes[field], list):
-                    print(field)
-                    for element in attributes[field]:
-                        print("   ", element)
+    try:
+        if len(fields) == 0:
+            for key in sorted(attributes.keys()):
+                if isinstance(attributes[key], list):
+                    line = key + " :"
+                    print(line)
+                    attributes_list.append(line)
+                    for element in attributes[key]:
+                        if isinstance(element, str):
+                            line = "   " + element
+                            print(line)
+                            attributes_list.append(line)
+                        else:
+                            line = "   " + object_to_text(element)
+                            print(line)
+                            attributes_list.append(line)
+                elif isinstance(attributes[key], str):
+                    line = key + " : " + attributes[key]
+                    print(line)
+                    attributes_list.append(line)
                 else:
-                    print(field, " : ", attributes[field])
+                    line = key + " : " + object_to_text(attributes[key])
+                    print(line)
+                    attributes_list.append(line)
+
+        else:
+            for field in fields:
+                if field in attributes.keys():
+                    if isinstance(attributes[field], list):
+                        line = field + " :"
+                        print(line)
+                        attributes_list.append(line)
+                        for element in attributes[field]:
+                            if isinstance(element, str):
+                                line = "   " + element
+                                print(line)
+                                attributes_list.append(line)
+                            else:
+                                line = "   " + object_to_text(element)
+                                print(line)
+                                attributes_list.append(line)
+                    elif isinstance(attributes[field], str):
+                        line = field + " : " + attributes[field]
+                        print(line)
+                        attributes_list.append(line)
+                    else:
+                        line = field + " : " + object_to_text(attributes[field])
+                        print(line)
+                        attributes_list.append(line)
+
+    except BaseException as attribute_error:
+        line = 'ERROR - LDAPAttributeError: ' + str(attribute_error) + ' Exception Name :' + str(type(attribute_error))
+        attributes_list.append(line)
+
+    return attributes_list
+
+
+def response_to_list(response, fields, debug=False):  # Connection.response
+    response_list = []
+    attributes = []
+    try:
+        for index, one_response in enumerate(response):
+            if 'attributes' in response.keys():
+                attributes = get_attributes(one_response['attributes'], fields)
+            else:
+                if debug:
+                    print("$$$$$$$$->", index + 1, " of ", len(response), " Response without attributes")
+            response_list += attributes
+    except BaseException as response_error:
+        line = 'ERROR - LDAPResponseError: ' + str(response_error) + ' Exception Name :' + str(type(response_error))
+        response_list += line
+
+    return response_list
 
 
 def ldap_search(uri, base, query, fields=[], debug=False):
@@ -88,46 +147,32 @@ def ldap_search(uri, base, query, fields=[], debug=False):
     :return:
     '''
 
+    search_response = []
+
     if debug:
         print()
         print('URI :', uri)
         print('BASE :', base)
         print('QUERY :', query)
-    entry_counter = 0
 
     try:
         server = Server(uri, use_ssl=True, get_info=ALL)
         conn = Connection(server, user=user_name, password=user_password, auto_bind=True)
         # conn = Connection(server, auto_bind=True, authentication=SASL, sasl_mechanism='GSSAPI')
-        # print(conn)
         conn.search(base, query, attributes=ALL_ATTRIBUTES)
         if debug:
             print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
             # print()
-        search_response = conn.response
+        search_response = response_to_list(conn.response, fields)
 
-        for index, one_response in enumerate(conn.response):
-            if 'attributes' in one_response.keys():
-                print("$$$$$$$$->", index+1, " of ", len(conn.response))
-                entry_counter += 1
-                print("$$$Ent->", entry_counter, " of ", len(conn.entries))
-                get_attributes(one_response['attributes'], fields)
-            else:
-                if debug:
-                    print("$$$$$$$$->", index+1, " of ", len(conn.response), " Response without attributes")
-
-    except BaseException as e:
-        print('LDAPError: ', e)
-        print('Exception Name :', type(e))
-        search_response = []
-
-    # print('---End LDAP SEARCH')
-    # print()
+    except BaseException as search_error:
+        line = 'ERROR - LDAPSearchError: ' + str(search_error) + ' Exception Name :' + str(type(search_error))
+        search_response += line
 
     return search_response
 
 
-def find_domains(uri, base, debug=False):  # for main domains with sub-domains
+def find_domains(uri, base, debug=False):  # for domains with sub-domains
 
     query = '(&(objectclass=domain)(dc=*))'
     q_response = ldap_search(uri, base, query, ['dc', 'distinguishedName', 'subRefs'])
@@ -152,20 +197,17 @@ def find_domains(uri, base, debug=False):  # for main domains with sub-domains
 
 def find_users(uri, base):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
-    q_response = ldap_search(uri, base, query)
-    return q_response
+    return ldap_search(uri, base, query)
 
 
 def find_computers(uri, base):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
-    q_response = ldap_search(uri, base, query)
-    return q_response
+    return ldap_search(uri, base, query)
 
 
 def find_groups(uri, base):
     query = '(&(objectclass=group)(name=*' + look_for + '*))'
-    q_response = ldap_search(uri, base, query)
-    return q_response
+    return ldap_search(uri, base, query)
 
 
 def main():
