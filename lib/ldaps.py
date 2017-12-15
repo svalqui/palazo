@@ -66,24 +66,24 @@ def get_attributes(attributes, fields=[]):  # Attributes is a Dict
             for key in sorted(attributes.keys()):
                 if isinstance(attributes[key], list):
                     line = key + " :"
-                    print(line)
+                    # print(line)
                     attributes_list.append(line)
                     for element in attributes[key]:
                         if isinstance(element, str):
                             line = "   " + element
-                            print(line)
+                            # print(line)
                             attributes_list.append(line)
                         else:
                             line = "   " + object_to_text(element)
-                            print(line)
+                            # print(line)
                             attributes_list.append(line)
                 elif isinstance(attributes[key], str):
                     line = key + " : " + attributes[key]
-                    print(line)
+                    # print(line)
                     attributes_list.append(line)
                 else:
                     line = key + " : " + object_to_text(attributes[key])
-                    print(line)
+                    # print(line)
                     attributes_list.append(line)
 
         else:
@@ -91,24 +91,24 @@ def get_attributes(attributes, fields=[]):  # Attributes is a Dict
                 if field in attributes.keys():
                     if isinstance(attributes[field], list):
                         line = field + " :"
-                        print(line)
+                        # print(line)
                         attributes_list.append(line)
                         for element in attributes[field]:
                             if isinstance(element, str):
                                 line = "   " + element
-                                print(line)
+                                # print(line)
                                 attributes_list.append(line)
                             else:
                                 line = "   " + object_to_text(element)
-                                print(line)
+                                # print(line)
                                 attributes_list.append(line)
                     elif isinstance(attributes[field], str):
                         line = field + " : " + attributes[field]
-                        print(line)
+                        # print(line)
                         attributes_list.append(line)
                     else:
                         line = field + " : " + object_to_text(attributes[field])
-                        print(line)
+                        # print(line)
                         attributes_list.append(line)
 
     except BaseException as attribute_error:
@@ -118,17 +118,17 @@ def get_attributes(attributes, fields=[]):  # Attributes is a Dict
     return attributes_list
 
 
-def response_to_list(response, fields, debug=False):  # Connection.response
+def response_to_list(response, fields=[], debug=False):  # Connection.response
     response_list = []
-    attributes = []
     try:
         for index, one_response in enumerate(response):
-            if 'attributes' in response.keys():
+            if 'attributes' in one_response.keys():
                 attributes = get_attributes(one_response['attributes'], fields)
+                response_list += attributes
             else:
                 if debug:
                     print("$$$$$$$$->", index + 1, " of ", len(response), " Response without attributes")
-            response_list += attributes
+
     except BaseException as response_error:
         line = 'ERROR - LDAPResponseError: ' + str(response_error) + ' Exception Name :' + str(type(response_error))
         response_list += line
@@ -163,11 +163,21 @@ def ldap_search(uri, base, query, fields=[], debug=False):
         if debug:
             print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
             # print()
-        search_response = response_to_list(conn.response, fields)
+
+        search_response = conn.response
+        # search_response = response_to_list(conn.response, fields)
+
+        # for index, one_response in enumerate(search_response):
+        #     if 'attributes' in search_response.keys():
+        #         attributes = get_attributes(one_response['attributes'], fields)
+        #     else:
+        #         if debug:
+        #             print("$$$$$$$$->", index + 1, " of ", len(conn.response), " Response without attributes")
 
     except BaseException as search_error:
         line = 'ERROR - LDAPSearchError: ' + str(search_error) + ' Exception Name :' + str(type(search_error))
-        search_response += line
+        if debug:
+            print(line)
 
     return search_response
 
@@ -197,17 +207,20 @@ def find_domains(uri, base, debug=False):  # for domains with sub-domains
 
 def find_users(uri, base):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
-    return ldap_search(uri, base, query)
+    response = ldap_search(uri, base, query)
+    return response_to_list(response)
 
 
 def find_computers(uri, base):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
-    return ldap_search(uri, base, query)
+    response = ldap_search(uri, base, query)
+    return response_to_list(response)
 
 
 def find_groups(uri, base):
     query = '(&(objectclass=group)(name=*' + look_for + '*))'
-    return ldap_search(uri, base, query)
+    response = ldap_search(uri, base, query)
+    return response_to_list(response)
 
 
 def main():
@@ -216,7 +229,10 @@ def main():
     print()
     for base in domains:
         print(">>>-------------->DOMAIN BASE : ", base, domains)
-        find_users(URI, base)
+        l = find_users(URI, base)
+        print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS ------       search concluded... printing")
+        for i in l:
+            print(i)
 
 
 if __name__ == '__main__':
