@@ -8,8 +8,11 @@ import getpass
 import configparser
 import pathlib
 import datetime
-from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 
+class LdResponse(object):
+    def __init__(self):
+        self.header = ""
+        self.content = ""
 
 def object_to_text(item):
 
@@ -29,9 +32,62 @@ def object_to_text(item):
     return text
 
 
-def get_attributes(attributes, fields=[]):  # Attributes is a Dict
+def attributes_to_class(attributes, fields=[]):  # Attributes is a Dict
     attributes_list = []
+    base_class = LdResponse
+    try:
+        if len(fields) == 0:
+            for key in sorted(attributes.keys()):
+                base_class.header = key
+                if isinstance(attributes[key], list):
+                    # print(line)
+                    for element in attributes[key]:
+                        if isinstance(element, str):
+                            line = element
+                            # print(line)
+                            attributes_list.append(line)
+                        else:
+                            line = object_to_text(element)
+                            # print(line)
+                            attributes_list.append(line)
+                    base_class.content = attributes_list
+                elif isinstance(attributes[key], str):
+                    base_class.content = attributes[key]
+                else:
+                    base_class.content = object_to_text(attributes[key])
+                attributes_list.append(base_class)
 
+        else:
+            for field in fields:
+                if field in attributes.keys():
+                    base_class.header = field
+                    if isinstance(attributes[field], list):
+                        for element in attributes[field]:
+                            if isinstance(element, str):
+                                line = element
+                                # print(line)
+                                attributes_list.append(line)
+                            else:
+                                line = object_to_text(element)
+                                # print(line)
+                                attributes_list.append(line)
+                            base_class.content = attributes_list
+                    elif isinstance(attributes[field], str):
+                        base_class.content = attributes[field]
+                    else:
+                        base_class.content =object_to_text(attributes[field])
+                    attributes_list.append(base_class)
+
+    except BaseException as attribute_error:
+        base_class.header = 'ERROR - LDAPAttributeError: ' + str(attribute_error) + ' Exception Name :' \
+                            + str(type(attribute_error))
+        attributes_list.append(base_class.header)
+
+    return attributes_list  # list of Class LdResponse
+
+
+def attributes_to_list(attributes, fields=[]):  # Attributes is a Dict
+    attributes_list = []
     try:
         if len(fields) == 0:
             for key in sorted(attributes.keys()):
@@ -89,22 +145,42 @@ def get_attributes(attributes, fields=[]):  # Attributes is a Dict
     return attributes_list
 
 
-def response_to_list(response, fields=[], debug=False):  # Connection.response one to many entries
+def response_to_list(response, fields=[], debug=False):  # Connection.response, one to many entries
     response_list = []
     try:
         for index, one_response in enumerate(response):
             if 'attributes' in one_response.keys():
-                attributes = get_attributes(one_response['attributes'], fields)
+                attributes = attributes_to_list(one_response['attributes'], fields)
                 response_list.append(attributes)
             else:
                 if debug:
                     print("$$$$$$$$->", index + 1, " of ", len(response), " Response without attributes")
 
     except BaseException as response_error:
-        line = 'ERROR - LDAPResponseError: ' + str(response_error) + ' Exception Name :' + str(type(response_error))
+        line = 'ERROR - LDAPResponseListError: ' + str(response_error) + ' Exception Name :' + str(type(response_error))
         response_list.append(line)
 
     return response_list  # List of list, one list per entry
+
+
+def response_to_list_class(response, fields=[], debug=False):
+    response_list = []
+    base_class = LdResponse
+    try:
+        for index, one_response in enumerate(response):
+            if 'attributes' in one_response.keys():
+                attributes = attributes_to_class(one_response['attributes'], fields)
+                response_list.append(attributes)
+            else:
+                if debug:
+                    print("$$$$$$$$->", index + 1, " of ", len(response), " Response without attributes")
+
+    except BaseException as response_error:
+        base_class.header = 'ERROR - LDAPResponseListClassError: ' + str(response_error) + ' Exception Name :' \
+                            + str(type(response_error))
+        response_list.append(base_class.header)
+
+    return response_list  # List of list of class LdClass
 
 
 def ldap_search(uri, base, user_name, user_password, query, debug=False):
@@ -118,6 +194,7 @@ def ldap_search(uri, base, user_name, user_password, query, debug=False):
     :param debug:
     :return:
     '''
+    from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 
     search_response = []
 
@@ -150,6 +227,8 @@ def find_domains(uri, base, user_name, user_password, domains=[], debug=False): 
 
     query = '(&(objectclass=domain)(dc=*))'
     q_response = ldap_search(uri, base, user_name, user_password, query)
+    if debug:
+        print(len(q_response))
     if len(q_response) > 0:
         for one_response in q_response:
             if 'attributes' in one_response.keys():
@@ -226,7 +305,12 @@ def main():
         l = find_users(URI, base, user_name, user_password, look_for)
         print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS ------       search concluded... printing")
         for i in l:
-            print(i)
+            if isinstance(i, list):
+                for j in i:
+                    print(j)
+                print()
+            else:
+                print(i)
 
 
 if __name__ == '__main__':
