@@ -10,35 +10,6 @@ import pathlib
 import datetime
 from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 
-# Removing configuration from Project, configuration file 'ldapq.ini' moved 2 directories up
-file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
-print('file_conf_dir', file_conf_dir)
-file_conf_name = pathlib.Path(file_conf_dir) / 'ldapq.ini'
-print('file_conf_name', file_conf_name)
-
-# Reading configuration
-config = configparser.ConfigParser()
-
-domains = []  # List of Domains and sub-domains
-
-try:
-    config.read(str(file_conf_name))
-    user_name = config['Settings']['default_user']
-    URI = config['Settings']['uri']
-    BASE = config['Settings']['default_base']
-    show_fields = config['Filters']['show_attributes'].split(',')
-    proceed = True
-
-except BaseException as e:
-    print('--FileError: ', e)
-    print('--Exception Name :', type(e))
-    proceed = False
-
-# Query
-look_for = input("Search AD for :")
-
-user_password = getpass.getpass()
-
 
 def object_to_text(item):
 
@@ -118,31 +89,32 @@ def get_attributes(attributes, fields=[]):  # Attributes is a Dict
     return attributes_list
 
 
-def response_to_list(response, fields=[], debug=False):  # Connection.response
+def response_to_list(response, fields=[], debug=False):  # Connection.response one to many entries
     response_list = []
     try:
         for index, one_response in enumerate(response):
             if 'attributes' in one_response.keys():
                 attributes = get_attributes(one_response['attributes'], fields)
-                response_list += attributes
+                response_list.append(attributes)
             else:
                 if debug:
                     print("$$$$$$$$->", index + 1, " of ", len(response), " Response without attributes")
 
     except BaseException as response_error:
         line = 'ERROR - LDAPResponseError: ' + str(response_error) + ' Exception Name :' + str(type(response_error))
-        response_list += line
+        response_list.append(line)
 
-    return response_list
+    return response_list  # List of list, one list per entry
 
 
-def ldap_search(uri, base, query, fields=[], debug=False):
+def ldap_search(uri, base, user_name, user_password, query, debug=False):
     '''
     ldap search
     :param uri:
     :param base:
+    :param user_name:
+    :param user_password:
     :param query:
-    :param fields:
     :param debug:
     :return:
     '''
@@ -165,14 +137,6 @@ def ldap_search(uri, base, query, fields=[], debug=False):
             # print()
 
         search_response = conn.response
-        # search_response = response_to_list(conn.response, fields)
-
-        # for index, one_response in enumerate(search_response):
-        #     if 'attributes' in search_response.keys():
-        #         attributes = get_attributes(one_response['attributes'], fields)
-        #     else:
-        #         if debug:
-        #             print("$$$$$$$$->", index + 1, " of ", len(conn.response), " Response without attributes")
 
     except BaseException as search_error:
         line = 'ERROR - LDAPSearchError: ' + str(search_error) + ' Exception Name :' + str(type(search_error))
@@ -182,10 +146,10 @@ def ldap_search(uri, base, query, fields=[], debug=False):
     return search_response
 
 
-def find_domains(uri, base, debug=False):  # for domains with sub-domains
+def find_domains(uri, base, user_name, user_password, domains=[], debug=False):  # for domains with sub-domains
 
     query = '(&(objectclass=domain)(dc=*))'
-    q_response = ldap_search(uri, base, query, ['dc', 'distinguishedName', 'subRefs'])
+    q_response = ldap_search(uri, base, user_name, user_password, query)
     if len(q_response) > 0:
         for one_response in q_response:
             if 'attributes' in one_response.keys():
@@ -201,35 +165,65 @@ def find_domains(uri, base, debug=False):  # for domains with sub-domains
                         if len(one_response['attributes']['subRefs']) > 0:
                             for ref in one_response['attributes']['subRefs']:
                                 # print("ref -> ", ref)
-                                find_domains(uri, ref)
+                                find_domains(uri, ref, user_name, user_password, domains)
     return domains
 
 
-def find_users(uri, base):
+def find_users(uri, base, user_name, user_password, look_for):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
-    response = ldap_search(uri, base, query)
-    return response_to_list(response)
+    response = ldap_search(uri, base, user_name, user_password, query)
+    return response_to_list(response)  # List of list, one list per entry
 
 
-def find_computers(uri, base):
+def find_computers(uri, base, user_name, user_password, look_for):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
-    response = ldap_search(uri, base, query)
-    return response_to_list(response)
+    response = ldap_search(uri, base, user_name, user_password, query)
+    return response_to_list(response)  # List of list, one list per entry
 
 
-def find_groups(uri, base):
+def find_groups(uri, base, user_name, user_password, look_for):
     query = '(&(objectclass=group)(name=*' + look_for + '*))'
-    response = ldap_search(uri, base, query)
-    return response_to_list(response)
+    response = ldap_search(uri, base, user_name, user_password, query)
+    return response_to_list(response)  # List of list, one list per entry
 
 
 def main():
+
     # ldap_search(URI, BASE, QUERY)
-    find_domains(URI, BASE)
+
+    # Removing configuration from Project, configuration file 'ldapq.ini' moved 2 directories up
+    file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
+    print('file_conf_dir', file_conf_dir)
+    file_conf_name = pathlib.Path(file_conf_dir) / 'ldapq.ini'
+    print('file_conf_name', file_conf_name)
+
+    # Reading configuration
+    config = configparser.ConfigParser()
+
+    try:
+        config.read(str(file_conf_name))
+        user_name = config['Settings']['default_user']
+        URI = config['Settings']['uri']
+        BASE = config['Settings']['default_base']
+        show_fields = config['Filters']['show_attributes'].split(',')
+        proceed = True
+
+    except BaseException as e:
+        print('--FileError: ', e)
+        print('--Exception Name :', type(e))
+        proceed = False
+
+    # Query
+    look_for = input("Search AD for :")
+    user_password = getpass.getpass()
+
+    domains = find_domains(URI, BASE, user_name, user_password)
+    print()
+    print(domains)
     print()
     for base in domains:
         print(">>>-------------->DOMAIN BASE : ", base, domains)
-        l = find_users(URI, base)
+        l = find_users(URI, base, user_name, user_password, look_for)
         print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS ------       search concluded... printing")
         for i in l:
             print(i)
