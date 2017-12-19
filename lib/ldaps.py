@@ -9,10 +9,12 @@ import configparser
 import pathlib
 import datetime
 
+
 class LdResponse(object):
     def __init__(self):
         self.header = ""
-        self.content = ""
+        self.content = []
+
 
 def object_to_text(item):
 
@@ -32,58 +34,75 @@ def object_to_text(item):
     return text
 
 
-def attributes_to_class(attributes, fields=[]):  # Attributes is a Dict
+def attributes_to_class(attributes, fields=[], debug=False):  # Attributes is a Dict
     attributes_list = []
-    base_class = LdResponse
     try:
         if len(fields) == 0:
             for key in sorted(attributes.keys()):
+                base_class = LdResponse()
                 base_class.header = key
                 if isinstance(attributes[key], list):
                     # print(line)
+                    member_list = []
                     for element in attributes[key]:
                         if isinstance(element, str):
                             line = element
                             # print(line)
-                            attributes_list.append(line)
+                            member_list.append(line)
                         else:
                             line = object_to_text(element)
                             # print(line)
-                            attributes_list.append(line)
-                    base_class.content = attributes_list
+                            member_list.append(line)
+                    base_class.content = member_list
+                    attributes_list.append(base_class)
+                    if debug:
+                        print("ATTRIBUTES Adding list", base_class.header, base_class.content)
+                        print(attributes_list[0].header, attributes_list[-1].header, len(attributes_list))
+                        print()
                 elif isinstance(attributes[key], str):
-                    base_class.content = attributes[key]
+                    base_class.content = [attributes[key]]  # making it a list, all content to be list
+                    attributes_list.append(base_class)
+                    if debug:
+                        print("ATTRIBUTES Adding str", base_class.header, base_class.content)
+                        print(attributes_list[0].header, attributes_list[-1].header, len(attributes_list))
                 else:
-                    base_class.content = object_to_text(attributes[key])
-                attributes_list.append(base_class)
+                    base_class.content = [object_to_text(attributes[key])]  # making it a list, all content to be list
+                    attributes_list.append(base_class)
+                    if debug:
+                        print("ATTRIBUTES Adding else", base_class.header, base_class.content)
+                        print(attributes_list[0].header, attributes_list[-1].header, len(attributes_list))
 
         else:
             for field in fields:
+                base_class = LdResponse()
                 if field in attributes.keys():
                     base_class.header = field
                     if isinstance(attributes[field], list):
+                        member_list=[]
                         for element in attributes[field]:
                             if isinstance(element, str):
-                                line = element
-                                # print(line)
-                                attributes_list.append(line)
+                                member_list.append(element)
                             else:
                                 line = object_to_text(element)
                                 # print(line)
-                                attributes_list.append(line)
-                            base_class.content = attributes_list
+                                member_list.append(line)
+                        base_class.content = member_list
                     elif isinstance(attributes[field], str):
-                        base_class.content = attributes[field]
+                        base_class.content = [attributes[field]]  # making it a list, all content to be list
                     else:
-                        base_class.content =object_to_text(attributes[field])
+                        base_class.content = [object_to_text(attributes[field])]  # making it a list, all content to be list
                     attributes_list.append(base_class)
 
     except BaseException as attribute_error:
+        base_class = LdResponse()
         base_class.header = 'ERROR - LDAPAttributeError: ' + str(attribute_error) + ' Exception Name :' \
                             + str(type(attribute_error))
-        attributes_list.append(base_class.header)
+        base_class.content = [" "]
+        if debug:
+            print(base_class.header)
+        attributes_list.append(base_class)
 
-    return attributes_list  # list of Class LdResponse
+    return attributes_list  # list of Class LdResponse, LdResponse.content always a list
 
 
 def attributes_to_list(attributes, fields=[]):  # Attributes is a Dict
@@ -165,7 +184,7 @@ def response_to_list(response, fields=[], debug=False):  # Connection.response, 
 
 def response_to_list_class(response, fields=[], debug=False):
     response_list = []
-    base_class = LdResponse
+
     try:
         for index, one_response in enumerate(response):
             if 'attributes' in one_response.keys():
@@ -176,11 +195,13 @@ def response_to_list_class(response, fields=[], debug=False):
                     print("$$$$$$$$->", index + 1, " of ", len(response), " Response without attributes")
 
     except BaseException as response_error:
+        base_class = LdResponse()
         base_class.header = 'ERROR - LDAPResponseListClassError: ' + str(response_error) + ' Exception Name :' \
                             + str(type(response_error))
-        response_list.append(base_class.header)
+        base_class.content = [" "]  # making it a list, all content to be list
+        response_list.append(base_class)
 
-    return response_list  # List of list of class LdClass
+    return response_list  # List of list of class LdResponse
 
 
 def ldap_search(uri, base, user_name, user_password, query, debug=False):
@@ -251,19 +272,19 @@ def find_domains(uri, base, user_name, user_password, domains=[], debug=False): 
 def find_users(uri, base, user_name, user_password, look_for):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
     response = ldap_search(uri, base, user_name, user_password, query)
-    return response_to_list(response)  # List of list, one list per entry
+    return response_to_list_class(response)  # List of list of class Ld
 
 
 def find_computers(uri, base, user_name, user_password, look_for):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
     response = ldap_search(uri, base, user_name, user_password, query)
-    return response_to_list(response)  # List of list, one list per entry
+    return response_to_list_class(response)  # List of list, one list per entry
 
 
 def find_groups(uri, base, user_name, user_password, look_for):
     query = '(&(objectclass=group)(name=*' + look_for + '*))'
     response = ldap_search(uri, base, user_name, user_password, query)
-    return response_to_list(response)  # List of list, one list per entry
+    return response_to_list_class(response)  # List of list, one list per entry
 
 
 def main():
@@ -307,10 +328,11 @@ def main():
         for i in l:
             if isinstance(i, list):
                 for j in i:
-                    print(j)
+                    print(j.header, j.content)
                 print()
             else:
                 print(i)
+                print(i.header, i.content)
 
 
 if __name__ == '__main__':
