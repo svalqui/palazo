@@ -324,7 +324,7 @@ def main():
     for base in domains:
         print(">>>-------------->DOMAIN BASE : ", base, domains)
         l = find_users(URI, base, user_name, user_password, look_for)
-        print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS ------       search concluded... printing")
+        print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS ------       search concluded... printing ", len(l))
         for i in l:
             if isinstance(i, list):
                 for j in i:
