@@ -275,10 +275,10 @@ def find_users(uri, base, user_name, user_password, look_for):
     return response_to_list_class(response)  # List of list of class Ld
 
 
-def find_computers(uri, base, user_name, user_password, look_for):
+def find_computers(uri, base, user_name, user_password, look_for, fields=[]):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
     response = ldap_search(uri, base, user_name, user_password, query)
-    return response_to_list_class(response)  # List of list, one list per entry
+    return response_to_list_class(response, fields)  # List of list, one list per entry
 
 
 def find_groups(uri, base, user_name, user_password, look_for):
