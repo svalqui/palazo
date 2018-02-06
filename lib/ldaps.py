@@ -90,8 +90,11 @@ def attributes_to_class(attributes, fields=[], debug=False):  # Attributes is a 
                     elif isinstance(attributes[field], str):
                         base_class.content = [attributes[field]]  # making it a list, all content to be list
                     else:
-                        base_class.content = [object_to_text(attributes[field])]  # making it a list, all content to be list
+                        base_class.content = [object_to_text(attributes[field])]  # making it a list,all content to list
                     attributes_list.append(base_class)
+                else:
+                    base_class.header = field
+                    base_class.content = [""]
 
     except BaseException as attribute_error:
         base_class = LdResponse()
