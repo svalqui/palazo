@@ -95,6 +95,7 @@ def attributes_to_class(attributes, fields=[], debug=False):  # Attributes is a 
                 else:
                     base_class.header = field
                     base_class.content = [""]
+                    attributes_list.append(base_class)
 
     except BaseException as attribute_error:
         base_class = LdResponse()
