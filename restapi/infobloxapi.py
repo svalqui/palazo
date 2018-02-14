@@ -8,11 +8,11 @@
 
 import requests
 from requests.auth import HTTPBasicAuth
-import lib.restapimaster
+import restapi.restapimaster
 import json
 
 
-class IB(lib.restapimaster.RestApi):
+class IB(restapi.restapimaster.RestApi):
     def __init__(self, user_name, password, host_name, ipam_object=""):
         super(IB, self).__init__()
         self.user_name = user_name

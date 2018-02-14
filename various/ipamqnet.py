@@ -1,5 +1,5 @@
 import getpass
-from lib.restapi.infobloxapi import IB
+from restapi.infobloxapi import IB
 
 #script-user
 user_name = input("Username: ")

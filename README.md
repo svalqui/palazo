@@ -1,4 +1,4 @@
 # palazo
 
-Set of CLI, REST API Calls, commonly used by system administrators.
+Set of libraries for system administrators/developers/aficionados.
 

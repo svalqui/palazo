@@ -2,11 +2,11 @@
 # http://www.macvendorlookup.com/api/v2/{MAC_Address}
 
 import requests
-import lib.restapimaster
+import restapi.restapimaster
 import time
 
 
-class QueryMac(lib.restapimaster.RestApi):
+class QueryMac(restapi.restapimaster.RestApi):
     def __init__(self):
         super(QueryMac, self).__init__()
         self.urlbase = "http://api.macvendors.com/"
