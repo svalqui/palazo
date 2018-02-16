@@ -1,7 +1,6 @@
 # notes
 #
-# looking for emails.
-# ldapsearch -x -h domain.org -D "user@domain.org" -W -b "ou=an-ou,dc=domain, dc=org" -s sub "(cn=*)" cn mail sn
+
 
 import sys
 import getpass
@@ -11,12 +10,20 @@ import datetime
 
 
 class LdResponse(object):
+    """
+    Class holder for the response.
+    """
+
     def __init__(self):
         self.header = ""
         self.content = []
 
 
 def object_to_text(item):
+    """
+    :param item: item of the response
+    :return:
+    """
 
     try:
         if isinstance(item, datetime.datetime):
@@ -35,6 +42,14 @@ def object_to_text(item):
 
 
 def attributes_to_class(attributes, fields=[], debug=False):  # Attributes is a Dict
+    """
+    Flatens the Dictionary returned by ldap3; index to header, sub-structures to
+
+    :param attributes:
+    :param fields:
+    :param debug:
+    :return:
+    """
     attributes_list = []
     try:
         if len(fields) == 0:
@@ -110,6 +125,11 @@ def attributes_to_class(attributes, fields=[], debug=False):  # Attributes is a 
 
 
 def attributes_to_list(attributes, fields=[]):  # Attributes is a Dict
+    """
+    :param attributes: a Dictionary from ldap3.connection.response
+    :param fields: list of field to be included in the return is non all fields would be included.
+    :return:
+    """
     attributes_list = []
     try:
         if len(fields) == 0:
@@ -209,7 +229,7 @@ def response_to_list_class(response, fields=[], debug=False):
 
 
 def ldap_search(uri, base, user_name, user_password, query, debug=False):
-    '''
+    """
     ldap search
     :param uri:
     :param base:
@@ -218,10 +238,12 @@ def ldap_search(uri, base, user_name, user_password, query, debug=False):
     :param query:
     :param debug:
     :return:
-    '''
+
+    """
     from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 
-    search_response = []
+    search_response = []  # list of dictionaries from ldap3
+    line_error = ''
 
     if debug:
         print()
@@ -241,17 +263,17 @@ def ldap_search(uri, base, user_name, user_password, query, debug=False):
         search_response = conn.response
 
     except BaseException as search_error:
-        line = 'ERROR - LDAPSearchError: ' + str(search_error) + ' Exception Name :' + str(type(search_error))
+        line_error = 'ERROR - LDAPSearchError: ' + str(search_error) + ' Exception Name :' + str(type(search_error))
         if debug:
-            print(line)
+            print(line_error)
 
-    return search_response
+    return search_response, line_error
 
 
 def find_domains(uri, base, user_name, user_password, domains=[], debug=False):  # for domains with sub-domains
 
     query = '(&(objectclass=domain)(dc=*))'
-    q_response = ldap_search(uri, base, user_name, user_password, query)
+    q_response, l_error = ldap_search(uri, base, user_name, user_password, query)
     if debug:
         print(len(q_response))
     if len(q_response) > 0:
@@ -270,7 +292,8 @@ def find_domains(uri, base, user_name, user_password, domains=[], debug=False): 
                             for ref in one_response['attributes']['subRefs']:
                                 # print("ref -> ", ref)
                                 find_domains(uri, ref, user_name, user_password, domains)
-    return domains
+
+    return domains, l_error
 
 
 def find_users(uri, base, user_name, user_password, look_for):
