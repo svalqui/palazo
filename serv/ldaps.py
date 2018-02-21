@@ -271,9 +271,9 @@ def ldap_search(uri, base, user_name, user_password, query, debug=False):
 
 
 def find_domains(uri, base, user_name, user_password, domains=[], debug=False):  # for domains with sub-domains
-
+    #   needs catch exceptions
     query = '(&(objectclass=domain)(dc=*))'
-    q_response, l_error = ldap_search(uri, base, user_name, user_password, query)
+    q_response, line_error = ldap_search(uri, base, user_name, user_password, query)
     if debug:
         print(len(q_response))
     if len(q_response) > 0:
@@ -293,24 +293,24 @@ def find_domains(uri, base, user_name, user_password, domains=[], debug=False): 
                                 # print("ref -> ", ref)
                                 find_domains(uri, ref, user_name, user_password, domains)
 
-    return domains, l_error
+    return domains, line_error
 
 
 def find_users(uri, base, user_name, user_password, look_for):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
-    response = ldap_search(uri, base, user_name, user_password, query)
+    response, line_error = ldap_search(uri, base, user_name, user_password, query)
     return response_to_list_class(response)  # List of list of class Ld
 
 
 def find_computers(uri, base, user_name, user_password, look_for, fields=[]):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
-    response = ldap_search(uri, base, user_name, user_password, query)
+    response, line_error = ldap_search(uri, base, user_name, user_password, query)
     return response_to_list_class(response, fields)  # List of list, one list per entry
 
 
 def find_groups(uri, base, user_name, user_password, look_for):
     query = '(&(objectclass=group)(name=*' + look_for + '*))'
-    response = ldap_search(uri, base, user_name, user_password, query)
+    response, line_error = ldap_search(uri, base, user_name, user_password, query)
     return response_to_list_class(response)  # List of list, one list per entry
 
 
@@ -344,9 +344,10 @@ def main():
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
-    domains = find_domains(URI, BASE, user_name, user_password)
+    domains, line_error = find_domains(URI, BASE, user_name, user_password)
     print()
-    print(domains)
+    print("Domains: ", domains)
+    print("Error: ", line_error)
     print()
     for base in domains:
         print(">>>-------------->DOMAIN BASE : ", base, domains)
