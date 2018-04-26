@@ -1,5 +1,3 @@
-# notes
-#
 
 
 import sys
@@ -21,8 +19,10 @@ class LdResponse(object):
 
 def object_to_text(item):
     """
+    Converts objects to ext for display
+
     :param item: item of the response
-    :return:
+    :return: text
     """
 
     try:
@@ -41,9 +41,9 @@ def object_to_text(item):
     return text
 
 
-def attributes_to_class(attributes, fields=[], debug=False):  # Attributes is a Dict
+def attributes_to_class(attributes, fields=None, debug=False):  # Attributes is a Dict
     """
-    Flatens the Dictionary returned by ldap3; index to header, sub-structures to
+    Flats the Dictionary returned by ldap3; index to header, sub-structures to content
 
     :param attributes:
     :param fields:
@@ -51,6 +51,8 @@ def attributes_to_class(attributes, fields=[], debug=False):  # Attributes is a 
     :return:
     """
     attributes_list = []
+    if fields is None:
+        fields = []
     try:
         if len(fields) == 0:
             for key in sorted(attributes.keys()):
@@ -124,88 +126,6 @@ def attributes_to_class(attributes, fields=[], debug=False):  # Attributes is a 
     return attributes_list  # list of Class LdResponse, LdResponse.content always a list
 
 
-def attributes_to_list(attributes, fields=[]):  # Attributes is a Dict
-    """
-    :param attributes: a Dictionary from ldap3.connection.response
-    :param fields: list of field to be included in the return is non all fields would be included.
-    :return:
-    """
-    attributes_list = []
-    try:
-        if len(fields) == 0:
-            for key in sorted(attributes.keys()):
-                if isinstance(attributes[key], list):
-                    line = key + " :"
-                    # print(line)
-                    attributes_list.append(line)
-                    for element in attributes[key]:
-                        if isinstance(element, str):
-                            line = "   " + element
-                            # print(line)
-                            attributes_list.append(line)
-                        else:
-                            line = "   " + object_to_text(element)
-                            # print(line)
-                            attributes_list.append(line)
-                elif isinstance(attributes[key], str):
-                    line = key + " : " + attributes[key]
-                    # print(line)
-                    attributes_list.append(line)
-                else:
-                    line = key + " : " + object_to_text(attributes[key])
-                    # print(line)
-                    attributes_list.append(line)
-
-        else:
-            for field in fields:
-                if field in attributes.keys():
-                    if isinstance(attributes[field], list):
-                        line = field + " :"
-                        # print(line)
-                        attributes_list.append(line)
-                        for element in attributes[field]:
-                            if isinstance(element, str):
-                                line = "   " + element
-                                # print(line)
-                                attributes_list.append(line)
-                            else:
-                                line = "   " + object_to_text(element)
-                                # print(line)
-                                attributes_list.append(line)
-                    elif isinstance(attributes[field], str):
-                        line = field + " : " + attributes[field]
-                        # print(line)
-                        attributes_list.append(line)
-                    else:
-                        line = field + " : " + object_to_text(attributes[field])
-                        # print(line)
-                        attributes_list.append(line)
-
-    except BaseException as attribute_error:
-        line = 'ERROR - LDAPAttributeError: ' + str(attribute_error) + ' Exception Name :' + str(type(attribute_error))
-        attributes_list.append(line)
-
-    return attributes_list
-
-
-def response_to_list(response, fields=[], debug=False):  # Connection.response, one to many entries
-    response_list = []
-    try:
-        for index, one_response in enumerate(response):
-            if 'attributes' in one_response.keys():
-                attributes = attributes_to_list(one_response['attributes'], fields)
-                response_list.append(attributes)
-            else:
-                if debug:
-                    print("$$$$$$$$->", index + 1, " of ", len(response), " Response without attributes")
-
-    except BaseException as response_error:
-        line = 'ERROR - LDAPResponseListError: ' + str(response_error) + ' Exception Name :' + str(type(response_error))
-        response_list.append(line)
-
-    return response_list  # List of list, one list per entry
-
-
 def response_to_list_class(response, fields=[], debug=False):
     response_list = []
 
@@ -242,9 +162,6 @@ def ldap_search(uri, base, user_name, user_password, query, debug=False):
     """
     from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 
-    search_response = []  # list of dictionaries from ldap3
-    line_error = ''
-
     if debug:
         print()
         print('URI :', uri)
@@ -258,65 +175,76 @@ def ldap_search(uri, base, user_name, user_password, query, debug=False):
         conn.search(base, query, attributes=ALL_ATTRIBUTES)
         if debug:
             print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
-            # print()
 
-        search_response = conn.response
+        search_response = conn.response  # List of Dictionaries
 
     except BaseException as search_error:
-        line_error = 'ERROR - LDAPSearchError: ' + str(search_error) + ' Exception Name :' + str(type(search_error))
+        search_response = 'ERROR-LDAPSearchError: ' + str(search_error) + ' Exception Name :' + str(type(search_error))
         if debug:
-            print(line_error)
+            print(search_response)  # String
 
-    return search_response, line_error
+    return search_response  # Returns list of dictionaries or string(error)
 
 
-def find_domains(uri, base, user_name, user_password, domains=[], debug=False):  # for domains with sub-domains
+def find_domains(uri, base, user_name, user_password, domains=None, debug=False):  # for domains with sub-domains
     #   needs catch exceptions
     query = '(&(objectclass=domain)(dc=*))'
-    q_response, line_error = ldap_search(uri, base, user_name, user_password, query)
+    if domains is None:
+        domains = []
+    q_response = ldap_search(uri, base, user_name, user_password, query)
+
     if debug:
         print(len(q_response))
+
     if len(q_response) > 0:
-        for one_response in q_response:
-            if 'attributes' in one_response.keys():
+        if isinstance(q_response, str):  # Exception error
+            if debug:
+                print(q_response)
 
-                if one_response['attributes']['distinguishedName'].find('DomainDnsZones') < 0 and \
-                                one_response['attributes']['distinguishedName'].find('ForestDnsZones') < 0:
-                    if one_response['attributes']['distinguishedName'] not in domains:
+        if isinstance(q_response, list):  # Standard response list of dictionaries
+            for one_response in q_response:
+                if 'attributes' in one_response.keys():
 
-                        domains.append(one_response['attributes']['distinguishedName'])
-                        if debug:
-                            print('+++ Adding Domain :', one_response['attributes']['distinguishedName'])
-                    if 'subRefs' in one_response['attributes'].keys():
-                        if len(one_response['attributes']['subRefs']) > 0:
-                            for ref in one_response['attributes']['subRefs']:
-                                # print("ref -> ", ref)
-                                find_domains(uri, ref, user_name, user_password, domains)
+                    if one_response['attributes']['distinguishedName'].find('DomainDnsZones') < 0 and \
+                                    one_response['attributes']['distinguishedName'].find('ForestDnsZones') < 0:
+                        if one_response['attributes']['distinguishedName'] not in domains:
 
-    return domains, line_error
+                            domains.append(one_response['attributes']['distinguishedName'])
+                            if debug:
+                                print('+++ Adding Domain :', one_response['attributes']['distinguishedName'])
+                        if 'subRefs' in one_response['attributes'].keys():
+                            if len(one_response['attributes']['subRefs']) > 0:
+                                for ref in one_response['attributes']['subRefs']:
+                                    # print("ref -> ", ref)
+                                    find_domains(uri, ref, user_name, user_password, domains)
+
+    return domains
+
+
+def find_generic(uri, base, user_name, user_password, query, fields=[]):
+    response = ldap_search(uri, base, user_name, user_password, query)
+    return response_to_list_class(response, fields)  # List of list of class Ld,
 
 
 def find_users(uri, base, user_name, user_password, look_for):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
-    response, line_error = ldap_search(uri, base, user_name, user_password, query)
-    return response_to_list_class(response)  # List of list of class Ld
+    response = find_generic(uri, base, user_name, user_password, query)
+    return response  # List of list of class Ld,
 
 
-def find_computers(uri, base, user_name, user_password, look_for, fields=[]):
+def find_computers(uri, base, user_name, user_password, look_for, fields):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
-    response, line_error = ldap_search(uri, base, user_name, user_password, query)
-    return response_to_list_class(response, fields)  # List of list, one list per entry
+    response = find_generic(uri, base, user_name, user_password, query, fields)
+    return response  # List of list of class Ld,
 
 
 def find_groups(uri, base, user_name, user_password, look_for):
     query = '(&(objectclass=group)(name=*' + look_for + '*))'
-    response, line_error = ldap_search(uri, base, user_name, user_password, query)
-    return response_to_list_class(response)  # List of list, one list per entry
+    response = find_generic(uri, base, user_name, user_password, query)
+    return response  # List of list of class Ld,
 
 
 def main():
-
-    # ldap_search(URI, BASE, QUERY)
 
     # Removing configuration from Project, configuration file 'ldapq.ini' moved 2 directories up
     file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
@@ -344,23 +272,30 @@ def main():
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
-    domains, line_error = find_domains(URI, BASE, user_name, user_password)
-    print()
-    print("Domains: ", domains)
-    print("Error: ", line_error)
-    print()
-    for base in domains:
-        print(">>>-------------->DOMAIN BASE : ", base, domains)
-        l = find_users(URI, base, user_name, user_password, look_for)
-        print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS ------       search concluded... printing ", len(l))
-        for i in l:
-            if isinstance(i, list):
-                for j in i:
-                    print(j.header, j.content)
-                print()
-            else:
-                print(i)
-                print(i.header, i.content)
+    domains = find_domains(URI, BASE, user_name, user_password)
+
+    if isinstance(domains, str):
+        print()
+        print("Error: ", domains)
+        print()
+
+    elif isinstance(domains, list):
+        print()
+        print("Domains: ", domains)
+        print()
+
+        for base in domains:
+            print(">>>-------------->DOMAIN BASE : ", base, domains)
+            l = find_users(URI, base, user_name, user_password, look_for)
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS ------       search concluded... printing ", len(l))
+            for i in l:
+                if isinstance(i, list):
+                    for j in i:
+                        print(j.header, j.content)
+                    print()
+                else:
+                    print(i)
+                    print(i.header, i.content)
 
 
 if __name__ == '__main__':
