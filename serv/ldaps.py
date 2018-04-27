@@ -19,7 +19,7 @@ class LdResponse(object):
 
 def object_to_text(item):
     """
-    Converts objects to ext for display
+    Converts objects to text for display
 
     :param item: item of the response
     :return: text
@@ -127,6 +127,14 @@ def attributes_to_class(attributes, fields=None, debug=False):  # Attributes is 
 
 
 def response_to_list_class(response, fields=[], debug=False):
+    """
+    Turns classes with 'attributes' into a list of class LdResponse
+
+    :param response:
+    :param fields:
+    :param debug:
+    :return:
+    """
     response_list = []
 
     try:
@@ -151,6 +159,7 @@ def response_to_list_class(response, fields=[], debug=False):
 def ldap_search(uri, base, user_name, user_password, query, debug=False):
     """
     ldap search
+
     :param uri:
     :param base:
     :param user_name:
@@ -187,6 +196,17 @@ def ldap_search(uri, base, user_name, user_password, query, debug=False):
 
 
 def find_domains(uri, base, user_name, user_password, domains=None, debug=False):  # for domains with sub-domains
+    """
+    Find domains, a recursive query to find sub-domain within the domain
+
+    :param uri:
+    :param base:
+    :param user_name:
+    :param user_password:
+    :param domains:
+    :param debug:
+    :return:
+    """
     #   needs catch exceptions
     query = '(&(objectclass=domain)(dc=*))'
     if domains is None:
@@ -222,6 +242,17 @@ def find_domains(uri, base, user_name, user_password, domains=None, debug=False)
 
 
 def find_generic(uri, base, user_name, user_password, query, fields=[]):
+    """
+    General call to ldap_search, returns a list of class LdResponse
+
+    :param uri:
+    :param base:
+    :param user_name:
+    :param user_password:
+    :param query:
+    :param fields:
+    :return:
+    """
     response = ldap_search(uri, base, user_name, user_password, query)
     return response_to_list_class(response, fields)  # List of list of class Ld,
 
@@ -287,7 +318,7 @@ def main():
         for base in domains:
             print(">>>-------------->DOMAIN BASE : ", base, domains)
             l = find_users(URI, base, user_name, user_password, look_for)
-            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS ------       search concluded... printing ", len(l))
+            print(" ------       search concluded... printing ", len(l))
             for i in l:
                 if isinstance(i, list):
                     for j in i:
