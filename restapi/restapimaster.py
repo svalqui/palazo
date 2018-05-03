@@ -1,6 +1,6 @@
 # Authors: Sergio Valqui
 # Created : 2016/09
-# Modified : 2016/11
+# Modified : 2018/05
 # Master REST api class to contain all common properties and functions for REST api
 
 
@@ -29,11 +29,9 @@ class RestApi(object):
                         print(indent, "D_Content- Index: ", index, "- int Value :", json_loads[index])
                     elif isinstance(json_loads[index], float):
                         print(indent, "D_Content- Index: ", index, "- float Value :", json_loads[index])
-                    elif isinstance(json_loads[index], True):
-                        print(indent, "D_Content- Index: ", index, "- True Value :", json_loads[index])
-                    elif isinstance(json_loads[index], False):
-                        print(indent, "D_Content- Index: ", index, "- False Value :", json_loads[index])
-                    elif isinstance(json_loads[index], None):
+                    elif isinstance(json_loads[index], bool):
+                        print(indent, "D_Content- Index: ", index, "- bool Value :", json_loads[index])
+                    elif isinstance(json_loads[index], type(None)):
                         print(indent, "D_Content- Index: ", index, "- None Value :", json_loads[index])
                     else:
                         print(indent, "D_Content- Index: ", index, "- Obj not pre defined")
@@ -53,11 +51,9 @@ class RestApi(object):
                         print(indent, "L-Content : int Value :", element)
                     elif isinstance(element, float):
                         print(indent, "L-Content : float Value :", element)
-                    elif isinstance(element, True):
-                        print(indent, "L-Content : True Value :", element)
-                    elif isinstance(element, False):
-                        print(indent, "L-Content : False Value :", element)
-                    elif isinstance(element, None):
+                    elif isinstance(element, bool):
+                        print(indent, "L-Content : bool Value :", element)
+                    elif isinstance(element, type(None)):
                         print(indent, "L-Content : None Value :", element)
                     else:
                         print(indent, "- L-Content : Obj not pre defined")
@@ -68,11 +64,9 @@ class RestApi(object):
                 print(indent, "Content : int Value :", json_loads)
             elif isinstance(json_loads, float):
                 print(indent, "Content : float Value :", json_loads)
-            elif isinstance(json_loads, True):
-                print(indent, "Content : True Value :", json_loads)
-            elif isinstance(json_loads, False):
-                print(indent, "Content : False Value :", json_loads)
-            elif isinstance(json_loads, None):
+            elif isinstance(json_loads, bool):
+                print(indent, "Content : bool Value :", json_loads)
+            elif isinstance(json_loads, type(None)):
                 print(indent, "Content : None Value :", json_loads)
             else:
                 print(indent, "Obj not pre defined")

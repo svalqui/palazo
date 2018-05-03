@@ -33,7 +33,7 @@ class IB(restapi.restapimaster.RestApi):
         self.next_page_id = ""
         self.url_queried = self.urlbase + self.querying
         self.page = requests.get(self.url_queried, verify=False,
-                             auth=HTTPBasicAuth(self.user_name, self.password))
+                                 auth=HTTPBasicAuth(self.user_name, self.password))
         print("Query: ", self.url_queried)
         print(self.page.status_code)
         if len(self.page.headers) > 0:
@@ -58,7 +58,7 @@ class IB(restapi.restapimaster.RestApi):
         return self.next_page_id
 
     def get_page_handler(self):
-        #permission
+        # permission
         self.querying = self.object_queried + "?_paging=1&_return_as_object=1&_max_results=1000"
         print("##############")
         self.page_id = self.get_page()
@@ -71,7 +71,7 @@ class IB(restapi.restapimaster.RestApi):
         self.posting = self.object_queried + post_detail
         self.url_posted = self.urlbase + self.posting
         self.page = requests.post(self.url_posted, verify=False,
-                                 auth=HTTPBasicAuth(self.user_name, self.password))
+                                  auth=HTTPBasicAuth(self.user_name, self.password))
         print("Posting: ", self.url_posted)
         print(self.page.status_code)
         if len(self.page.headers) > 0:
@@ -86,6 +86,4 @@ class IB(restapi.restapimaster.RestApi):
         post_detail = "?filter=" + filter_name + "&mac=" + mac_address
         self.post_page(post_detail)
 
-
-
-        #self.navigate_json(self.page_decoded)
+        # self.navigate_json(self.page_decoded)

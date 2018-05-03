@@ -41,8 +41,6 @@ class QueryMac(restapi.restapimaster.RestApi):
 
 
 
-
-
 # self.urlbase = "http://www.macvendorlookup.com/api/v2/"
 
 
