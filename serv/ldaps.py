@@ -19,7 +19,7 @@ class LdResponse(object):
 
 def object_to_text(item):
     """
-    Converts objects to text for display
+    Converts objects to text for display/print cli
 
     :param item: item of the response
     :return: text
@@ -46,9 +46,9 @@ def attributes_to_class(attributes, fields=None, debug=False):  # Attributes is 
     Flats the Dictionary returned by ldap3; index to header, sub-structures to content
 
     :param attributes:
-    :param fields:
+    :param fields: Only include these fields in the return
     :param debug:
-    :return:
+    :return: attributes_list  # list of Class LdResponse, LdResponse.content always a list
     """
     attributes_list = []
     if fields is None:
@@ -130,9 +130,9 @@ def response_to_list_class(response, fields=[], debug=False):
     """
     Turns classes with 'attributes' into a list of class LdResponse
 
-    :param response:
-    :param fields:
-    :param debug:
+    :param response: The ldap search result
+    :param fields: Only these fields to be included
+    :param debug: Print interactions
     :return:
     """
     response_list = []
@@ -300,6 +300,7 @@ def main():
         proceed = False
 
     # Query
+    look_in = input("Computers (c), Users (u), Groups (g) :")
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
@@ -317,16 +318,41 @@ def main():
 
         for base in domains:
             print(">>>-------------->DOMAIN BASE : ", base, domains)
-            l = find_users(URI, base, user_name, user_password, look_for)
-            print(" ------       search concluded... printing ", len(l))
-            for i in l:
-                if isinstance(i, list):
-                    for j in i:
-                        print(j.header, j.content)
-                    print()
-                else:
-                    print(i)
-                    print(i.header, i.content)
+            if look_in == "u":
+                my_list = find_users(URI, base, user_name, user_password, look_for)
+                print(" ------       search concluded... printing ", len(my_list))
+                for i in my_list:
+                    if isinstance(i, list):
+                        for j in i:
+                            print(j.header, j.content)
+                        print()
+                    else:
+                        print(i)
+                        print(i.header, i.content)
+
+            elif look_in == "c":
+                my_list = find_computers(URI, base, user_name, user_password, look_for,
+                                         ["name", "operatingSystem", "operatingSystemVersion", "lastLogonTimestamp",
+                                          "distinguishedName", "description"])
+                print(" ------       search concluded... printing ", len(my_list))
+                for i in my_list:
+
+                    if isinstance(i, list):
+                        my_row = []
+                        for j in i:
+                            # print(j.header, j.content)
+                            if len(j.content) == 1:
+                                value = j.content[0]
+                                # print(j.content, " ", value)
+                            else:
+                                value = "Multiple Values"
+                                # print(j.content)
+                            my_row.append(value)
+                        print("\t".join(my_row))
+                    else:
+                        print(i)
+                        print(i.header, i.content)
+
 
 
 if __name__ == '__main__':
