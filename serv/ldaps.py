@@ -263,9 +263,15 @@ def find_users(uri, base, user_name, user_password, look_for):
     return response  # List of list of class Ld,
 
 
-def find_computers(uri, base, user_name, user_password, look_for, fields):
+def find_computers_filtered(uri, base, user_name, user_password, look_for, fields):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
     response = find_generic(uri, base, user_name, user_password, query, fields)
+    return response  # List of list of class Ld,
+
+
+def find_computers(uri, base, user_name, user_password, look_for):
+    query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
+    response = find_generic(uri, base, user_name, user_password, query)
     return response  # List of list of class Ld,
 
 
@@ -331,7 +337,7 @@ def main():
                         print(i.header, i.content)
 
             elif look_in == "c":
-                my_list = find_computers(URI, base, user_name, user_password, look_for,
+                my_list = find_computers_filtered(URI, base, user_name, user_password, look_for,
                                          ["name", "operatingSystem", "operatingSystemVersion", "lastLogonTimestamp",
                                           "distinguishedName", "description"])
                 print(" ------       search concluded... printing ", len(my_list))
