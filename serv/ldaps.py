@@ -281,6 +281,12 @@ def find_groups(uri, base, user_name, user_password, look_for):
     return response  # List of list of class Ld,
 
 
+def find_groups_no_members(uri, base, user_name, user_password, look_for, fields):
+    query = '(&(objectclass=group)(name=*' + look_for + '*)(!(member=*)))'
+    response = find_generic(uri, base, user_name, user_password, query, fields)
+    return response  # List of list of class Ld,
+
+
 def main():
 
     # Removing configuration from Project, configuration file 'ldapq.ini' moved 2 directories up
@@ -306,7 +312,7 @@ def main():
         proceed = False
 
     # Query
-    look_in = input("Computers (c), Users (u), Groups (g) :")
+    look_in = input("Computers (c), Users (u), Groups (g), Groups Without Members (gnm) :")
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
@@ -359,6 +365,40 @@ def main():
                         print(i)
                         print(i.header, i.content)
 
+            elif look_in == 'g':
+                my_list = find_groups(URI, base, user_name, user_password, look_for)
+                print(" ------       search concluded... printing ", len(my_list))
+                for i in my_list:
+                    if isinstance(i, list):
+                        for j in i:
+                            print(j.header, j.content)
+                        print()
+                    else:
+                        print(i)
+                        print(i.header, i.content)
+
+            elif look_in == 'gnm':
+                my_list = find_groups_no_members(URI, base, user_name, user_password, look_for,
+                                                 ["cn", "description", "distinguishedName", "whenChanged",
+                                                  "whenCreated"])
+                list_length = len(my_list)
+                print(" ------       search concluded... printing ", list_length)
+                for index, i in enumerate(my_list):
+                    if isinstance(i, list):
+                        my_row = []
+                        for j in i:
+                            # print(j.header, j.content)
+                            if len(j.content) == 1:
+                                value = j.content[0]
+                                # print(j.content, " ", value)
+                            else:
+                                value = "Multiple Values"
+                                # print(j.content)
+                            my_row.append(value)
+                        print("\t".join(my_row))
+                    else:
+                        print(i)
+                        print(i.header, i.content)
 
 
 if __name__ == '__main__':
