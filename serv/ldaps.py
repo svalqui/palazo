@@ -358,9 +358,9 @@ def main():
                         print(i.header, i.content)
 
             elif look_in == "c":
-                my_list = find_computers_filtered(URI, base, user_name, user_password, look_for,
-                                         ["name", "operatingSystem", "operatingSystemVersion", "lastLogonTimestamp",
-                                          "distinguishedName", "description"])
+                my_list = find_computers_filtered(base, connection, look_for,
+                                                  ["name", "operatingSystem", "operatingSystemVersion",
+                                                   "lastLogonTimestamp", "distinguishedName", "description"])
                 print(" ------       search concluded... printing ", len(my_list))
                 for i in my_list:
 
@@ -381,7 +381,7 @@ def main():
                         print(i.header, i.content)
 
             elif look_in == 'g':
-                my_list = find_groups(URI, base, user_name, user_password, look_for)
+                my_list = find_groups(base, connection, look_for)
                 print(" ------       search concluded... printing ", len(my_list))
                 for i in my_list:
                     if isinstance(i, list):
@@ -393,9 +393,9 @@ def main():
                         print(i.header, i.content)
 
             elif look_in == 'gnm':
-                my_list = find_groups_no_members(URI, base, user_name, user_password, look_for,
-                                                 ["cn", "description", "distinguishedName", "whenChanged",
-                                                  "whenCreated"])
+                my_list = find_groups_no_members(base, connection, look_for,
+                                                 ["cn", "description", "distinguishedName",
+                                                  "whenChanged", "whenCreated"])
                 list_length = len(my_list)
                 print(" ------       search concluded... printing ", list_length)
                 for index, i in enumerate(my_list):
