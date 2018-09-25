@@ -325,7 +325,7 @@ def main():
         proceed = False
 
     # Query
-    look_in = input("Computers (c), Users (u), Groups (g), Groups Without Members (gnm) :")
+    look_in = input("Computers report (c), Computers (cu), Users (u), Groups (g), Groups Without Members (gnm) :")
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
@@ -357,10 +357,24 @@ def main():
                         print(i)
                         print(i.header, i.content)
 
+            if look_in == "cu":
+                my_list = find_computers(base, connection, look_for)
+                print(" ------       search concluded... printing ", len(my_list))
+                for i in my_list:
+                    if isinstance(i, list):
+                        for j in i:
+                            print(j.header, j.content)
+                        print()
+                    else:
+                        print(i)
+                        print(i.header, i.content)
+
             elif look_in == "c":
                 my_list = find_computers_filtered(base, connection, look_for,
                                                   ["name", "operatingSystem", "operatingSystemVersion",
-                                                   "lastLogonTimestamp", "distinguishedName", "description"])
+                                                   "lastLogonTimestamp", "distinguishedName", "description",
+                                                   "userAccountControl"])
+                # "userAccountControl" 4130 = Computer Disabled
                 print(" ------       search concluded... printing ", len(my_list))
                 for i in my_list:
 
