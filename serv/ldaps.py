@@ -5,6 +5,7 @@ import getpass
 import configparser
 import pathlib
 import datetime
+from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 
 
 class LdResponse(object):
@@ -156,36 +157,51 @@ def response_to_list_class(response, fields=[], debug=False):
     return response_list  # List of list of class LdResponse
 
 
-def ldap_search(uri, base, user_name, user_password, query, debug=False):
-    """
-    ldap search
+def ldap_connect(uri, user_name, user_password, debug=False):
 
-    :param uri:
-    :param base:
-    :param user_name:
-    :param user_password:
-    :param query:
-    :param debug:
-    :return:
-
-    """
-    from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 
     if debug:
         print()
         print('URI :', uri)
+
+    try:
+        server = Server(uri, use_ssl=True, get_info=ALL)
+        ldap_connection = Connection(server, user=user_name, password=user_password, auto_bind=True)
+
+    except BaseException as ldap_connection_error:
+        print(ldap_connection_error)
+        if debug:
+            print(ldap_connection_error)
+
+    return ldap_connection
+
+
+def ldap_disconnect():
+    return
+
+
+def ldap_search(base, query, ldap_connection, debug=False):
+    """
+    ldap search
+
+    :param base:
+    :param query:
+    :param ldap_connection:
+    :param debug:
+    :return:
+
+    """
+    if debug:
+        print()
         print('BASE :', base)
         print('QUERY :', query)
 
     try:
-        server = Server(uri, use_ssl=True, get_info=ALL)
-        conn = Connection(server, user=user_name, password=user_password, auto_bind=True)
-        # conn = Connection(server, auto_bind=True, authentication=SASL, sasl_mechanism='GSSAPI')
-        conn.search(base, query, attributes=ALL_ATTRIBUTES)
+        ldap_connection.search(base, query, attributes=ALL_ATTRIBUTES)
         if debug:
-            print(" RESPONSE LENGTH ", len(conn.response), " ENTRIES LENGTH ", len(conn.entries))
+            print(" RESPONSE LENGTH ", len(ldap_connection.response), " ENTRIES LENGTH ", len(ldap_connection.entries))
 
-        search_response = conn.response  # List of Dictionaries
+        search_response = ldap_connection.response  # List of Dictionaries
 
     except BaseException as search_error:
         search_response = 'ERROR-LDAPSearchError: ' + str(search_error) + ' Exception Name :' + str(type(search_error))
@@ -195,14 +211,12 @@ def ldap_search(uri, base, user_name, user_password, query, debug=False):
     return search_response  # Returns list of dictionaries or string(error)
 
 
-def find_domains(uri, base, user_name, user_password, domains=None, debug=False):  # for domains with sub-domains
+def find_domains(base, connection, domains=None, debug=False):  # for domains with sub-domains
     """
     Find domains, a recursive query to find sub-domain within the domain
 
-    :param uri:
     :param base:
-    :param user_name:
-    :param user_password:
+    :param connection:
     :param domains:
     :param debug:
     :return:
@@ -211,7 +225,8 @@ def find_domains(uri, base, user_name, user_password, domains=None, debug=False)
     query = '(&(objectclass=domain)(dc=*))'
     if domains is None:
         domains = []
-    q_response = ldap_search(uri, base, user_name, user_password, query)
+
+    q_response = ldap_search(base, query, connection )
 
     if debug:
         print(len(q_response))
@@ -236,54 +251,52 @@ def find_domains(uri, base, user_name, user_password, domains=None, debug=False)
                             if len(one_response['attributes']['subRefs']) > 0:
                                 for ref in one_response['attributes']['subRefs']:
                                     # print("ref -> ", ref)
-                                    find_domains(uri, ref, user_name, user_password, domains)
+                                    find_domains(ref, connection, domains)
 
     return domains
 
 
-def find_generic(uri, base, user_name, user_password, query, fields=[]):
+def find_generic(base, connection, query, fields=[]):
     """
     General call to ldap_search, returns a list of class LdResponse
 
-    :param uri:
     :param base:
-    :param user_name:
-    :param user_password:
+    :param connection:
     :param query:
     :param fields:
     :return:
     """
-    response = ldap_search(uri, base, user_name, user_password, query)
+    response = ldap_search(base, query, connection)
     return response_to_list_class(response, fields)  # List of list of class Ld,
 
 
-def find_users(uri, base, user_name, user_password, look_for):
+def find_users(base, connection, look_for):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
-    response = find_generic(uri, base, user_name, user_password, query)
+    response = find_generic(base, connection, query)
     return response  # List of list of class Ld,
 
 
-def find_computers_filtered(uri, base, user_name, user_password, look_for, fields):
+def find_computers_filtered(base, connection, look_for, fields):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
-    response = find_generic(uri, base, user_name, user_password, query, fields)
+    response = find_generic(base, connection, query, fields)
     return response  # List of list of class Ld,
 
 
-def find_computers(uri, base, user_name, user_password, look_for):
+def find_computers(base, connection, look_for):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
-    response = find_generic(uri, base, user_name, user_password, query)
+    response = find_generic(base, connection, query)
     return response  # List of list of class Ld,
 
 
-def find_groups(uri, base, user_name, user_password, look_for):
+def find_groups(base, connection, look_for):
     query = '(&(objectclass=group)(name=*' + look_for + '*))'
-    response = find_generic(uri, base, user_name, user_password, query)
+    response = find_generic(base, connection, query)
     return response  # List of list of class Ld,
 
 
-def find_groups_no_members(uri, base, user_name, user_password, look_for, fields):
+def find_groups_no_members(base, connection, look_for, fields):
     query = '(&(objectclass=group)(name=*' + look_for + '*)(!(member=*)))'
-    response = find_generic(uri, base, user_name, user_password, query, fields)
+    response = find_generic(base, connection, query, fields)
     return response  # List of list of class Ld,
 
 
@@ -316,7 +329,9 @@ def main():
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
-    domains = find_domains(URI, BASE, user_name, user_password)
+    connection = ldap_connect(URI, user_name, user_password)
+
+    domains = find_domains(BASE, connection)
 
     if isinstance(domains, str):
         print()
@@ -331,7 +346,7 @@ def main():
         for base in domains:
             print(">>>-------------->DOMAIN BASE : ", base, domains)
             if look_in == "u":
-                my_list = find_users(URI, base, user_name, user_password, look_for)
+                my_list = find_users(base, connection, look_for)
                 print(" ------       search concluded... printing ", len(my_list))
                 for i in my_list:
                     if isinstance(i, list):
