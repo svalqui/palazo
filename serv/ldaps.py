@@ -282,6 +282,13 @@ def find_computers_filtered(base, connection, look_for, fields):
     return response  # List of list of class Ld,
 
 
+def find_computers_disabled(base, connection, look_for, fields):
+    query = '(&(objectcategory=computer)(userAccountControl=4130)' \
+            '(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
+    response = find_generic(base, connection, query, fields)
+    return response  # List of list of class Ld,
+
+
 def find_computers(base, connection, look_for):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
     response = find_generic(base, connection, query)
@@ -325,7 +332,8 @@ def main():
         proceed = False
 
     # Query
-    look_in = input("Computers report (c), Computers (cu), Users (u), Groups (g), Groups Without Members (gnm) :")
+    look_in = input("Comp Report (c), Computers (cu), Computers Disabled (cd), Users (u), Groups (g), "
+                    "Groups Without Members (gnm) :")
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
@@ -393,6 +401,32 @@ def main():
                     else:
                         print(i)
                         print(i.header, i.content)
+
+            elif look_in == "cd":
+                my_list = find_computers_disabled(base, connection, look_for,
+                                                  ["name", "operatingSystem", "operatingSystemVersion",
+                                                   "lastLogonTimestamp", "distinguishedName", "description",
+                                                   "userAccountControl"])
+                # "userAccountControl" 4130 = Computer Disabled
+                print(" ------       search concluded... printing ", len(my_list))
+                for i in my_list:
+
+                    if isinstance(i, list):
+                        my_row = []
+                        for j in i:
+                            # print(j.header, j.content)
+                            if len(j.content) == 1:
+                                value = j.content[0]
+                                # print(j.content, " ", value)
+                            else:
+                                value = "Multiple Values"
+                                # print(j.content)
+                            my_row.append(value)
+                        print("\t".join(my_row))
+                    else:
+                        print(i)
+                        print(i.header, i.content)
+
 
             elif look_in == 'g':
                 my_list = find_groups(base, connection, look_for)
