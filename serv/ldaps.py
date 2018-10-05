@@ -159,7 +159,6 @@ def response_to_list_class(response, fields=[], debug=False):
 
 def ldap_connect(uri, user_name, user_password, debug=False):
 
-
     if debug:
         print()
         print('URI :', uri)
@@ -209,6 +208,12 @@ def ldap_search(base, query, ldap_connection, debug=False):
             print(search_response)  # String
 
     return search_response  # Returns list of dictionaries or string(error)
+
+
+def ldap_delete(ldap_connection, distinguished_name, verbose=True):
+    ldap_connection.delete(distinguished_name)
+    if verbose:
+        print(ldap_connection.result)
 
 
 def find_domains(base, connection, domains=None, debug=False):  # for domains with sub-domains
@@ -333,7 +338,7 @@ def main():
 
     # Query
     look_in = input("Comp Report (c), Computers (cu), Computers Disabled (cd), Users (u), Groups (g), "
-                    "Groups Without Members (gnm) :")
+                    "Groups Without Members (gnm), delete(delete) :")
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
@@ -365,7 +370,7 @@ def main():
                         print(i)
                         print(i.header, i.content)
 
-            if look_in == "cu":
+            elif look_in == "cu":
                 my_list = find_computers(base, connection, look_for)
                 print(" ------       search concluded... printing ", len(my_list))
                 for i in my_list:
@@ -427,7 +432,6 @@ def main():
                         print(i)
                         print(i.header, i.content)
 
-
             elif look_in == 'g':
                 my_list = find_groups(base, connection, look_for)
                 print(" ------       search concluded... printing ", len(my_list))
@@ -462,6 +466,9 @@ def main():
                     else:
                         print(i)
                         print(i.header, i.content)
+
+            elif look_in == 'delete':
+                ldap_delete(connection, look_for)
 
 
 if __name__ == '__main__':
