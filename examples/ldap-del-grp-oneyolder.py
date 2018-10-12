@@ -1,9 +1,9 @@
 #
 # Delete groups that match a given string, are older than a year and have no members (empty)
 #
+# export PYTHONPATH=`pwd`
 
-
-from serv.ldaps import ldap_connect, find_generic
+from serv.ldaps import ldap_connect, find_generic, ldap_delete
 from pathlib import Path
 import datetime
 import getpass
@@ -45,7 +45,7 @@ if proceed:
     # a year ago on ldap format
     year_ago_ldap = year_ago.strftime("%Y%m%d%H%M%S") + ".0Z"
 
-    # query for groups containing, without members, that have NOT been changed during last year
+    # query for groups containing look_for, without members, that have NOT been changed during last year
     query = '(&(objectclass=group)(name=*' + look_for + '*)(!(member=*))(whenChanged<=' + year_ago_ldap + '))'
 
     connection = ldap_connect(URI, user_name, user_password)
@@ -92,21 +92,12 @@ if proceed:
             for rec in entry:
                 if rec.header == 'distinguishedName':
                     print(rec.content[0])
+                    ldap_delete(connection, rec.content[0], True)
+                    ff_file_deleted.write(rec.content[0] + '\n')
+        ff_file_deleted.close()
 
-
-
-
-
-    # for i in my_list:
-    #     if isinstance(i, list):
-    #         for j in i:
-    #             print(j.header, j.content)
-    #         print()
-    #     else:
-    #         print(i)
-    #         print(i.header, i.content)
-
-
+# Credits Disclaimer
+# The below sites/articles/code has been used totally, partially or as reference
 # https://morgansimonsen.com/2008/08/12/how-to-use-the-whencreated-and-whenchanged-attributes-to-search-for-objects-in-active-directory/
 # https://stackoverflow.com/questions/4028904/how-to-get-the-home-directory-in-python
 #
