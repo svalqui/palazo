@@ -55,7 +55,7 @@ if proceed:
                                                          "whenChanged", "whenCreated"])
     list_length = len(list_report)
 
-    filename = 'ldap_delete_group_detailed' + time_now.strftime('-%Y%m%d-%H%M%S') + '.txt'
+    filename = 'ldap_delete_group-' + time_now.strftime('-%Y%m%d-%H%M%S') + '_detailed.txt'
     path = Path.home()
     fs_filename = path / filename
     ff_file_detailed = open(fs_filename, 'w')
@@ -83,7 +83,7 @@ if proceed:
     sure_to_delete = input("Are you sure you want to delete the listed groups? (y)")
 
     if sure_to_delete == 'y':
-        filename = 'ldap_delete_group_deleted' + time_now.strftime('-%Y%m%d-%H%M%S') + '.txt'
+        filename = 'ldap_delete_group-' + time_now.strftime('-%Y%m%d-%H%M%S') + '_deleted.txt'
         path = Path.home()
         fs_filename = path / filename
         ff_file_deleted = open(fs_filename, 'w')
