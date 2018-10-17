@@ -39,3 +39,17 @@ class BaseParser(MutableMapping):
     # content compliance
 
     # Error handling
+
+    # read(filenames, encoding=None)
+    # read_file(f, filename=None)
+    # metainfo()
+    # metainfo.keys(), list of keys
+    # metainfo.key.values(), list of values per key
+    # fileformat() same or warning
+    # data.header()
+    # columns_detailed()
+    # columns_details()
+    # data.CHROM(), list of CHROMs
+    # data.CHROM.POS, list of POSs
+    # data.CHROM.POS.data_raw(), always text as found in the file
+    # data.CHROM.POS.data, formatted as specified in the column_details
