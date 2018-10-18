@@ -61,7 +61,8 @@ if proceed:
     ff_file_detailed = open(fs_filename, 'w')
 
     # saving detailed list, object details that are going to be deleted
-    for entry in list_detailed:
+    for index, entry in enumerate(list_detailed):
+        ff_file_detailed.write('Record ' + str(index + 1) + ' of ' + str(list_length) + '\n')
         for rec in entry:
             ff_file_detailed.write(str(rec.header) + str(rec.content) + '\n')
         ff_file_detailed.write('\n')
@@ -87,6 +88,7 @@ if proceed:
         path = Path.home()
         fs_filename = path / filename
         ff_file_deleted = open(fs_filename, 'w')
+        records_deleted = 0
 
         for entry in list_report:
             for rec in entry:
@@ -94,6 +96,13 @@ if proceed:
                     print(rec.content[0])
                     ldap_delete(connection, rec.content[0], True)
                     ff_file_deleted.write(rec.content[0] + '\n')
+                    ff_file_deleted.write(str(connection.result) + '\n')
+                    if 'description' in connection.result.keys():
+                        if connection.result['description'] == 'success':
+                            records_deleted += 1
+                    ff_file_deleted.write('Total Records deleted :' + str(records_deleted) + '\n')
+
+        print("\nTotal records deleted :", records_deleted)
         ff_file_deleted.close()
 
 # Credits Disclaimer
