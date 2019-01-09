@@ -44,7 +44,7 @@ def object_to_text(item):
 
 def attributes_to_class(attributes, fields=None, debug=False):  # Attributes is a Dict
     """
-    Flats the Dictionary returned by ldap3; index to header, sub-structures to content
+    Flattens the Dictionary returned by ldap3; index to header, sub-structures to content
 
     :param attributes:
     :param fields: Only include these fields in the return
@@ -96,7 +96,7 @@ def attributes_to_class(attributes, fields=None, debug=False):  # Attributes is 
                 if field in attributes.keys():
                     base_class.header = field
                     if isinstance(attributes[field], list):
-                        member_list=[]
+                        member_list = []
                         for element in attributes[field]:
                             if isinstance(element, str):
                                 member_list.append(element)
@@ -158,6 +158,7 @@ def response_to_list_class(response, fields=[], debug=False):
 
 
 def ldap_connect(uri, user_name, user_password, debug=False):
+    ldap_connection = None
 
     if debug:
         print()
@@ -231,7 +232,7 @@ def find_domains(base, connection, domains=None, debug=False):  # for domains wi
     if domains is None:
         domains = []
 
-    q_response = ldap_search(base, query, connection )
+    q_response = ldap_search(base, query, connection)
 
     if debug:
         print(len(q_response))
@@ -313,6 +314,21 @@ def find_groups_no_members(base, connection, look_for, fields):
 
 
 def main():
+    """ CLI implementation temporal for fast trial while developing
+    it requires ldapq.ini 2 directories up with configuration as follow
+    --- ldapq.ini ---
+    [Settings]
+    uri = ldaps://MyADDomain.com.au:636
+    default_base = dc=MyADDomain, dc=com,dc=au
+    default_user = MyUser@MyADDomain.com.au
+    [Filters]
+    show_attributes = objectCategory,displayName,cn,givenName,sn,name,distinguishedName,uid,
+    mail,mailNickname,mobile,telephoneNumber,homeDirectory,homeDrive,lastLogon,lastLogonTimestamp,
+    msExchArchiveName,memberOf
+    not_used = ''
+    --- end of ldapq.ini ---
+    :return:
+    """
 
     # Removing configuration from Project, configuration file 'ldapq.ini' moved 2 directories up
     file_conf_dir = pathlib.Path(__file__).absolute().parents[2]

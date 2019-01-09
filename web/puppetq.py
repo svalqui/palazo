@@ -1,4 +1,7 @@
 # puppet query
+#
+# Jan 2019 Will be superceded by a file on restapi. This is obsolete
+# should be deleted whe a replacement in restapi is drafted.
 
 import ssl
 import urllib.request
