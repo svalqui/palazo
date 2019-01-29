@@ -282,6 +282,12 @@ def find_users(base, connection, look_for):
     return response  # List of list of class Ld,
 
 
+def find_users_brief(base, connection, look_for, fields):
+    query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
+    response = find_generic(base, connection, query, fields)
+    return response  # List of list of class Ld,
+
+
 def find_computers_filtered(base, connection, look_for, fields):
     query = '(&(objectcategory=computer)(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
     response = find_generic(base, connection, query, fields)
@@ -353,8 +359,8 @@ def main():
         proceed = False
 
     # Query
-    look_in = input("Comp Report (c), Computers (cu), Computers Disabled (cd), Users (u), Groups (g), "
-                    "Groups Without Members (gnm), delete(delete) :")
+    look_in = input("Comp Report (c), Computers (cu), Computers Disabled (cd), Users (u), Users Brief (us), "
+                    "Groups (g), Groups Without Members (gnm), delete(delete) :")
     look_for = input("Search AD for :")
     user_password = getpass.getpass()
 
@@ -381,6 +387,18 @@ def main():
                 print(">>>-------------->DOMAIN BASE : ", base, domains)
                 if look_in == "u":
                     my_list = find_users(base, connection, look_for)
+                    print(" ------       search concluded... printing ", len(my_list))
+                    for i in my_list:
+                        if isinstance(i, list):
+                            for j in i:
+                                print(j.header, j.content)
+                            print()
+                        else:
+                            print(i)
+                            print(i.header, i.content)
+
+                if look_in == "us":
+                    my_list = find_users(base, connection, look_for, show_fields)
                     print(" ------       search concluded... printing ", len(my_list))
                     for i in my_list:
                         if isinstance(i, list):
