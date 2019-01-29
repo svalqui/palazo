@@ -359,152 +359,153 @@ def main():
         proceed = False
 
     # Query
-    look_in = input("Comp Report (c), Computers (cu), Computers Disabled (cd), Users (u), Users Brief (us), "
-                    "Groups (g), Groups Without Members (gnm), delete(delete) :")
-    look_for = input("Search AD for :")
-    user_password = getpass.getpass()
+    if proceed:
+        look_in = input("Comp Report (c), Computers (cu), Computers Disabled (cd), Users (u), Users Brief (us), "
+                        "Groups (g), Groups Without Members (gnm), delete(delete) :")
+        look_for = input("Search AD for :")
+        user_password = getpass.getpass()
 
-    connection = ldap_connect(URI, user_name, user_password)
+        connection = ldap_connect(URI, user_name, user_password)
 
-    domains = find_domains(BASE, connection)
+        domains = find_domains(BASE, connection)
 
-    if isinstance(domains, str):
-        print()
-        print("Error: ", domains)
-        print()
+        if isinstance(domains, str):
+            print()
+            print("Error: ", domains)
+            print()
 
-    elif isinstance(domains, list):
-        print()
-        print("Domains: ", domains)
-        print()
+        elif isinstance(domains, list):
+            print()
+            print("Domains: ", domains)
+            print()
 
-        if look_in == 'delete':
-            ldap_delete(connection, look_for, True)
+            if look_in == 'delete':
+                ldap_delete(connection, look_for, True)
 
-        else:
+            else:
 
-            for base in domains:
-                print(">>>-------------->DOMAIN BASE : ", base, domains)
-                if look_in == "u":
-                    my_list = find_users(base, connection, look_for)
-                    print(" ------       search concluded... printing ", len(my_list))
-                    for i in my_list:
-                        if isinstance(i, list):
-                            for j in i:
-                                print(j.header, j.content)
-                            print()
-                        else:
-                            print(i)
-                            print(i.header, i.content)
+                for base in domains:
+                    print(">>>-------------->DOMAIN BASE : ", base, domains)
+                    if look_in == "u":
+                        my_list = find_users(base, connection, look_for)
+                        print(" ------       search concluded... printing ", len(my_list))
+                        for i in my_list:
+                            if isinstance(i, list):
+                                for j in i:
+                                    print(j.header, j.content)
+                                print()
+                            else:
+                                print(i)
+                                print(i.header, i.content)
 
-                if look_in == "us":
-                    my_list = find_users(base, connection, look_for, show_fields)
-                    print(" ------       search concluded... printing ", len(my_list))
-                    for i in my_list:
-                        if isinstance(i, list):
-                            for j in i:
-                                print(j.header, j.content)
-                            print()
-                        else:
-                            print(i)
-                            print(i.header, i.content)
+                    if look_in == "us":
+                        my_list = find_users_brief(base, connection, look_for, show_fields)
+                        print(" ------       search concluded... printing ", len(my_list))
+                        for i in my_list:
+                            if isinstance(i, list):
+                                for j in i:
+                                    print(j.header, j.content)
+                                print()
+                            else:
+                                print(i)
+                                print(i.header, i.content)
 
-                elif look_in == "cu":
-                    my_list = find_computers(base, connection, look_for)
-                    print(" ------       search concluded... printing ", len(my_list))
-                    for i in my_list:
-                        if isinstance(i, list):
-                            for j in i:
-                                print(j.header, j.content)
-                            print()
-                        else:
-                            print(i)
-                            print(i.header, i.content)
+                    elif look_in == "cu":
+                        my_list = find_computers(base, connection, look_for)
+                        print(" ------       search concluded... printing ", len(my_list))
+                        for i in my_list:
+                            if isinstance(i, list):
+                                for j in i:
+                                    print(j.header, j.content)
+                                print()
+                            else:
+                                print(i)
+                                print(i.header, i.content)
 
-                elif look_in == "c":
-                    my_list = find_computers_filtered(base, connection, look_for,
-                                                      ["name", "operatingSystem", "operatingSystemVersion",
-                                                       "lastLogonTimestamp", "distinguishedName", "description",
-                                                       "userAccountControl"])
-                    # "userAccountControl" 4130 = Computer Disabled
-                    print(" ------       search concluded... printing ", len(my_list))
-                    for i in my_list:
+                    elif look_in == "c":
+                        my_list = find_computers_filtered(base, connection, look_for,
+                                                          ["name", "operatingSystem", "operatingSystemVersion",
+                                                           "lastLogonTimestamp", "distinguishedName", "description",
+                                                           "userAccountControl"])
+                        # "userAccountControl" 4130 = Computer Disabled
+                        print(" ------       search concluded... printing ", len(my_list))
+                        for i in my_list:
 
-                        if isinstance(i, list):
-                            my_row = []
-                            for j in i:
-                                # print(j.header, j.content)
-                                if len(j.content) == 1:
-                                    value = j.content[0]
-                                    # print(j.content, " ", value)
-                                else:
-                                    value = "Multiple Values"
-                                    # print(j.content)
-                                my_row.append(value)
-                            print("\t".join(my_row))
-                        else:
-                            print(i)
-                            print(i.header, i.content)
+                            if isinstance(i, list):
+                                my_row = []
+                                for j in i:
+                                    # print(j.header, j.content)
+                                    if len(j.content) == 1:
+                                        value = j.content[0]
+                                        # print(j.content, " ", value)
+                                    else:
+                                        value = "Multiple Values"
+                                        # print(j.content)
+                                    my_row.append(value)
+                                print("\t".join(my_row))
+                            else:
+                                print(i)
+                                print(i.header, i.content)
 
-                elif look_in == "cd":
-                    my_list = find_computers_disabled(base, connection, look_for,
-                                                      ["name", "operatingSystem", "operatingSystemVersion",
-                                                       "lastLogonTimestamp", "distinguishedName", "description",
-                                                       "userAccountControl"])
-                    # "userAccountControl" 4130 = Computer Disabled
-                    print(" ------       search concluded... printing ", len(my_list))
-                    for i in my_list:
+                    elif look_in == "cd":
+                        my_list = find_computers_disabled(base, connection, look_for,
+                                                          ["name", "operatingSystem", "operatingSystemVersion",
+                                                           "lastLogonTimestamp", "distinguishedName", "description",
+                                                           "userAccountControl"])
+                        # "userAccountControl" 4130 = Computer Disabled
+                        print(" ------       search concluded... printing ", len(my_list))
+                        for i in my_list:
 
-                        if isinstance(i, list):
-                            my_row = []
-                            for j in i:
-                                # print(j.header, j.content)
-                                if len(j.content) == 1:
-                                    value = j.content[0]
-                                    # print(j.content, " ", value)
-                                else:
-                                    value = "Multiple Values"
-                                    # print(j.content)
-                                my_row.append(value)
-                            print("\t".join(my_row))
-                        else:
-                            print(i)
-                            print(i.header, i.content)
+                            if isinstance(i, list):
+                                my_row = []
+                                for j in i:
+                                    # print(j.header, j.content)
+                                    if len(j.content) == 1:
+                                        value = j.content[0]
+                                        # print(j.content, " ", value)
+                                    else:
+                                        value = "Multiple Values"
+                                        # print(j.content)
+                                    my_row.append(value)
+                                print("\t".join(my_row))
+                            else:
+                                print(i)
+                                print(i.header, i.content)
 
-                elif look_in == 'g':
-                    my_list = find_groups(base, connection, look_for)
-                    print(" ------       search concluded... printing ", len(my_list))
-                    for i in my_list:
-                        if isinstance(i, list):
-                            for j in i:
-                                print(j.header, j.content)
-                            print()
-                        else:
-                            print(i)
-                            print(i.header, i.content)
+                    elif look_in == 'g':
+                        my_list = find_groups(base, connection, look_for)
+                        print(" ------       search concluded... printing ", len(my_list))
+                        for i in my_list:
+                            if isinstance(i, list):
+                                for j in i:
+                                    print(j.header, j.content)
+                                print()
+                            else:
+                                print(i)
+                                print(i.header, i.content)
 
-                elif look_in == 'gnm':
-                    my_list = find_groups_no_members(base, connection, look_for,
-                                                     ["cn", "description", "distinguishedName",
-                                                      "whenChanged", "whenCreated"])
-                    list_length = len(my_list)
-                    print(" ------       search concluded... printing ", list_length)
-                    for index, i in enumerate(my_list):
-                        if isinstance(i, list):
-                            my_row = []
-                            for j in i:
-                                # print(j.header, j.content)
-                                if len(j.content) == 1:
-                                    value = j.content[0]
-                                    # print(j.content, " ", value)
-                                else:
-                                    value = "Multiple Values"
-                                    # print(j.content)
-                                my_row.append(value)
-                            print("\t".join(my_row))
-                        else:
-                            print(i)
-                            print(i.header, i.content)
+                    elif look_in == 'gnm':
+                        my_list = find_groups_no_members(base, connection, look_for,
+                                                         ["cn", "description", "distinguishedName",
+                                                          "whenChanged", "whenCreated"])
+                        list_length = len(my_list)
+                        print(" ------       search concluded... printing ", list_length)
+                        for index, i in enumerate(my_list):
+                            if isinstance(i, list):
+                                my_row = []
+                                for j in i:
+                                    # print(j.header, j.content)
+                                    if len(j.content) == 1:
+                                        value = j.content[0]
+                                        # print(j.content, " ", value)
+                                    else:
+                                        value = "Multiple Values"
+                                        # print(j.content)
+                                    my_row.append(value)
+                                print("\t".join(my_row))
+                            else:
+                                print(i)
+                                print(i.header, i.content)
 
 
 if __name__ == '__main__':
