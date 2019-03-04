@@ -19,7 +19,7 @@ print(r.text)
 
 def main():
     """ CLI implementation temporal for fast trial while developing
-    it requires puppetapi.ini 2 directories up with configuration as follow
+    it, requires puppetapi.ini 2 directories up with configuration as follow
     --- puppetapi.ini ---
     [Settings]
     url = https://puppet.mysite.com:8081/pdb/query/v4/facts
