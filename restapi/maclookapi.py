@@ -42,11 +42,6 @@ class QueryMac(restapi.restapimaster.RestApi):
 
 
 # self.urlbase = "http://www.macvendorlookup.com/api/v2/"
-
-
-
-
-
 # - L-Content : list here
 # - L-Content : dict found on list resending
 # country - D_Content : str Value : UNITED STATES

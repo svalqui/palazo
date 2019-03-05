@@ -3,9 +3,12 @@ import json
 import pathlib
 import configparser
 import sys
+import restapi.restapimaster
 
 
-print("on Puppet")
+class Jn(restapi.restapimaster.RestApi):
+    def __init__(self, jsn):
+        self.navigate_json(jsn)
 
 
 def first_q(urlpuppet, cacert, cert):
@@ -25,7 +28,9 @@ def first_q(urlpuppet, cacert, cert):
         print('--Error: ', e)
         print('--Exception Name :', type(e))
 
-    print(r.text)
+    return r.json()
+
+
 
 
 def main():
@@ -58,7 +63,8 @@ def main():
         cert = (sslcert, sslkey)
         print("on try")
 
-        first_q(urlpuppet, cacert, cert)
+        r_jsn = first_q(urlpuppet, cacert, cert)
+        Jn(r_jsn)
 
     except BaseException as e:
         print("Didn't work!, MAIN :(")
