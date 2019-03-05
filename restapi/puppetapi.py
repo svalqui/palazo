@@ -3,6 +3,8 @@ import json
 import pathlib
 import configparser
 import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import restapi.restapimaster
 
 
@@ -29,8 +31,6 @@ def first_q(urlpuppet, cacert, cert):
         print('--Exception Name :', type(e))
 
     return r.json()
-
-
 
 
 def main():
