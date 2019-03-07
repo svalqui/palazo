@@ -12,38 +12,38 @@ class RestApi(object):
 
     def navigate_json(self, json_loads, indent=""):
             if isinstance(json_loads, dict):
-                print(indent, "- D_Content : dict here")
+                print(indent, "D_ Dict Here")
                 for index in json_loads.keys():
                     if isinstance(json_loads[index], dict):
-                        print(indent, "D_Content- Index: ", index, "- dict found on dict resending")
+                        print(indent, "D_Content: ", index, "- Dict found on Dict resending")
                         indent += "  "
                         self.navigate_json(json_loads[index], indent)
                     elif isinstance(json_loads[index], list):
-                        print(indent, "D_Content- Index: ", index, "- list found on dict resending, len :",
+                        print(indent, "D_Content: ", index, "- List found on Dict resending, len :",
                               len(json_loads[index]))
                         indent += "  "
                         self.navigate_json(json_loads[index], indent)
                     elif isinstance(json_loads[index], str):
-                        print(indent, "D_Content- Index: ", index, "- str Value :", json_loads[index])
+                        print(indent, "D_Content- Idx: ", index, "- str Value :", json_loads[index])
                     elif isinstance(json_loads[index], int):
-                        print(indent, "D_Content- Index: ", index, "- int Value :", json_loads[index])
+                        print(indent, "D_Content- Idx: ", index, "- int Value :", json_loads[index])
                     elif isinstance(json_loads[index], float):
-                        print(indent, "D_Content- Index: ", index, "- float Value :", json_loads[index])
+                        print(indent, "D_Content- Idx: ", index, "- float Value :", json_loads[index])
                     elif isinstance(json_loads[index], bool):
-                        print(indent, "D_Content- Index: ", index, "- bool Value :", json_loads[index])
+                        print(indent, "D_Content- Idx: ", index, "- bool Value :", json_loads[index])
                     elif isinstance(json_loads[index], type(None)):
-                        print(indent, "D_Content- Index: ", index, "- None Value :", json_loads[index])
+                        print(indent, "D_Content- Idx: ", index, "- None Value :", json_loads[index])
                     else:
-                        print(indent, "D_Content- Index: ", index, "- Obj not pre defined")
+                        print(indent, "D_Content- Idx: ", index, "- Obj not pre defined")
 
             elif isinstance(json_loads, list):
-                print(indent, "- L-Content : list here")
+                print(indent, "- L- list here, len :", len(json_loads))
                 for element in json_loads:
                     if isinstance(element, dict):
-                        print(indent, "L-Content : dict found on list resending")
+                        print(indent, "L-Content : Dict found on List resending")
                         self.navigate_json(element, indent)
                     elif isinstance(element, list):
-                        print(indent, "L-Content : list found on list resending, len :", len(element))
+                        print(indent, "L-Content : List found on List resending, len :", len(element))
                         self.navigate_json(element, indent)
                     elif isinstance(element, str):
                         print(indent, "L-Content : str Value :", element)
@@ -56,7 +56,7 @@ class RestApi(object):
                     elif isinstance(element, type(None)):
                         print(indent, "L-Content : None Value :", element)
                     else:
-                        print(indent, "- L-Content : Obj not pre defined")
+                        print(indent, "L-Content : Obj not pre defined")
 
             elif isinstance(json_loads, str):
                 print(indent, "Content : str Value :", json_loads)
