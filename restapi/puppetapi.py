@@ -18,9 +18,10 @@ def first_q(urlpuppet, cacert, cert):
     print(urlpuppet)
     print(cacert)
     print(cert)
+    #  --data-urlencode 'query=["=", "name", "operatingsystem"]'
     q = {'query': ["=", "name", "operatingsystem"]}
     print("q", q.__str__())
-    script = json.dumps(q)
+    script = json.dumps(q)  # takes an object, produces a string
 
     try:
         r = requests.get(urlpuppet, verify=cacert, cert=cert, data=script)

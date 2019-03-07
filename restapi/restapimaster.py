@@ -10,7 +10,7 @@ class RestApi(object):
         self.header_xml = {"content-type": "text/xml"}
         self.header_html = {"content-type": "text/html"}
 
-    def navigate_json(self, json_loads, indent=""):
+    def navigate_json(self, json_loads, indent=""):  # json_loads, file-like object
             if isinstance(json_loads, dict):
                 print(indent, "D_ Dict Here")
                 for index in json_loads.keys():
