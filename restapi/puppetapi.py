@@ -19,8 +19,9 @@ def first_q(urlpuppet, cacert, cert):
     print(cacert)
     print(cert)
     #  --data-urlencode 'query=["=", "name", "operatingsystem"]'
-    q = {'query': ["=", "name", "operatingsystem"]}
-    print("q", q.__str__())
+#    q = {'query': ["=", "name", "operatingsystem"]}
+    q = {'query': ["=", "name", "operatingsystemrelease"]}
+    print("q -->>>  ", q.__str__())
     script = json.dumps(q)  # takes an object, produces a string
 
     try:
@@ -65,7 +66,33 @@ def main():
         print("on try")
 
         r_jsn = first_q(urlpuppet, cacert, cert)
-        Jn(r_jsn)
+        #Jn(r_jsn)
+        print(str(type(r_jsn)))
+        n_d = 0
+        # for i in r_jsn:
+        #     if isinstance(i, dict):
+        #         n_d += 1
+        #         for j in i.keys():
+        #             print(j, str(type(i[j])), ' ', i[j])
+        #     else:
+        #         print(str(type(i)))
+        #     print()
+
+        for i in r_jsn:
+            if isinstance(i, dict):
+                if 'name' in i.keys():
+
+                    if i['name'] == 'operatingsystemrelease':
+                        n_d += 1
+                        print("Node ", n_d, " :", i['certname'])
+                        print("Environment :", i['environment'])
+                        print("OS Release :", i['value'])
+                        print()
+
+
+
+
+        print("n_d: ", n_d)
 
     except BaseException as e:
         print("Didn't work!, MAIN :(")
