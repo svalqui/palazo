@@ -13,7 +13,7 @@ class Jn(restapi.restapimaster.RestApi):
         self.navigate_json(jsn)
 
 
-def first_q(urlpuppet, cacert, cert):
+def q_os_release(urlpuppet, cacert, cert):
     print("on 1st")
     print(urlpuppet)
     print(cacert)
@@ -21,6 +21,28 @@ def first_q(urlpuppet, cacert, cert):
     #  --data-urlencode 'query=["=", "name", "operatingsystem"]'
 #    q = {'query': ["=", "name", "operatingsystem"]}
     q = {'query': ["=", "name", "operatingsystemrelease"]}
+    print("q -->>>  ", q.__str__())
+    script = json.dumps(q)  # takes an object, produces a string
+
+    try:
+        r = requests.get(urlpuppet, verify=cacert, cert=cert, data=script)
+
+    except BaseException as e:
+        print("Didn't work!, first_q :(")
+        print('--Error: ', e)
+        print('--Exception Name :', type(e))
+
+    return r.json()
+
+
+def first_q(urlpuppet, cacert, cert):
+    print("on 1st")
+    print(urlpuppet)
+    print(cacert)
+    print(cert)
+    #  --data-urlencode 'query=["=", "name", "operatingsystem"]'
+#    q = {'query': ["=", "name", "operatingsystem"]}
+    q = {'query': ["=", "name", "admin_user"]}
     print("q -->>>  ", q.__str__())
     script = json.dumps(q)  # takes an object, produces a string
 
@@ -82,7 +104,8 @@ def main():
             if isinstance(i, dict):
                 if 'name' in i.keys():
 
-                    if i['name'] == 'operatingsystemrelease':
+                    #if i['name'] == 'operatingsystemrelease':
+                    if i['name'] == 'admin_user':
                         n_d += 1
                         print("Node ", n_d, " :", i['certname'])
                         print("Environment :", i['environment'])
