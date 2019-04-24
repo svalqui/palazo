@@ -129,12 +129,12 @@ def main():
             r_jsn = q_os_release(urlpuppet, cacert, cert)
         elif my_query == "2":
             fact_name = "admin_user"
-            r_jsn = q_admin_users()
+            r_jsn = q_admin_users(urlpuppet, cacert, cert)
         else:
             print("Wrong Choice.")
 
         print(str(type(r_jsn)))
-        print_return(r_jsn, )
+        print_return(r_jsn, fact_name)
 
     except BaseException as e:
         print("Didn't work!, MAIN :(")
