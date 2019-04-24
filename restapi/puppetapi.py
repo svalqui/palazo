@@ -49,8 +49,20 @@ def q_admin_users(urlpuppet, cacert, cert):
     return r.json()
 
 
-def print_return(retruned_json):
-    pass
+def print_return(returned_json, fact_name):
+    number_of_matching = 0
+
+    for record in returned_json:
+        if isinstance(record, dict):
+            if 'name' in record.keys():
+                if record['name'] == fact_name:
+                    number_of_matching += 1
+                    print("Node ", number_of_matching, " :", record['certname'])
+                    print("Environment :", record['environment'])
+                    print("Value :", record['value'])
+                    print()
+
+    print("number of matching records: ", number_of_matching)
 
 
 def first_q(urlpuppet, cacert, cert):
@@ -112,29 +124,17 @@ def main():
                          "[2] Admin Users \n \n"
                          "Your Choice: ")
 
-        if my_query == 1:
+        if my_query == "1":
+            fact_name = "operatingsystemrelease"
             r_jsn = q_os_release(urlpuppet, cacert, cert)
-        elif my_query == 2:
+        elif my_query == "2":
+            fact_name = "admin_user"
             r_jsn = q_admin_users()
         else:
             print("Wrong Choice.")
 
         print(str(type(r_jsn)))
-        n_d = 0
-
-        for i in r_jsn:
-            if isinstance(i, dict):
-                if 'name' in i.keys():
-
-                    #if i['name'] == 'operatingsystemrelease':
-                    if i['name'] == 'admin_user':
-                        n_d += 1
-                        print("Node ", n_d, " :", i['certname'])
-                        print("Environment :", i['environment'])
-                        print("OS Release :", i['value'])
-                        print()
-
-        print("n_d: ", n_d)
+        print_return(r_jsn, )
 
     except BaseException as e:
         print("Didn't work!, MAIN :(")
