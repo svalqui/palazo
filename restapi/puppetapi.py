@@ -14,13 +14,27 @@ class Jn(restapi.restapimaster.RestApi):
 
 
 def q_os_release(urlpuppet, cacert, cert):
+    q = {'query': ["=", "name", "operatingsystemrelease"]}
+    print("q -->>>  ", q.__str__())
+    script = json.dumps(q)  # takes an object, produces a string
+
+    try:
+        r = requests.get(urlpuppet, verify=cacert, cert=cert, data=script)
+
+    except BaseException as e:
+        print("Didn't work!, q_os_release :(")
+        print('--Error: ', e)
+        print('--Exception Name :', type(e))
+
+    return r.json()
+
+
+def q_admin_users(urlpuppet, cacert, cert):
     print("on 1st")
     print(urlpuppet)
     print(cacert)
     print(cert)
-    #  --data-urlencode 'query=["=", "name", "operatingsystem"]'
-#    q = {'query': ["=", "name", "operatingsystem"]}
-    q = {'query': ["=", "name", "operatingsystemrelease"]}
+    q = {'query': ["=", "name", "admin_user"]}
     print("q -->>>  ", q.__str__())
     script = json.dumps(q)  # takes an object, produces a string
 
@@ -33,6 +47,10 @@ def q_os_release(urlpuppet, cacert, cert):
         print('--Exception Name :', type(e))
 
     return r.json()
+
+
+def print_return(retruned_json):
+    pass
 
 
 def first_q(urlpuppet, cacert, cert):
@@ -85,20 +103,24 @@ def main():
         sslcert = config['Settings']['sslcert']
         sslkey = config['Settings']['sslkey']
         cert = (sslcert, sslkey)
-        print("on try")
 
-        r_jsn = first_q(urlpuppet, cacert, cert)
-        #Jn(r_jsn)
+        print('urlpuppet :', urlpuppet)
+        print('cacert "', cacert)
+        print('cert :', cert)
+
+        my_query = input("[1] OS release \n "
+                         "[2] Admin Users \n \n"
+                         "Your Choice: ")
+
+        if my_query == 1:
+            r_jsn = q_os_release(urlpuppet, cacert, cert)
+        elif my_query == 2:
+            r_jsn = q_admin_users()
+        else:
+            print("Wrong Choice.")
+
         print(str(type(r_jsn)))
         n_d = 0
-        # for i in r_jsn:
-        #     if isinstance(i, dict):
-        #         n_d += 1
-        #         for j in i.keys():
-        #             print(j, str(type(i[j])), ' ', i[j])
-        #     else:
-        #         print(str(type(i)))
-        #     print()
 
         for i in r_jsn:
             if isinstance(i, dict):
@@ -111,9 +133,6 @@ def main():
                         print("Environment :", i['environment'])
                         print("OS Release :", i['value'])
                         print()
-
-
-
 
         print("n_d: ", n_d)
 
