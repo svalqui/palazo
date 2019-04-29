@@ -29,7 +29,7 @@ def query_fact(urlpuppet, cacert, cert, fact_name):
     return r.json()
 
 
-def print_return(returned_json, fact_name):
+def print_rec_by_fact_name(returned_json, fact_name):
     number_of_matching = 0
 
     for record in returned_json:
@@ -41,30 +41,13 @@ def print_return(returned_json, fact_name):
                     print("Environment :", record['environment'])
                     print("Value :", record['value'])
                     print()
+                else:
+                    print("----")
+                    print("Another fact named: ", record['name'])
+                    print()
+
 
     print("number of matching records: ", number_of_matching)
-
-
-def first_q(urlpuppet, cacert, cert):
-    print("on 1st")
-    print(urlpuppet)
-    print(cacert)
-    print(cert)
-    #  --data-urlencode 'query=["=", "name", "operatingsystem"]'
-#    q = {'query': ["=", "name", "operatingsystem"]}
-    q = {'query': ["=", "name", "admin_user"]}
-    print("q -->>>  ", q.__str__())
-    script = json.dumps(q)  # takes an object, produces a string
-
-    try:
-        r = requests.get(urlpuppet, verify=cacert, cert=cert, data=script)
-
-    except BaseException as e:
-        print("Didn't work!, first_q :(")
-        print('--Error: ', e)
-        print('--Exception Name :', type(e))
-
-    return r.json()
 
 
 def main():
@@ -96,10 +79,6 @@ def main():
         sslkey = config['Settings']['sslkey']
         cert = (sslcert, sslkey)
 
-        print('urlpuppet :', urlpuppet)
-        print('cacert "', cacert)
-        print('cert :', cert)
-
         my_query = input("[1] OS release \n "
                          "[2] Admin Users \n \n"
                          "Your Choice: ")
@@ -114,7 +93,13 @@ def main():
             print("Wrong Choice.")
 
         print(str(type(r_jsn)))
-        print_return(r_jsn, fact_name)
+        print_rec_by_fact_name(r_jsn, fact_name)
+        print('urlpuppet :', urlpuppet)
+        print('cacert "', cacert)
+        print('cert :', cert)
+
+
+
 
     except BaseException as e:
         print("Didn't work!, MAIN :(")
