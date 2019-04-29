@@ -14,6 +14,14 @@ class Jn(restapi.restapimaster.RestApi):
 
 
 def query_fact(urlpuppet, cacert, cert, fact_name):
+    """ Returns.
+    {
+    "certname": <node name>,
+    "name": <fact name>,
+    "value": <fact value>,
+    "environment": <facts environment>
+    }
+    """
     q = {'query': ["=", "name", fact_name]}
     print("q -->>>  ", q.__str__())
     script = json.dumps(q)  # takes an object, produces a string
@@ -42,12 +50,34 @@ def print_rec_by_fact_name(returned_json, fact_name):
                     print("Value :", record['value'])
                     print()
                 else:
-                    print("----")
                     print("Another fact named: ", record['name'])
-                    print()
-
 
     print("number of matching records: ", number_of_matching)
+
+
+def print_test(returned_json, fact_name):
+    number_of_matching = 0
+
+    for record in returned_json:
+        if isinstance(record, dict):
+            if 'name' in record.keys():
+                if record['name'] == fact_name:
+                    number_of_matching += 1
+                    print("Node ", number_of_matching, " :", record['certname'])
+                    print("Environment :", record['environment'])
+                    print("Value :", record['value'])
+                    print()
+                elif record['name'] == 'bios_vendor':
+                    print("Node :", record['certname'])
+                    print("Environment :", record['environment'])
+                    print("Value :", record['value'])
+                    print()
+
+                else:
+                    print("Another fact named: ", record['name'])
+
+    print("number of matching records: ", number_of_matching)
+
 
 
 def main():
