@@ -13,8 +13,8 @@ class Jn(restapi.restapimaster.RestApi):
         self.navigate_json(jsn)
 
 
-def q_os_release(urlpuppet, cacert, cert):
-    q = {'query': ["=", "name", "operatingsystemrelease"]}
+def query_fact(urlpuppet, cacert, cert, fact_name):
+    q = {'query': ["=", "name", fact_name]}
     print("q -->>>  ", q.__str__())
     script = json.dumps(q)  # takes an object, produces a string
 
@@ -23,26 +23,6 @@ def q_os_release(urlpuppet, cacert, cert):
 
     except BaseException as e:
         print("Didn't work!, q_os_release :(")
-        print('--Error: ', e)
-        print('--Exception Name :', type(e))
-
-    return r.json()
-
-
-def q_admin_users(urlpuppet, cacert, cert):
-    print("on 1st")
-    print(urlpuppet)
-    print(cacert)
-    print(cert)
-    q = {'query': ["=", "name", "admin_user"]}
-    print("q -->>>  ", q.__str__())
-    script = json.dumps(q)  # takes an object, produces a string
-
-    try:
-        r = requests.get(urlpuppet, verify=cacert, cert=cert, data=script)
-
-    except BaseException as e:
-        print("Didn't work!, first_q :(")
         print('--Error: ', e)
         print('--Exception Name :', type(e))
 
@@ -126,10 +106,10 @@ def main():
 
         if my_query == "1":
             fact_name = "operatingsystemrelease"
-            r_jsn = q_os_release(urlpuppet, cacert, cert)
+            r_jsn = query_fact(urlpuppet, cacert, cert, fact_name)
         elif my_query == "2":
             fact_name = "admin_user"
-            r_jsn = q_admin_users(urlpuppet, cacert, cert)
+            r_jsn = query_fact(urlpuppet, cacert, cert, fact_name)
         else:
             print("Wrong Choice.")
 
