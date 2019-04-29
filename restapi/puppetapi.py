@@ -74,7 +74,7 @@ def print_test(returned_json, fact_name):
                     print()
 
                 else:
-                    print("Another fact named: ", record['name'])
+                    print("Another fact named: ", record['name'], "V :", record['value'])
 
     print("number of matching records: ", number_of_matching)
 
