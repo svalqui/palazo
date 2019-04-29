@@ -79,7 +79,6 @@ def print_test(returned_json, fact_name):
     print("number of matching records: ", number_of_matching)
 
 
-
 def main():
     """ CLI implementation temporal for fast trial while developing
     it, requires puppetapi.ini 3 directories up with configuration as follow
@@ -123,7 +122,7 @@ def main():
             print("Wrong Choice.")
 
         print(str(type(r_jsn)))
-        print_rec_by_fact_name(r_jsn, fact_name)
+        print_test(r_jsn, fact_name)
         print('urlpuppet :', urlpuppet)
         print('cacert "', cacert)
         print('cert :', cert)
