@@ -73,9 +73,6 @@ def print_test(returned_json, fact_name):
                     print("Value :", record['value'])
                     print()
 
-                else:
-                    print("Another fact named: ", record['name'], "V :", record['value'])
-
     print("number of matching records: ", number_of_matching)
 
 
@@ -108,7 +105,7 @@ def main():
         sslkey = config['Settings']['sslkey']
         cert = (sslcert, sslkey)
 
-        my_query = input("[1] OS release \n "
+        my_query = input("[1] OS release \n"
                          "[2] Admin Users \n \n"
                          "Your Choice: ")
 
