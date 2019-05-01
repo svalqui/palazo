@@ -22,9 +22,14 @@ def query_fact(urlpuppet, cacert, cert, fact_name):
     "environment": <facts environment>
     }
     """
-    q = {'query': ["=", "name", fact_name]}
+    # q = {'query': ["=", "name", fact_name]}
+    # print("q -->>>  ", q.__str__())
+    # script = json.dumps(q)  # takes an object, produces a string
+
+    q = {'query': '["=", "name", "'+fact_name+'"]'}
     print("q -->>>  ", q.__str__())
     script = json.dumps(q)  # takes an object, produces a string
+
 
     try:
         r = requests.get(urlpuppet, verify=cacert, cert=cert, data=script)
