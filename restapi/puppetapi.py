@@ -32,7 +32,7 @@ def query_fact(urlpuppet, cacert, cert, fact_name):
 
 
     try:
-        r = requests.get(urlpuppet, verify=cacert, cert=cert, data=script)
+        r = requests.get(urlpuppet, verify=cacert, cert=cert, data=q)
 
     except BaseException as e:
         print("Didn't work!, q_os_release :(")
