@@ -76,6 +76,29 @@ def print_test(returned_json, fact_name):
     print("number of matching records: ", number_of_matching)
 
 
+def print_dict_filtered(dict_filtered):
+    for node_name in dict_filtered.keys():
+        print('Node: ', node_name)
+        for fact_name in dict_filtered[node_name].keys():
+            print('    Fact: ', fact_name)
+            print('    Value: ', dict_filtered[node_name][fact_name])
+
+
+def json_to_dict_filtered(returned_json, filter_fields=['manufacturer', 'boardassettag', 'memorysize', 'memoryfree']):
+    dict_filtered = {} # Index per certname
+    # node_facts = {} # Index by factname
+    for record in returned_json:
+        if isinstance(record, dict):
+            if 'name' in record.keys():
+                if record['name'] in filter_fields:
+                    if record['certname'] in dict_filtered.keys():
+                        dict_filtered[record['certname']][record['name']] = record['value']
+                    else:
+                        dict_filtered[record['certname']] = {}
+                        dict_filtered[record['certname']][record['name']] = record['value']
+    return dict_filtered
+
+
 def main():
     """ CLI implementation temporal for fast trial while developing
     it, requires puppetapi.ini 3 directories up with configuration as follow
@@ -106,7 +129,8 @@ def main():
         cert = (sslcert, sslkey)
 
         my_query = input("[1] OS release \n"
-                         "[2] Admin Users \n \n"
+                         "[2] Admin Users \n"
+                         "[3] HW Report \n \n"
                          "Your Choice: ")
 
         if my_query == "1":
@@ -115,11 +139,17 @@ def main():
         elif my_query == "2":
             fact_name = "admin_user"
             r_jsn = query_fact(urlpuppet, cacert, cert, fact_name)
+        elif my_query == "3":
+            fact_name = "operatingsystemrelease"
+            r_jsn = query_fact(urlpuppet, cacert, cert, fact_name)
+            filtered_facts = json_to_dict_filtered(r_jsn)
+            print_dict_filtered(filtered_facts)
         else:
             print("Wrong Choice.")
 
+        print()
         print(str(type(r_jsn)))
-        print_test(r_jsn, fact_name)
+        # print_test(r_jsn, fact_name)
         print('urlpuppet :', urlpuppet)
         print('cacert "', cacert)
         print('cert :', cert)
