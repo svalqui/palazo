@@ -13,7 +13,7 @@ class Jn(restapi.restapimaster.RestApi):
         self.navigate_json(jsn)
 
 
-def query_fact(urlpuppet, cacert, cert, fact_name):
+def query_fact(url_base, cacert, cert, fact_name):
     """ Returns.
     {
     "certname": <node name>,
@@ -26,13 +26,45 @@ def query_fact(urlpuppet, cacert, cert, fact_name):
     # print("q -->>>  ", q.__str__())
     # script = json.dumps(q)  # takes an object, produces a string
 
+    url_puppet = url_base + "/facts"
+
     q = {'query': '["=", "name", "'+fact_name+'"]'}
     print("q -->>>  ", q.__str__())
-    script = json.dumps(q)  # takes an object, produces a string
-
+    # script = json.dumps(q)  # takes an object, produces a string
 
     try:
-        r = requests.get(urlpuppet, verify=cacert, cert=cert, data=q)
+        r = requests.get(url_puppet, verify=cacert, cert=cert, data=q)
+
+    except BaseException as e:
+        print("Didn't work!, q_os_release :(")
+        print('--Error: ', e)
+        print('--Exception Name :', type(e))
+
+    return r.json()
+
+
+def query_inventory(url_base, cacert, cert):
+    """ Returns.
+    {
+    "certname": <node name>,
+    "name": <fact name>,
+    "value": <fact value>,
+    "environment": <facts environment>
+    }
+    """
+    # q = {'query': ["=", "name", fact_name]}
+    # print("q -->>>  ", q.__str__())
+    # script = json.dumps(q)  # takes an object, produces a string
+
+    url_puppet = url_base + "/facts"
+
+    q = {'query': '["or",["=", "name", "manufacturer"],["=", "name", "boardassettag"],["=", "name", "memorysize"],'
+                  '["=", "name", "memoryfree"]]'}
+    print("q -->>>  ", q.__str__())
+    # script = json.dumps(q)  # takes an object, produces a string
+
+    try:
+        r = requests.get(url_puppet, verify=cacert, cert=cert, data=q)
 
     except BaseException as e:
         print("Didn't work!, q_os_release :(")
@@ -109,7 +141,7 @@ def main():
     it, requires puppetapi.ini 3 directories up with configuration as follow
     --- puppetapi.ini ---
     [Settings]
-    url = https://puppet.mysite.com:8081/pdb/query/v4/facts
+    url = https://puppet.mysite.com:8081/pdb/query/v4
     cacert = /etc/puppetlabs/puppet/ssl/certs/ca.pem
     sslcert = /etc/puppetlabs/puppet/ssl/certs/pc.pem
     sslkey = /etc/puppetlabs/puppet/ssl/private_keys/pc.pem
@@ -127,7 +159,7 @@ def main():
     try:
         config.read(str(file_conf_name))
 
-        urlpuppet = config['Settings']['url']
+        url_base = config['Settings']['url']
         cacert = config['Settings']['cacert']
         sslcert = config['Settings']['sslcert']
         sslkey = config['Settings']['sslkey']
@@ -140,13 +172,13 @@ def main():
 
         if my_query == "1":
             fact_name = "operatingsystemrelease"
-            r_jsn = query_fact(urlpuppet, cacert, cert, fact_name)
+            r_jsn = query_fact(url_base, cacert, cert, fact_name)
         elif my_query == "2":
             fact_name = "admin_user"
-            r_jsn = query_fact(urlpuppet, cacert, cert, fact_name)
+            r_jsn = query_fact(url_base, cacert, cert, fact_name)
         elif my_query == "3":
             fact_name = "operatingsystemrelease"
-            r_jsn = query_fact(urlpuppet, cacert, cert, fact_name)
+            r_jsn = query_fact(url_base, cacert, cert, fact_name)
             filtered_facts = json_to_dict_filtered(r_jsn)
             print_dict_filtered(filtered_facts)
         else:
