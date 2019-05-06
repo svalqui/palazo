@@ -1,3 +1,4 @@
+# Copyright 2019 by Sergio Valqui. All rights reserved.
 # Discover object
 # dicloses object types of an object recursively
 

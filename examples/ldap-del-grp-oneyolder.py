@@ -1,3 +1,4 @@
+# Copyright 2019 by Sergio Valqui. All rights reserved.
 #
 # Delete groups that match a given string, are older than a year and have no members (empty)
 #

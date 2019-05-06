@@ -1,3 +1,4 @@
+# Copyright 2019 by Sergio Valqui. All rights reserved.
 # Source Class
 # https://
 # https://ipam.illinois.edu/wapidoc/objects/network.html

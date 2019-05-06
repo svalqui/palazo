@@ -1,3 +1,4 @@
+# Copyright 2019 by Sergio Valqui. All rights reserved.
 ##  ConfigParser used as reference
 
 from collections.abc import MutableMapping

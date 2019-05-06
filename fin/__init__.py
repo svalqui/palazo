@@ -1,3 +1,4 @@
+# Copyright 2019 by Sergio Valqui. All rights reserved.
 def IsAuMrkO(self):
 
     opened = False

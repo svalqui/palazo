@@ -1,3 +1,4 @@
+# Copyright 2019 by Sergio Valqui. All rights reserved.
 def SendEmail(fs_smtpsvr, fs_user, fs_pass, fs_emailcontent):
     import smtplib
     import socket
