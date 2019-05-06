@@ -173,7 +173,7 @@ def main():
         sslkey = config['Settings']['sslkey']
         cert = (sslcert, sslkey)
 
-        print('urlpuppet :', urlpuppet)
+        print('urlbase :', url_base)
         print('cacert "', cacert)
         print('cert :', cert)
         print()
@@ -199,7 +199,7 @@ def main():
         print()
         print(str(type(r_jsn)))
         # print_test(r_jsn, fact_name)
-        print('urlpuppet :', urlpuppet)
+        print('urlbase :', url_base)
         print('cacert "', cacert)
         print('cert :', cert)
 
