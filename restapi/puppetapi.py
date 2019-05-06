@@ -60,7 +60,8 @@ def query_inventory(url_base, cacert, cert):
 
     q = {'query': '["or",["=", "name", "manufacturer"],["=", "name", "boardassettag"],["=", "name", "memorysize"],'
                   '["=", "name", "memoryfree"],["=", "name", "lsbdistdescription"],["=", "name", "network"],'
-                  '["=", "name", "last_login_date"],["=", "name", "admin_user"], ["=", "name", "productname"]]'}
+                  '["=", "name", "last_login_date"],["=", "name", "admin_user"], ["=", "name", "productname"],'
+                  ' ["=", "name", "operatingsystem"], ["=", "name", "operatingsystemrelease"]]'}
 
     print("q -->>>  ", q.__str__())
     # script = json.dumps(q)  # takes an object, produces a string
@@ -126,15 +127,17 @@ def print_dict_filtered(dict_filtered):
 def print_dict_inventory(dict_filtered):
     line_facts = ''
 
-    inventory_fields = ["lsbdistdescription", "manufacturer", "productname", "boardassettag", "memorysize",
-                        "memoryfree", "last_login_date", "network", "admin_user"]
+    inventory_fields = ["operatingsystem", "operatingsystemrelease", "lsbdistdescription", "manufacturer",
+                        "productname", "boardassettag", "memorysize", "memoryfree", "last_login_date", "network",
+                        "admin_user"]
 
-    print('Node, OS Version, Manufacturer, Model, HW AssetID, Memory Size, Memory Free, Last Login Date, IP, User')
+    print('Node, OS, OS Release, OS Distrib, Manufacturer, Model, HW AssetID, Memory Size, Memory Free, '
+          'Last Login Date, IP, User')
     for node_name in dict_filtered.keys():
         line_per_node = node_name
         for fact_name in inventory_fields:
             if fact_name in dict_filtered[node_name].keys():
-                line_facts += ", " + str(dict_filtered[node_name][fact_name])
+                line_facts += ", " + str(dict_filtered[node_name][fact_name]).replace(',', ';')
             else:
                 line_facts += ", "
         line_per_node += line_facts
@@ -159,8 +162,9 @@ def json_to_dict_filtered(returned_json, filter_fields=['manufacturer', 'boardas
 
 
 def json_to_dict_inventory(returned_json):
-    inventory_fields = ["manufacturer", "boardassettag", "memorysize", "memoryfree", "lsbdistdescription", "network",
-                        "last_login_date", "admin_user", "productname"]
+    inventory_fields = ["operatingsystem", "operatingsystemrelease", "lsbdistdescription", "manufacturer",
+                        "productname", "boardassettag", "memorysize", "memoryfree", "last_login_date", "network",
+                        "admin_user"]
     return json_to_dict_filtered(returned_json, inventory_fields)
 
 
