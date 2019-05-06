@@ -173,6 +173,11 @@ def main():
         sslkey = config['Settings']['sslkey']
         cert = (sslcert, sslkey)
 
+        print('urlpuppet :', urlpuppet)
+        print('cacert "', cacert)
+        print('cert :', cert)
+        print()
+
         my_query = input("[1] OS release \n"
                          "[2] Admin Users \n"
                          "[3] HW Report \n \n"
