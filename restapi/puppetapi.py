@@ -59,7 +59,9 @@ def query_inventory(url_base, cacert, cert):
     url_puppet = url_base + "/facts"
 
     q = {'query': '["or",["=", "name", "manufacturer"],["=", "name", "boardassettag"],["=", "name", "memorysize"],'
-                  '["=", "name", "memoryfree"]]'}
+                  '["=", "name", "memoryfree"],["=", "name", "lsbdistdescription"],["=", "name", "network"],'
+                  '["=", "name", "last_login_date"],["=", "name", "admin_user"]]'}
+
     print("q -->>>  ", q.__str__())
     # script = json.dumps(q)  # takes an object, produces a string
 
@@ -136,6 +138,12 @@ def json_to_dict_filtered(returned_json, filter_fields=['manufacturer', 'boardas
     return dict_filtered
 
 
+def json_to_inventory(returned_json):
+    inventory_fields = ["manufacturer", "boardassettag", "memorysize", "memoryfree", "lsbdistdescription", "network",
+                        "last_login_date", "admin_user"]
+    return json_to_dict_filtered(returned_json, inventory_fields)
+
+
 def main():
     """ CLI implementation temporal for fast trial while developing
     it, requires puppetapi.ini 3 directories up with configuration as follow
@@ -177,9 +185,8 @@ def main():
             fact_name = "admin_user"
             r_jsn = query_fact(url_base, cacert, cert, fact_name)
         elif my_query == "3":
-            fact_name = "operatingsystemrelease"
-            r_jsn = query_fact(url_base, cacert, cert, fact_name)
-            filtered_facts = json_to_dict_filtered(r_jsn)
+            r_jsn = query_inventory(url_base, cacert, cert)
+            filtered_facts = json_to_inventory(r_jsn)
             print_dict_filtered(filtered_facts)
         else:
             print("Wrong Choice.")
