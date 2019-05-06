@@ -134,7 +134,7 @@ def print_dict_inventory(dict_filtered):
         line_per_node = node_name
         for fact_name in inventory_fields:
             if fact_name in dict_filtered[node_name].keys():
-                line_facts += ", " + dict_filtered[node_name][fact_name]
+                line_facts += ", " + str(dict_filtered[node_name][fact_name])
             else:
                 line_facts += ", "
         line_per_node += line_facts
@@ -222,9 +222,6 @@ def main():
         print('urlbase :', url_base)
         print('cacert "', cacert)
         print('cert :', cert)
-
-
-
 
     except BaseException as e:
         print("Didn't work!, MAIN :(")
