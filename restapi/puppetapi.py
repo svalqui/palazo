@@ -60,7 +60,7 @@ def query_inventory(url_base, cacert, cert):
 
     q = {'query': '["or",["=", "name", "manufacturer"],["=", "name", "boardassettag"],["=", "name", "memorysize"],'
                   '["=", "name", "memoryfree"],["=", "name", "lsbdistdescription"],["=", "name", "network"],'
-                  '["=", "name", "last_login_date"],["=", "name", "admin_user"]]'}
+                  '["=", "name", "last_login_date"],["=", "name", "admin_user"], ["=", "name", "productname"]]'}
 
     print("q -->>>  ", q.__str__())
     # script = json.dumps(q)  # takes an object, produces a string
@@ -123,6 +123,26 @@ def print_dict_filtered(dict_filtered):
             print('    Value: ', dict_filtered[node_name][fact_name])
 
 
+def print_dict_inventory(dict_filtered):
+    line_facts = ''
+
+    inventory_fields = ["lsbdistdescription", "manufacturer", "productname", "boardassettag", "memorysize",
+                        "memoryfree", "last_login_date", "network", "admin_user"]
+
+    print('Node, OS Version, Manufacturer, Model, HW AssetID, Memory Size, Memory Free, Last Login Date, IP, User')
+    for node_name in dict_filtered.keys():
+        line_per_node = node_name
+        for fact_name in inventory_fields:
+            if fact_name in dict_filtered[node_name].keys():
+                line_facts += ", " + dict_filtered[node_name][fact_name]
+            else:
+                line_facts += ", "
+        line_per_node += line_facts
+        line_facts = ''
+
+        print(line_per_node)
+
+
 def json_to_dict_filtered(returned_json, filter_fields=['manufacturer', 'boardassettag', 'memorysize', 'memoryfree']):
     dict_filtered = {} # Index per certname
     # node_facts = {} # Index by factname
@@ -138,9 +158,9 @@ def json_to_dict_filtered(returned_json, filter_fields=['manufacturer', 'boardas
     return dict_filtered
 
 
-def json_to_inventory(returned_json):
+def json_to_dict_inventory(returned_json):
     inventory_fields = ["manufacturer", "boardassettag", "memorysize", "memoryfree", "lsbdistdescription", "network",
-                        "last_login_date", "admin_user"]
+                        "last_login_date", "admin_user", "productname"]
     return json_to_dict_filtered(returned_json, inventory_fields)
 
 
@@ -191,8 +211,8 @@ def main():
             r_jsn = query_fact(url_base, cacert, cert, fact_name)
         elif my_query == "3":
             r_jsn = query_inventory(url_base, cacert, cert)
-            filtered_facts = json_to_inventory(r_jsn)
-            print_dict_filtered(filtered_facts)
+            filtered_facts = json_to_dict_inventory(r_jsn)
+            print_dict_inventory(filtered_facts)
         else:
             print("Wrong Choice.")
 
