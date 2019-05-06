@@ -1,21 +1,21 @@
 # Copyright 2019 by Sergio Valqui. All rights reserved.
 import requests
-import json
 import pathlib
 import configparser
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import restapi.restapimaster
+"""Tools to query PuppetDB.
+    https://puppet.com/docs/puppetdb/4.1/api/query/v4/entities.html
+"""
 
 
-class Jn(restapi.restapimaster.RestApi):
-    def __init__(self, jsn):
-        self.navigate_json(jsn)
+def query_a_fact(url_base, cacert, cert, fact_name):
+    """Query a fact.
 
-
-def query_fact(url_base, cacert, cert, fact_name):
-    """ Returns.
+    Returns.
+    json, list of dict.
     {
     "certname": <node name>,
     "name": <fact name>,
@@ -23,19 +23,13 @@ def query_fact(url_base, cacert, cert, fact_name):
     "environment": <facts environment>
     }
     """
-    # q = {'query': ["=", "name", fact_name]}
-    # print("q -->>>  ", q.__str__())
-    # script = json.dumps(q)  # takes an object, produces a string
-
     url_puppet = url_base + "/facts"
 
     q = {'query': '["=", "name", "'+fact_name+'"]'}
     print("q -->>>  ", q.__str__())
-    # script = json.dumps(q)  # takes an object, produces a string
 
     try:
         r = requests.get(url_puppet, verify=cacert, cert=cert, data=q)
-
     except BaseException as e:
         print("Didn't work!, q_os_release :(")
         print('--Error: ', e)
@@ -45,7 +39,10 @@ def query_fact(url_base, cacert, cert, fact_name):
 
 
 def query_inventory(url_base, cacert, cert):
-    """ Returns.
+    """Query a pre-defined list of facts, HW details and other as per list.
+
+     Returns.
+     json, lis of Dict
     {
     "certname": <node name>,
     "name": <fact name>,
@@ -53,10 +50,6 @@ def query_inventory(url_base, cacert, cert):
     "environment": <facts environment>
     }
     """
-    # q = {'query': ["=", "name", fact_name]}
-    # print("q -->>>  ", q.__str__())
-    # script = json.dumps(q)  # takes an object, produces a string
-
     url_puppet = url_base + "/facts"
 
     q = {'query': '["or",["=", "name", "manufacturer"],["=", "name", "boardassettag"],["=", "name", "memorysize"],'
@@ -65,7 +58,6 @@ def query_inventory(url_base, cacert, cert):
                   ' ["=", "name", "operatingsystem"], ["=", "name", "operatingsystemrelease"]]'}
 
     print("q -->>>  ", q.__str__())
-    # script = json.dumps(q)  # takes an object, produces a string
 
     try:
         r = requests.get(url_puppet, verify=cacert, cert=cert, data=q)
@@ -79,6 +71,7 @@ def query_inventory(url_base, cacert, cert):
 
 
 def print_rec_by_fact_name(returned_json, fact_name):
+    """Print Node and Fact value correspondent to the given fact name."""
     number_of_matching = 0
 
     for record in returned_json:
@@ -90,13 +83,12 @@ def print_rec_by_fact_name(returned_json, fact_name):
                     print("Environment :", record['environment'])
                     print("Value :", record['value'])
                     print()
-                else:
-                    print("Another fact named: ", record['name'])
 
     print("number of matching records: ", number_of_matching)
 
 
 def print_test(returned_json, fact_name):
+    """Print as per coded, this is to test the printing format for different queries."""
     number_of_matching = 0
 
     for record in returned_json:
@@ -147,9 +139,12 @@ def print_dict_inventory(dict_filtered):
         print(line_per_node)
 
 
-def json_to_dict_filtered(returned_json, filter_fields=['manufacturer', 'boardassettag', 'memorysize', 'memoryfree']):
-    dict_filtered = {} # Index per certname
-    # node_facts = {} # Index by factname
+def json_facts_filtered(returned_json, filter_fields=['manufacturer', 'boardassettag', 'memorysize', 'memoryfree']):
+    """Create a nested dict, nodes-to-facts, indexed by certname(node_name), sub-index fact_name.
+
+    Creates the dict from the returned_json, Use filter_fields to only included the listed facts on the dict."""
+
+    dict_filtered = {}  # Index per certname
     for record in returned_json:
         if isinstance(record, dict):
             if 'name' in record.keys():
@@ -162,11 +157,15 @@ def json_to_dict_filtered(returned_json, filter_fields=['manufacturer', 'boardas
     return dict_filtered
 
 
-def json_to_dict_inventory(returned_json):
+def json_facts_inventory(returned_json):
+    """Create a nested dict, nodes-to-facts, indexed by certname(node_name), sub-index inventory_fields.
+
+    Creates the dict from the returned_json, Use inventory_fields to only included those facts on the dict.."""
+
     inventory_fields = ["operatingsystem", "operatingsystemrelease", "lsbdistdescription", "manufacturer",
                         "productname", "boardassettag", "memorysize", "memoryfree", "last_login_date", "network",
                         "admin_user"]
-    return json_to_dict_filtered(returned_json, inventory_fields)
+    return json_facts_filtered(returned_json, inventory_fields)
 
 
 def main():
@@ -210,13 +209,13 @@ def main():
 
         if my_query == "1":
             fact_name = "operatingsystemrelease"
-            r_jsn = query_fact(url_base, cacert, cert, fact_name)
+            r_jsn = query_a_fact(url_base, cacert, cert, fact_name)
         elif my_query == "2":
             fact_name = "admin_user"
-            r_jsn = query_fact(url_base, cacert, cert, fact_name)
+            r_jsn = query_a_fact(url_base, cacert, cert, fact_name)
         elif my_query == "3":
             r_jsn = query_inventory(url_base, cacert, cert)
-            filtered_facts = json_to_dict_inventory(r_jsn)
+            filtered_facts = json_facts_inventory(r_jsn)
             print_dict_inventory(filtered_facts)
         else:
             print("Wrong Choice.")
