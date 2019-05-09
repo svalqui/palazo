@@ -55,7 +55,8 @@ def query_inventory(url_base, cacert, cert):
     q = {'query': '["or",["=", "name", "manufacturer"],["=", "name", "boardassettag"],["=", "name", "memorysize"],'
                   '["=", "name", "memoryfree"],["=", "name", "lsbdistdescription"],["=", "name", "network"],'
                   '["=", "name", "last_login_date"],["=", "name", "admin_user"], ["=", "name", "productname"],'
-                  ' ["=", "name", "operatingsystem"], ["=", "name", "operatingsystemrelease"]]'}
+                  ' ["=", "name", "operatingsystem"], ["=", "name", "operatingsystemrelease"], '
+                  '["=", "name", "serialnumber"]]'}
 
     print("q -->>>  ", q.__str__())
 
@@ -121,10 +122,10 @@ def print_dict_inventory(dict_filtered):
     line_facts = ''
 
     inventory_fields = ["operatingsystem", "operatingsystemrelease", "lsbdistdescription", "manufacturer",
-                        "productname", "boardassettag", "memorysize", "memoryfree", "last_login_date", "network",
-                        "admin_user"]
+                        "productname", "serialnumber", "boardassettag", "memorysize", "memoryfree", "last_login_date",
+                        "network", "admin_user"]
 
-    print('Node, OS, OS Release, OS Distrib, Manufacturer, Model, HW AssetID, Memory Size, Memory Free, '
+    print('Node, OS, OS Release, OS Distrib, Manufacturer, Model, Serial Number, Asset Tag, Memory Size, Memory Free, '
           'Last Login Date, IP, User')
     for node_name in dict_filtered.keys():
         line_per_node = node_name
@@ -163,8 +164,8 @@ def json_facts_inventory(returned_json):
     Creates the dict from the returned_json, Use inventory_fields to only included those facts on the dict.."""
 
     inventory_fields = ["operatingsystem", "operatingsystemrelease", "lsbdistdescription", "manufacturer",
-                        "productname", "boardassettag", "memorysize", "memoryfree", "last_login_date", "network",
-                        "admin_user"]
+                        "productname", "serialnumber", "boardassettag", "memorysize", "memoryfree", "last_login_date",
+                        "network", "admin_user"]
     return json_facts_filtered(returned_json, inventory_fields)
 
 
