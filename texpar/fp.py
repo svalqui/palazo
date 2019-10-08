@@ -1,5 +1,5 @@
 from collections.abc import MutableMapping
-from collections import OrderedDict as _default_dict, ChainMap as _ChainMap
+from collections import OrderedDict as default_dict, ChainMap as _ChainMap
 import functools
 import io
 import itertools
@@ -9,9 +9,12 @@ import sys
 import warnings
 
 
-def _read(self, fp):
+def _read(self, file_handle, ):
 
 
-def read_file(self, f):
+def read_file(self, file_name, encoding=None):
+    try:
+        with open(file_name, encoding=encoding) as file_handle:
+            self._read(file_handle, file_name)
 
-    self._read(f)
+        self._read(file_handle)
