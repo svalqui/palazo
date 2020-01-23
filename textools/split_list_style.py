@@ -11,8 +11,8 @@ def split_list(my_list, spaces=8, items_per_line=4):
             end_char = ")"
             print('This is a tuple')
         else:
-            start_char = "("
-            end_char = ")"
+            start_char = "["
+            end_char = "]"
             print('This is a list')
 
         line = " " * spaces + start_char
