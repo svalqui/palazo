@@ -1,4 +1,4 @@
-# Copyright 2019 by Sergio Valqui. All rights reserved.
+# Copyright 2017 - 2020 by Sergio Valqui. All rights reserved.
 import sys
 import getpass
 import configparser
