@@ -293,6 +293,12 @@ def find_computers_filtered(base, connection, look_for, fields):
     return response  # List of list of class Ld,
 
 
+def find_all_computers_filtered(base, connection, fields):
+    query = '(objectcategory=computer)'
+    response = find_generic(base, connection, query, fields)
+    return response  # List of list of class Ld,
+
+
 def find_computers_disabled(base, connection, look_for, fields):
     query = '(&(objectcategory=computer)(userAccountControl=4130)' \
             '(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
@@ -449,7 +455,7 @@ def main():
 
                     elif look_in == "cb":
                         my_branch = input("Which branch :")
-                        my_list = find_computers_filtered(my_branch, connection, look_for,
+                        my_list = find_all_computers_filtered(my_branch, connection,
                                                           ["name", "operatingSystem", "operatingSystemVersion",
                                                            "lastLogonTimestamp", "distinguishedName", "description",
                                                            "userAccountControl"])
