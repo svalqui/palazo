@@ -293,7 +293,7 @@ def find_computers_filtered(base, connection, look_for, fields):
     return response  # List of list of class Ld,
 
 
-def find_all_computers_filtered(base, connection, fields):
+def find_all_computers(base, connection, fields):
     query = '(objectcategory=computer)'
     response = find_generic(base, connection, query, fields)
     return response  # List of list of class Ld,
@@ -302,6 +302,12 @@ def find_all_computers_filtered(base, connection, fields):
 def find_computers_disabled(base, connection, look_for, fields):
     query = '(&(objectcategory=computer)(userAccountControl=4130)' \
             '(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
+    response = find_generic(base, connection, query, fields)
+    return response  # List of list of class Ld,
+
+
+def find_all_computers_no_disable(base, connection, fields):
+    query = '(&(objectcategory=computer)(!(userAccountControl=4130)))'
     response = find_generic(base, connection, query, fields)
     return response  # List of list of class Ld,
 
@@ -365,7 +371,7 @@ def main():
 
     # Query
     if proceed:
-        look_in = input("Comp Report (c), Comp Report in  a branch (cb), "
+        look_in = input("Comp Report (c), Comp Report in branch no dis(cb), "
                         "Computers (cu), Computers Disabled (cd), Users (u), Users Brief (us), "
                         "Groups (g), Groups Without Members (gnm), delete(delete) :")
         look_for = input("Search AD for :")
@@ -455,7 +461,7 @@ def main():
 
                     elif look_in == "cb":
                         my_branch = input("Which branch :")
-                        my_list = find_all_computers_filtered(my_branch, connection,
+                        my_list = find_all_computers_no_disable(my_branch, connection,
                                                           ["name", "operatingSystem", "operatingSystemVersion",
                                                            "lastLogonTimestamp", "distinguishedName", "description",
                                                            "userAccountControl"])
