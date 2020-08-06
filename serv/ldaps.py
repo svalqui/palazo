@@ -462,7 +462,7 @@ def main():
 
                     elif look_in == "cb":
                         my_branch = input("Which branch :")
-                        my_list = find_all_computers_no_disable(my_branch, connection,
+                        my_list = find_all_computers_no_disabled(my_branch, connection,
                                                           ["name", "operatingSystem", "operatingSystemVersion",
                                                            "lastLogonTimestamp", "distinguishedName", "description",
                                                            "userAccountControl"])
