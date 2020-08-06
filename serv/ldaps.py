@@ -306,8 +306,9 @@ def find_computers_disabled(base, connection, look_for, fields):
     return response  # List of list of class Ld,
 
 
-def find_all_computers_no_disable(base, connection, fields):
-    query = '(&(objectcategory=computer)(!(userAccountControl=4130)))'
+def find_all_computers_no_disabled(base, connection, fields):
+    #  query = '(&(objectcategory=computer)(!(userAccountControl=4130)))'
+    query = '(&(objectcategory=computer)(!(UserAccountControl:1.2.840.113556.1.4.803:=2)))'
     response = find_generic(base, connection, query, fields)
     return response  # List of list of class Ld,
 
