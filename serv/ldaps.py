@@ -493,6 +493,8 @@ def main():
                                                            "userAccountControl"])
                         # "userAccountControl" 4130 = Computer Disabled
                         print(" ------       search concluded... printing ", len(my_list))
+                        my_list.sort()
+                        
                         for i in my_list:
 
                             if isinstance(i, list):
