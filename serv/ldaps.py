@@ -493,12 +493,12 @@ def main():
                                                            "userAccountControl"])
                         # "userAccountControl" 4130 = Computer Disabled
                         print(" ------       search concluded... printing ", len(my_list))
-                        my_list.sort()
-                        
+
                         for i in my_list:
 
                             if isinstance(i, list):
                                 my_row = []
+                                ordered = []
                                 for j in i:
                                     # print(j.header, j.content)
                                     if len(j.content) == 1:
@@ -508,7 +508,8 @@ def main():
                                         value = "Multiple Values"
                                         # print(j.content)
                                     my_row.append(value)
-                                print("\t".join(my_row))
+                                ordered.append("\t".join(my_row))
+                                print(ordered.sort())
                             else:
                                 print(i)
                                 print(i.header, i.content)
