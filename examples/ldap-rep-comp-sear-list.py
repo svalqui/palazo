@@ -1,8 +1,8 @@
 # Copyright 2020 by Sergio Valqui. All rights reserved.
 #
-# Report Computers in an AD that match the look for string, list the computers (choosen attrib)
+# Report Computers in an AD that match the look for string, list the computers (chosen attributes)
 #
-# Run this in the command line while on the palazo directory so python can find serv
+# # Run this in the command line while on the palazo directory so python can find serv
 # export PYTHONPATH=`pwd`
 # python3 examples/ldap-rep-comp-sear-list.py
 
