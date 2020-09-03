@@ -4,7 +4,7 @@
 #
 # export PYTHONPATH=`pwd`
 
-from serv.ldaps import ldap_connect, find_generic, ldap_delete
+from serv.ldaps import ldap_connect, find_generic, ldap_delete, ldap_disconnect
 from pathlib import Path
 import datetime
 import getpass
@@ -107,6 +107,8 @@ if proceed:
 
         print("\nTotal records deleted :", records_deleted)
         ff_file_deleted.close()
+
+    ldap_disconnect()
 
 # Credits Disclaimer
 # The below sites/articles/code has been used totally, partially or as reference
