@@ -371,7 +371,7 @@ def main():
 
     # Query
     if proceed:
-        look_in = input("Comp Report (c), Computers Disabled (cd), Users (u), Users Brief (us), "
+        look_in = input("Computers Disabled (cd), Users (u), Users Brief (us), "
                         "Groups (g), Groups Without Members (gnm), delete(delete) :")
         look_for = input("Search AD for :")
         user_password = getpass.getpass()
@@ -417,31 +417,6 @@ def main():
                                 for j in i:
                                     print(j.header, j.content)
                                 print()
-                            else:
-                                print(i)
-                                print(i.header, i.content)
-
-                    elif look_in == "c":
-                        my_list = find_computers_filtered(base, connection, look_for,
-                                                          ["name", "operatingSystem", "operatingSystemVersion",
-                                                           "lastLogonTimestamp", "distinguishedName", "description",
-                                                           "userAccountControl"])
-                        # "userAccountControl" 4130 = Computer Disabled
-                        print(" ------       search concluded... printing ", len(my_list))
-                        for i in my_list:
-
-                            if isinstance(i, list):
-                                my_row = []
-                                for j in i:
-                                    # print(j.header, j.content)
-                                    if len(j.content) == 1:
-                                        value = j.content[0]
-                                        # print(j.content, " ", value)
-                                    else:
-                                        value = "Multiple Values"
-                                        # print(j.content)
-                                    my_row.append(value)
-                                print("\t".join(my_row))
                             else:
                                 print(i)
                                 print(i.header, i.content)
