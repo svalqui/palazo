@@ -371,7 +371,7 @@ def main():
 
     # Query
     if proceed:
-        look_in = input("Comp Report (c), Computers (cu), Computers Disabled (cd), Users (u), Users Brief (us), "
+        look_in = input("Comp Report (c), Computers Disabled (cd), Users (u), Users Brief (us), "
                         "Groups (g), Groups Without Members (gnm), delete(delete) :")
         look_for = input("Search AD for :")
         user_password = getpass.getpass()
@@ -411,18 +411,6 @@ def main():
 
                     if look_in == "us":
                         my_list = find_users_brief(base, connection, look_for, show_fields)
-                        print(" ------       search concluded... printing ", len(my_list))
-                        for i in my_list:
-                            if isinstance(i, list):
-                                for j in i:
-                                    print(j.header, j.content)
-                                print()
-                            else:
-                                print(i)
-                                print(i.header, i.content)
-
-                    elif look_in == "cu":
-                        my_list = find_computers(base, connection, look_for)
                         print(" ------       search concluded... printing ", len(my_list))
                         for i in my_list:
                             if isinstance(i, list):
