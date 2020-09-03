@@ -45,7 +45,7 @@ if proceed:
 
     connection = ldap_connect(URI, user_name, user_password)
 
-    my_list = find_computers_filtered(base, connection, look_for,
+    my_list = find_computers_filtered(BASE, connection, look_for,
                                       ["name", "operatingSystem", "operatingSystemVersion",
                                        "lastLogonTimestamp", "distinguishedName", "description",
                                        "userAccountControl"])
