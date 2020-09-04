@@ -300,7 +300,7 @@ def find_all_computers(base, connection, fields):
 
 
 def find_computers_disabled(base, connection, look_for, fields):
-    query = '(&(objectcategory=computer)(userAccountControl=4130)' \
+    query = '(&(objectcategory=computer)(UserAccountControl:1.2.840.113556.1.4.803:=2)' \
             '(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
     response = find_generic(base, connection, query, fields)
     return response  # List of list of class Ld,
@@ -426,7 +426,8 @@ def main():
                                                           ["name", "operatingSystem", "operatingSystemVersion",
                                                            "lastLogonTimestamp", "distinguishedName", "description",
                                                            "userAccountControl"])
-                        # "userAccountControl" 4130 = Computer Disabled
+                        # UserAccountControl:1.2.840.113556.1.4.803:=2  ## Computer disabled
+                        # "userAccountControl" 4130 = Computer Disabled, can have another values as well
                         print(" ------       search concluded... printing ", len(my_list))
 
                         for i in my_list:
