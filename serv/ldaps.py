@@ -299,9 +299,8 @@ def find_all_computers(base, connection, fields):
     return response  # List of list of class Ld,
 
 
-def find_computers_disabled(base, connection, look_for, fields):
-    query = '(&(objectcategory=computer)(UserAccountControl:1.2.840.113556.1.4.803:=2)' \
-            '(|(description=*' + look_for + '*)(name=*' + look_for + '*)))'
+def find_computers_disabled(base, connection, fields):
+    query = '(&(objectcategory=computer)(UserAccountControl:1.2.840.113556.1.4.803:=2))'
     response = find_generic(base, connection, query, fields)
     return response  # List of list of class Ld,
 
@@ -371,7 +370,7 @@ def main():
 
     # Query
     if proceed:
-        look_in = input("Computers Disabled (cd), Users (u), Users Brief (us), "
+        look_in = input("Users (u), Users Brief (us), "
                         "Groups (g), Groups Without Members (gnm), delete(delete) :")
         look_for = input("Search AD for :")
         user_password = getpass.getpass()
@@ -417,35 +416,6 @@ def main():
                                 for j in i:
                                     print(j.header, j.content)
                                 print()
-                            else:
-                                print(i)
-                                print(i.header, i.content)
-
-                    elif look_in == "cd":
-                        my_list = find_computers_disabled(base, connection, look_for,
-                                                          ["name", "operatingSystem", "operatingSystemVersion",
-                                                           "lastLogonTimestamp", "distinguishedName", "description",
-                                                           "userAccountControl"])
-                        # UserAccountControl:1.2.840.113556.1.4.803:=2  ## Computer disabled
-                        # "userAccountControl" 4130 = Computer Disabled, can have another values as well
-                        print(" ------       search concluded... printing ", len(my_list))
-
-                        for i in my_list:
-
-                            if isinstance(i, list):
-                                my_row = []
-                                ordered = []
-                                for j in i:
-                                    # print(j.header, j.content)
-                                    if len(j.content) == 1:
-                                        value = j.content[0]
-                                        # print(j.content, " ", value)
-                                    else:
-                                        value = "Multiple Values"
-                                        # print(j.content)
-                                    my_row.append(value)
-                                ordered.append("\t".join(my_row))
-                                print(ordered.sort())
                             else:
                                 print(i)
                                 print(i.header, i.content)
