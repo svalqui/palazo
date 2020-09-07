@@ -1,8 +1,9 @@
-# Copyright 2019 by Sergio Valqui. All rights reserved.
+# Copyright 2019-2020 by Sergio Valqui. All rights reserved.
+"""Uses https://pypi.org/project/yfinance/
+"""
 def IsAuMrkO(self):
 
     opened = False
-
 
 #  https://www.asx.com.au/
 
@@ -14,3 +15,29 @@ def IsAuMrkO(self):
     soup = BeautifulSoup(page.text, 'html.parser')
 
     return opened
+
+
+def doti(code, hist_dir, debug=0):
+    """Format
+                  Open    High     Low   Close      Volume  Dividends  Stock Splits
+Date
+1986-03-13    0.06    0.06    0.06    0.06  1031788800        0.0           0.0
+"""
+    import yfinance as yf
+
+    filename = hist_dir + code + ".txt"
+
+    # If file exists
+    # start last date, end today
+
+    # Else = max
+
+    code = yf.Ticker("code")
+    hist = code.history(period="max")
+
+
+
+
+
+
+    
