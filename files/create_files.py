@@ -1,4 +1,4 @@
-# Copyright 2019 by Sergio Valqui. All rights reserved.
+# Copyright 2019-2020 by Sergio Valqui. All rights reserved.
 import datetime
 import time
 while True:
