@@ -4,7 +4,7 @@ import getpass
 import configparser
 import pathlib
 import datetime
-from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
+from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES, MODIFY_REPLACE
 
 
 class LdResponse(object):
@@ -216,6 +216,21 @@ def ldap_delete(ldap_connection, distinguished_name, verbose=False):
         print(ldap_connection.result)
 
 
+def modify_replace(ldap_connection, distinguished_name, change, verbose=True):
+    """
+    change : dictionary of attributes to replace as per documentation on https://ldap3.readthedocs.io/en/latest/modify.html
+    {'attrib1': [(MODIFY_REPLACE, ['content replacing att1'])], 'attib2': [(MODIFY_REPLACE, ['content replacing attr2'])]}
+
+    (objectcategory=computer)
+    (UserAccountControl:1.2.840.113556.1.4.803:=2)
+    (description='new description')
+
+    """
+    ldap_connection.modify(distinguished_name, change)
+    if verbose:
+        print(ldap_connection.result)
+
+
 def find_domains(base, connection, domains=None, debug=False):  # for domains with sub-domains
     """
     Find domains, a recursive query to find sub-domain within the domain
@@ -371,7 +386,7 @@ def main():
     # Query
     if proceed:
         look_in = input("Users (u), Users Brief (us), "
-                        "Groups (g), Groups Without Members (gnm), delete(delete) :")
+                        "Groups (g), Groups Without Members (gnm), delete(delete) , test mod (tm):")
         look_for = input("Search AD for :")
         user_password = getpass.getpass()
 
@@ -454,6 +469,25 @@ def main():
                             else:
                                 print(i)
                                 print(i.header, i.content)
+                    elif look_in == 'tm':
+                        my_computer = input("Comp  Name (Unique) :")
+
+                        det_list = find_computers(base, connection, my_computer)
+                        existing_des = ''
+
+                        for i in det_list:
+                            if isinstance(i, list):
+                                for j in i:
+                                    if j.header == 'description':
+                                        print('description ', j.content[0])
+                                        existing_des = j.content[0] + "new des"
+                                    if j.header == 'userAccountControl':
+                                        print('userAccountControl', j.content[0])
+                                print()
+
+                        change = {'description': [(MODIFY_REPLACE, [existing_des])],
+                                  'UserAccountControl:1.2.840.113556.1.4.803:': [(MODIFY_REPLACE, ['2'])]}
+                        modify_replace(connection, my_computer, change, True)
 
 
 if __name__ == '__main__':
