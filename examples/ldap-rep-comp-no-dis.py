@@ -48,7 +48,7 @@ if proceed:
                                       ["name", "operatingSystem", "operatingSystemVersion",
                                        "lastLogonTimestamp", "distinguishedName", "description",
                                        "userAccountControl"])
-    # "userAccountControl" 4130 = Computer Disabled
+    # "
     print(" ------       search concluded... printing ", len(my_list))
     for i in my_list:
 
