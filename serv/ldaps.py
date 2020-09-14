@@ -423,7 +423,7 @@ def main():
                                         for k in j.content:
                                             print(k)
                                         print()
-                                    else:
+                                    elif j.header != "msExchUMSpokenName":
                                         print(j.header, j.content)
                                 print()
                             else:
