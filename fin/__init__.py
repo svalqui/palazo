@@ -1,6 +1,9 @@
 # Copyright 2019-2020 by Sergio Valqui. All rights reserved.
 """Uses https://pypi.org/project/yfinance/
 """
+
+import sys
+
 def IsAuMrkO(self):
 
     opened = False
@@ -36,7 +39,11 @@ Date
     hist = code.history(period="max")
 
 
+def main():
 
+
+if __name__ == '__main__':
+    sys.exit(main())
 
 
 
