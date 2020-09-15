@@ -222,8 +222,12 @@ def modify_replace(ldap_connection, distinguished_name, change, verbose=True):
     {'attrib1': [(MODIFY_REPLACE, ['content replacing att1'])], 'attib2': [(MODIFY_REPLACE, ['content replacing attr2'])]}
 
     (objectcategory=computer)
-    (UserAccountControl:1.2.840.113556.1.4.803:=2)
+    (UserAccountControl:1.2.840.113556.1.4.803:=2) # Doesn't work
     (description='new description')
+
+    ADS_UF_ACCOUNTDISABLE = &H2
+    ADS_UF_ACCOUNTDISABLE = 0x0002
+    = ACCOUNTDISABLE
 
     """
     ldap_connection.modify(distinguished_name, change)
@@ -481,19 +485,21 @@ def main():
 
                         det_list = find_computers(base, connection, my_computer)
                         existing_des = ''
+                        new_des = ''
 
                         for i in det_list:
                             if isinstance(i, list):
                                 for j in i:
                                     if j.header == 'description':
                                         print('description ', j.content[0])
-                                        existing_des = j.content[0] + "new des"
+                                        existing_des = j.content[0]
+                                        new_des = existing_des + " added to des"
                                     if j.header == 'userAccountControl':
                                         print('userAccountControl', j.content[0])
                                 print()
 
-                        change = {'description': [(MODIFY_REPLACE, [existing_des])],
-                                  'UserAccountControl:1.2.840.113556.1.4.803:': [(MODIFY_REPLACE, ['2'])]}
+                        change = {'description': [(MODIFY_REPLACE, [new_des])],
+                                  'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
                         modify_replace(connection, my_computer, change, True)
 
 
