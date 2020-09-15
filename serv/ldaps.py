@@ -498,8 +498,11 @@ def main():
                                         print('userAccountControl', j.content[0])
                                 print()
 
-                        change = {'description': [(MODIFY_REPLACE, [new_des])],
-                                  'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
+#                        change = {'description': [(MODIFY_REPLACE, [new_des])],
+#                                  'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
+
+                        change = {'description': [(MODIFY_REPLACE, [new_des])]}
+
                         modify_replace(connection, my_computer, change, True)
 
 
