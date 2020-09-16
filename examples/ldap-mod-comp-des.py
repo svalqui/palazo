@@ -48,17 +48,24 @@ if proceed:
 
     det_list = find_computers(BASE, connection, my_computer)
     existing_des = ''
-    new_des = ''
+    new_des = "added to des"
+    # "distinguishedName"
+    d_name = ''
 
     for i in det_list:
+        print('det_list len ',len(det_list))
+        # TODO verify that the attributes exists, if not it will need to be created.
         if isinstance(i, list):
             for j in i:
                 if j.header == 'description':
                     print('description ', j.content[0])
                     existing_des = j.content[0]
-                    new_des = existing_des + " added to des"
+                    new_des = existing_des + " " + new_des
                 if j.header == 'userAccountControl':
                     print('userAccountControl', j.content[0])
+                if j.header == 'distinguishedName':
+                    print('distinguishedName', j.content[0])
+                    d_name = j.content[0]
             print()
 
     #                        change = {'description': [(MODIFY_REPLACE, [new_des])],
@@ -68,6 +75,6 @@ if proceed:
 
     change = {'description': [(MODIFY_REPLACE, [new_des])]}
 
-    modify_replace(connection, my_computer, change, True)
+    modify_replace(connection, d_name, change, True)
 
     ldap_disconnect()
