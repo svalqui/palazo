@@ -60,9 +60,9 @@ if proceed:
                 if j.header == 'description':
                     print('description ', j.content[0])
                     existing_des = j.content[0]
-                    new_des = existing_des + " " + new_des
                 if j.header == 'userAccountControl':
                     print('userAccountControl', j.content[0])
+                    existing_uac = j.content[0]
                 if j.header == 'distinguishedName':
                     print('distinguishedName', j.content[0])
                     d_name = j.content[0]
@@ -71,9 +71,13 @@ if proceed:
     #                        change = {'description': [(MODIFY_REPLACE, [new_des])],
     #                                  'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
 
-    print(new_des)
+    new_des = existing_des + " " + new_des
+    # New UserAccountControl 2, Account Disabled
+    new_uac = str(int(existing_uac) | 2)
 
-    change = {'description': [(MODIFY_REPLACE, [new_des])]}
+    print("uac ", new_uac, " d_name ", d_name, " new_des ", new_des)
+
+    change = {'description': [(MODIFY_REPLACE, [new_des])], 'UserAccountControl': [(MODIFY_REPLACE, [new_uac])]}
 
     modify_replace(connection, d_name, change, True)
 
