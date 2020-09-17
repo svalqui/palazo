@@ -1,4 +1,17 @@
 # Copyright 2017 - 2020 by Sergio Valqui. All rights reserved.
+"""
+    --- ldapq.ini ---
+    [Settings]
+    uri = ldaps://MyADDomain.com.au:636
+    default_base = dc=MyADDomain, dc=com,dc=au
+    default_user = MyUser@MyADDomain.com.au
+    [Filters]
+    show_attributes = objectCategory,displayName,cn,givenName,sn,name,distinguishedName,uid,
+    mail,mailNickname,mobile,telephoneNumber,homeDirectory,homeDrive,lastLogon,lastLogonTimestamp,
+    msExchArchiveName,memberOf
+    not_used = ''
+    --- end of ldapq.ini ---
+"""
 import sys
 import getpass
 import configparser
