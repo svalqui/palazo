@@ -25,9 +25,11 @@ print('file_conf_name', file_conf_name)
 # Log file and time stamps
 #
 time_now = dt.datetime.now()
-year = dt.timedelta(days=365)
-two_years_ago = time_now - 2 * year
-two_ya_ldap = two_years_ago.strftime("%Y%m%d%H%M%S") + ".0Z"
+two_year = dt.timedelta(days=730)
+two_years_ago_ts = dt.datetime.timestamp(time_now - two_year)
+# two_ya_ldap = two_years_ago.strftime("%Y%m%d%H%M%S")  # + ".0Z"
+ldap_ts = dt.datetime(1601, 1, 1) + dt.timedelta(seconds=two_years_ago_ts/10000000)
+print("two_years_ago_ts", two_years_ago_ts)
 
 # File name for the log
 log_file_name = 'log-ldap-mod-des' + time_now.strftime('-%Y%m%d-%H%M%S') + '.txt'
@@ -65,8 +67,12 @@ if proceed:
     connection = ldap_connect(URI, user_name, user_password)
 
     # Find all computers on the AD OU, 2 years older, enabled
-    # "lastLogonTimestamp"
-    query = '(&(objectcategory=computer)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))(lastLogonTimestamp<=' + two_ya_ldap + '))'
+    # "lastLogonTimestamp" format "2018-10-03 04:14:38"
+    # https://www.epochconverter.com/ldap
+    # query = '(&(objectcategory=computer)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))(lastLogonTimestamp<=' + two_ya_ldap + '))'
+    # query = '(&(objectcategory=computer)(!(UserAccountControl:1.2.840.113556.1.4.803:=2)))'  131817280410000000
+    query = '(&(objectcategory=computer)(lastLogonTimestamp<=' + ldap_ts + '))'
+    # query = '(&(objectcategory=computer)(lastLogonTimestamp<=131817280410000000))'
     comp_list = find_generic(ad_ou, connection, query)
 
     # Dictionary holder of current computer attributes, to be changed ("description", "userAccountControl")
@@ -74,37 +80,37 @@ if proceed:
     #      ["comp_name"] = [[0],             [1],            [2]
     # note: "name", "distinguishedName", "description", "userAccountControl"
     dic_comp_cur_det = {}
+    print('det_list len ', len(comp_list))
 
     for i in comp_list:
-        print('det_list len ', len(comp_list))
         ff_log_file.write('det_list len ' + str(len(comp_list)) + '\n')
 
         name = ""
         dist_name = ""
         existing_des = ""
         existing_uac = ""
+        ts = ""
 
         if isinstance(i, list):
 
             for j in i:
                 if j.header == 'name':
-                    print('name ', j.content[0])
                     name = j.content[0]
                 if j.header == 'distinguishedName':
-                    print('distinguishedName', j.content[0])
                     dist_name = j.content[0]
                 if j.header == 'description':
-                    print('description ', j.content[0])
                     existing_des = j.content[0]
                 if j.header == 'userAccountControl':
-                    print('userAccountControl', j.content[0])
                     existing_uac = j.content[0]
+                if j.header == 'lastLogonTimestamp':
+                    ts = j.content[0]
 
-            print(name, ' ', dist_name, ' ', existing_des, ' ', existing_uac)
+            print(name, ' ', ts, ' ', dist_name, ' ', existing_des, ' ', existing_uac)
             #                 key        [0]        [1]            [2]
             dic_comp_cur_det[name] = [dist_name, existing_des, existing_uac]
 
     make_change = input("Go ahead make the change y/n: ")
+    make_change = 'n'
 
     if make_change == "y":
 
