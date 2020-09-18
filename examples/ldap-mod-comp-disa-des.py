@@ -104,33 +104,41 @@ if proceed:
             #                 key        [0]        [1]            [2]
             dic_comp_cur_det[name] = [dist_name, existing_des, existing_uac]
 
-    for key_name in sorted(dic_comp_cur_det.keys()):
-        # New Description
-        if dic_comp_cur_det[key_name][1] == "":  # if description is empty
-            new_des = des_stamp
-        else:
-            new_des = dic_comp_cur_det[key_name][1] + " " + des_stamp
-        # New User Account Control. 2, Account Disabled
-        new_uac = str(int(dic_comp_cur_det[key_name][2]) | 2)
+    make_change = input("Go ahead make the change y/n: ")
 
-        # Changing order. easier for visual review of log.
-        line_current = dic_comp_cur_det[key_name][0] + " " + dic_comp_cur_det[key_name][2] + " " + dic_comp_cur_det[key_name][1]
-        line_change = dic_comp_cur_det[key_name][0] + " " + new_uac + " " + new_des
-        print(line_current)
-        print(line_change)
-        line_current_txt = line_current + '\n'
-        line_change_txt = line_change + '\n'
-        ff_log_file.write(line_current_txt)
-        ff_log_file.write(line_change_txt)
+    if make_change == "y":
 
-        #   change = {'description': [(MODIFY_REPLACE, [new_des])],
-        #             'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
-        #
-        change = {'description': [(MODIFY_REPLACE, [new_des])], 'UserAccountControl': [(MODIFY_REPLACE, [new_uac])]}
 
-        # modify_replace(ldap_connection, distinguished_name, change, verbose=True)
-        result = modify_replace(connection, dic_comp_cur_det[key_name][0], change, True)
-        print(result)
-        result_txt = (str(result))
+        for key_name in sorted(dic_comp_cur_det.keys()):
+            # New Description
+            if dic_comp_cur_det[key_name][1] == "":  # if description is empty
+                new_des = des_stamp
+            else:
+                new_des = dic_comp_cur_det[key_name][1] + " " + des_stamp
+            # New User Account Control. 2, Account Disabled
+            new_uac = str(int(dic_comp_cur_det[key_name][2]) | 2)
+
+            # Changing order. easier for visual review of log.
+            line_current = dic_comp_cur_det[key_name][0] + " " + dic_comp_cur_det[key_name][2] + " " + dic_comp_cur_det[key_name][1]
+            line_change = dic_comp_cur_det[key_name][0] + " " + new_uac + " " + new_des
+            print(line_current)
+            print(line_change)
+            line_current_txt = line_current + '\n'
+            line_change_txt = line_change + '\n'
+            ff_log_file.write(line_current_txt)
+            ff_log_file.write(line_change_txt)
+
+            #   change = {'description': [(MODIFY_REPLACE, [new_des])],
+            #             'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
+            #
+            change = {'description': [(MODIFY_REPLACE, [new_des])], 'UserAccountControl': [(MODIFY_REPLACE, [new_uac])]}
+
+            # modify_replace(ldap_connection, distinguished_name, change, verbose=True)
+            result = modify_replace(connection, dic_comp_cur_det[key_name][0], change, True)
+            print(result)
+            result_txt = (str(result))
+            ff_log_file.write(result_txt)
+
+    ff_log_file.close()
 
     ldap_disconnect()
