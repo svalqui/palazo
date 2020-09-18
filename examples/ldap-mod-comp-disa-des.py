@@ -108,7 +108,6 @@ if proceed:
 
     if make_change == "y":
 
-
         for key_name in sorted(dic_comp_cur_det.keys()):
             # New Description
             if dic_comp_cur_det[key_name][1] == "":  # if description is empty
