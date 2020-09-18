@@ -40,7 +40,7 @@ except BaseException as e:
 if proceed:
     user_password = getpass.getpass()
 
-    my_branch = input("Which branch :")
+    my_branch = input("Which branch distinguished name:")
 
     connection = ldap_connect(URI, user_name, user_password)
 

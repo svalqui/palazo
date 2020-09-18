@@ -244,8 +244,7 @@ def modify_replace(ldap_connection, distinguished_name, change, verbose=True):
 
     """
     ldap_connection.modify(distinguished_name, change)
-    if verbose:
-        print(ldap_connection.result)
+    return ldap_connection.result
 
 
 def find_domains(base, connection, domains=None, debug=False):  # for domains with sub-domains

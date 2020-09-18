@@ -70,45 +70,67 @@ if proceed:
     comp_list = find_generic(ad_ou, connection, query)
 
     # Dictionary holder of current computer attributes, to be changed ("description", "userAccountControl")
+    # name is unique will be the key, containing a list of 3
+    #      ["comp_name"] = [[0],             [1],            [2]
     # note: "name", "distinguishedName", "description", "userAccountControl"
     dic_comp_cur_det = {}
 
     for i in comp_list:
         print('det_list len ', len(comp_list))
-        # TODO verify that the attributes exists, if not it will need to be created.
+        ff_log_file.write('det_list len ' + str(len(comp_list)) + '\n')
+
+        name = ""
+        dist_name = ""
+        existing_des = ""
+        existing_uac = ""
+
         if isinstance(i, list):
+
             for j in i:
+                if j.header == 'name':
+                    print('name ', j.content[0])
+                    name = j.content[0]
+                if j.header == 'distinguishedName':
+                    print('distinguishedName', j.content[0])
+                    dist_name = j.content[0]
                 if j.header == 'description':
                     print('description ', j.content[0])
                     existing_des = j.content[0]
                 if j.header == 'userAccountControl':
                     print('userAccountControl', j.content[0])
                     existing_uac = j.content[0]
-                if j.header == 'distinguishedName':
-                    print('distinguishedName', j.content[0])
-                    d_name = j.content[0]
-            print()
 
-    #                        change = {'description': [(MODIFY_REPLACE, [new_des])],
-    #                                  'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
+            print(name, ' ', dist_name, ' ', existing_des, ' ', existing_uac)
+            #                 key        [0]        [1]            [2]
+            dic_comp_cur_det[name] = [dist_name, existing_des, existing_uac]
 
+    for key_name in sorted(dic_comp_cur_det.keys()):
+        # New Description
+        if dic_comp_cur_det[key_name][1] == "":  # if description is empty
+            new_des = des_stamp
+        else:
+            new_des = dic_comp_cur_det[key_name][1] + " " + des_stamp
+        # New User Account Control. 2, Account Disabled
+        new_uac = str(int(dic_comp_cur_det[key_name][2]) | 2)
 
-    existing_des = ''
-    new_des = "added to des"
-    # "distinguishedName"
-    d_name = ''
+        # Changing order. easier for visual review of log.
+        line_current = dic_comp_cur_det[key_name][0] + " " + dic_comp_cur_det[key_name][2] + " " + dic_comp_cur_det[key_name][1]
+        line_change = dic_comp_cur_det[key_name][0] + " " + new_uac + " " + new_des
+        print(line_current)
+        print(line_change)
+        line_current_txt = line_current + '\n'
+        line_change_txt = line_change + '\n'
+        ff_log_file.write(line_current_txt)
+        ff_log_file.write(line_change_txt)
 
+        #   change = {'description': [(MODIFY_REPLACE, [new_des])],
+        #             'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
+        #
+        change = {'description': [(MODIFY_REPLACE, [new_des])], 'UserAccountControl': [(MODIFY_REPLACE, [new_uac])]}
 
-
-
-    new_des = existing_des + " " + new_des
-    # New UserAccountControl 2, Account Disabled
-    new_uac = str(int(existing_uac) | 2)
-
-    print("uac ", new_uac, " d_name ", d_name, " new_des ", new_des)
-
-    change = {'description': [(MODIFY_REPLACE, [new_des])], 'UserAccountControl': [(MODIFY_REPLACE, [new_uac])]}
-
-    modify_replace(connection, d_name, change, True)
+        # modify_replace(ldap_connection, distinguished_name, change, verbose=True)
+        result = modify_replace(connection, dic_comp_cur_det[key_name][0], change, True)
+        print(result)
+        result_txt = (str(result))
 
     ldap_disconnect()
