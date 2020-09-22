@@ -13,8 +13,14 @@
     --- end of ldapq.ini ---
     
 Notes 
-timestamp calculation
+18-digit LDAP timestamp
 https://www.powershelladmin.com/wiki/Convert_between_Windows_and_Unix_epoch_with_Python_and_Perl
+import datetime as dt
+now = dt.datime.now()
+ts = dt.datetime.timestamp(now)
+wts = (time.mktime(now.timetuple()) + 11644473600) * 10000000
+ldap_ts = str(int(wts))
+
 """
 import sys
 import getpass
