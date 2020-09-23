@@ -11,6 +11,7 @@ from serv.ldaps import ldap_connect, find_generic, ldap_disconnect, modify_repla
 from ldap3 import MODIFY_REPLACE  # TODO find a way to fit this on ldaps.py
 from pathlib import Path
 import datetime as dt
+import time
 import getpass
 import configparser
 import pathlib
@@ -26,11 +27,13 @@ print('file_conf_name', file_conf_name)
 #
 time_now = dt.datetime.now()
 two_year = dt.timedelta(days=730)
-two_years_ago_ts = dt.datetime.timestamp(time_now - two_year)
-# two_ya_ldap = two_years_ago.strftime("%Y%m%d%H%M%S")  # + ".0Z"
-ldap_ts = dt.datetime(1601, 1, 1) + dt.timedelta(seconds=two_years_ago_ts/10000000)
-print("two_years_ago_ts", two_years_ago_ts)
+two_years_ago_ts = time_now - two_year
+two_years_ago_ldap = (time.mktime(two_years_ago_ts.timetuple()) + 11644473600) * 10000000
+twa_ldap_str = str(int(two_years_ago_ldap))
 
+print("two_years_ago_ts", two_years_ago_ts)
+print("two_years_ago_ldap", two_years_ago_ldap)
+print("twa_ldap_str", twa_ldap_str)
 # File name for the log
 log_file_name = 'log-ldap-mod-des' + time_now.strftime('-%Y%m%d-%H%M%S') + '.txt'
 path = Path.home()
@@ -67,12 +70,7 @@ if proceed:
     connection = ldap_connect(URI, user_name, user_password)
 
     # Find all computers on the AD OU, 2 years older, enabled
-    # "lastLogonTimestamp" format "2018-10-03 04:14:38"
-    # https://www.epochconverter.com/ldap
-    # query = '(&(objectcategory=computer)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))(lastLogonTimestamp<=' + two_ya_ldap + '))'
-    # query = '(&(objectcategory=computer)(!(UserAccountControl:1.2.840.113556.1.4.803:=2)))'  131817280410000000
-    query = '(&(objectcategory=computer)(lastLogonTimestamp<=' + ldap_ts + '))'
-    # query = '(&(objectcategory=computer)(lastLogonTimestamp<=131817280410000000))'
+    query = '(&(objectcategory=computer)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))(lastLogonTimestamp<=' + twa_ldap_str + '))'
     comp_list = find_generic(ad_ou, connection, query)
 
     # Dictionary holder of current computer attributes, to be changed ("description", "userAccountControl")
