@@ -82,7 +82,7 @@ if proceed:
     # note: "name", "distinguishedName", "description", "userAccountControl"
     dic_comp_cur_det = {}
     print('det_list len ', len(comp_list))
-    ln_comp_num = 'det_list len ' + str(len(comp_list)) + '\n'
+    ln_comp_num = 'det_list len ' + str(len(comp_list)) + ' computers to be disabled' + '\n'
     ff_log_file.writelines([ln_comp_num])
 
     for i in comp_list:
