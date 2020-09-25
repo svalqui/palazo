@@ -1,7 +1,9 @@
 # Copyright 2020 by Sergio Valqui. All rights reserved.
 #
-# Modify computers, disables computers that lastLogonTimestamp is more than 2 years old and add a time stamp on
-# the description
+# Modify computers, disables computers that lastLogonTimestamp is more than 2 years old and adds a time stamp on
+# the description, on an AD distinguished name branch.
+#
+# AD dist_name format: OU=Workstations,OU=my_classification_of_sub_units,OU=my_sub_units,DC=my_business,DC=com,DC=au
 #
 # Run this in the command line while on the palazo directory so python can find serv
 # export PYTHONPATH=`pwd`
@@ -16,7 +18,7 @@ import getpass
 import configparser
 import pathlib
 
-# LDAP Configuration file 2 directories up
+# LDAP Configuration file, ldapq.ini, 2 directories up
 #
 file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
 print('file_conf_dir', file_conf_dir)
@@ -24,6 +26,7 @@ file_conf_name = pathlib.Path(file_conf_dir) / 'ldapq.ini'
 print('file_conf_name', file_conf_name)
 
 # Log file and time stamps
+# Log file set to home directory
 #
 time_now = dt.datetime.now()
 two_year = dt.timedelta(days=730)
@@ -40,10 +43,10 @@ path = Path.home()
 full_log_filename = path / log_file_name
 ff_log_file = open(full_log_filename, 'w')
 
-# Description to added existing description, time stamp on description
+# Description to be added to existing description, time stamp on description, Month and Year.
 des_stamp = "Science IT Disabled " + time_now.strftime('%b %Y')
 
-# Reading configuration
+# Reading configuration, ldapq.ini
 config = configparser.ConfigParser()
 
 user_name = ''
@@ -79,10 +82,10 @@ if proceed:
     # note: "name", "distinguishedName", "description", "userAccountControl"
     dic_comp_cur_det = {}
     print('det_list len ', len(comp_list))
+    ln_comp_num = 'det_list len ' + str(len(comp_list)) + '\n'
+    ff_log_file.writelines([ln_comp_num])
 
     for i in comp_list:
-        ff_log_file.write('det_list len ' + str(len(comp_list)) + '\n')
-
         name = ""
         dist_name = ""
         existing_des = ""
@@ -108,11 +111,13 @@ if proceed:
             dic_comp_cur_det[name] = [dist_name, existing_des, existing_uac]
 
     make_change = input("Go ahead make the change y/n: ")
-    make_change = 'n'
 
     if make_change == "y":
 
         for key_name in sorted(dic_comp_cur_det.keys()):
+            new_des = ""
+            new_uac = ""
+
             # New Description
             if dic_comp_cur_det[key_name][1] == "":  # if description is empty
                 new_des = des_stamp
@@ -123,24 +128,24 @@ if proceed:
 
             # Changing order. easier for visual review of log.
             line_current = dic_comp_cur_det[key_name][0] + " " + dic_comp_cur_det[key_name][2] + " " + dic_comp_cur_det[key_name][1]
-            line_change = dic_comp_cur_det[key_name][0] + " " + new_uac + " " + new_des
             print(line_current)
+            # time.sleep(.5)  # line change not include on some, might need time to write.
+            line_change = dic_comp_cur_det[key_name][0] + " " + new_uac + " " + new_des
             print(line_change)
-            line_current_txt = line_current + '\n'
-            line_change_txt = line_change + '\n'
-            ff_log_file.write(line_current_txt)
-            ff_log_file.write(line_change_txt)
+            line_current += '\n'
+            line_change += '\n'
+            ff_log_file.writelines([line_current, line_change])
 
             #   change = {'description': [(MODIFY_REPLACE, [new_des])],
             #             'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
-            #
+            # Modify the description (With a time stamp added) and the UserAccountControl to disable it
             change = {'description': [(MODIFY_REPLACE, [new_des])], 'UserAccountControl': [(MODIFY_REPLACE, [new_uac])]}
 
             # modify_replace(ldap_connection, distinguished_name, change, verbose=True)
             result = modify_replace(connection, dic_comp_cur_det[key_name][0], change, True)
             print(result)
-            result_txt = (str(result))
-            ff_log_file.write(result_txt)
+            ln_result_txt = (str(result)) + '\n'
+            ff_log_file.writelines([ln_result_txt])
 
     ff_log_file.close()
 
