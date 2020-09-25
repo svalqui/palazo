@@ -77,9 +77,9 @@ if proceed:
     comp_list = find_generic(ad_ou, connection, query)
 
     # Dictionary holder of current computer attributes, to be changed ("description", "userAccountControl")
-    # name is unique will be the key, containing a list of 3
-    #      ["comp_name"] = [[0],             [1],            [2]
-    # note: "name", "distinguishedName", "description", "userAccountControl"
+    # name is unique will be the key, containing a list of 4
+    #      ["comp_name"] = [[0],             [1],               [2],                 [3]
+    # note: "name", "distinguishedName", "description", "userAccountControl", "lastLogonTimestamp"
     dic_comp_cur_det = {}
     print('det_list len ', len(comp_list))
     ln_comp_num = 'det_list len ' + str(len(comp_list)) + ' computers to be disabled' + '\n'
@@ -107,8 +107,8 @@ if proceed:
                     ts = j.content[0]
 
             print(name, ' ', ts, ' ', dist_name, ' ', existing_des, ' ', existing_uac)
-            #                 key        [0]        [1]            [2]
-            dic_comp_cur_det[name] = [dist_name, existing_des, existing_uac]
+            #                 key        [0]        [1]            [2]       [3]
+            dic_comp_cur_det[name] = [dist_name, existing_des, existing_uac, ts]
 
     make_change = input("Go ahead make the change y/n: ")
 
@@ -127,7 +127,8 @@ if proceed:
             new_uac = str(int(dic_comp_cur_det[key_name][2]) | 2)
 
             # Changing order. easier for visual review of log.
-            line_current = dic_comp_cur_det[key_name][0] + " " + dic_comp_cur_det[key_name][2] + " " + dic_comp_cur_det[key_name][1]
+            line_current = dic_comp_cur_det[key_name][0] + " " + dic_comp_cur_det[key_name][2] + " " + \
+                           dic_comp_cur_det[key_name][1] + " " + dic_comp_cur_det[key_name][3]
             print(line_current)
             # time.sleep(.5)  # line change not include on some, might need time to write.
             line_change = dic_comp_cur_det[key_name][0] + " " + new_uac + " " + new_des
