@@ -18,7 +18,7 @@ import getpass
 import configparser
 import pathlib
 
-# LDAP Configuration file, ldapq.ini, 2 directories up
+# LDAP Configuration file, ldapq.ini, 2 directories up, details on serv.ldaps.py
 #
 file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
 print('file_conf_dir', file_conf_dir)
