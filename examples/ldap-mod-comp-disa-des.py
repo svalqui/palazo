@@ -82,7 +82,11 @@ if proceed:
     # note: "name", "distinguishedName", "description", "userAccountControl", "lastLogonTimestamp"
     dic_comp_cur_det = {}
     print('det_list len ', len(comp_list))
-    ln_comp_num = 'det_list len ' + str(len(comp_list)) + ' computers to be disabled' + '\n'
+    ln_comp_num = 'det_list len ' + str(len(comp_list)) + ' computers to be disabled' + '\n' + \
+                  'Line 1 current values: comp_dis_name UserAccountControl description LastLogonTimeStamp' + '\n' + \
+                  'Line 2 proposed change: comp_dis_name UserAccountControl New_description' + '\n' + \
+                  'Line 3: results of ldap modify, should include "success"' + '\n'
+
     ff_log_file.writelines([ln_comp_num])
 
     for i in comp_list:
