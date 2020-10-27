@@ -1,3 +1,4 @@
+# python3   -m pip install SomePackage
 ldap3
 requests
 selenium
