@@ -154,4 +154,4 @@ if proceed:
 
     ff_log_file.close()
 
-    ldap_disconnect()
+    ldap_disconnect(connection)

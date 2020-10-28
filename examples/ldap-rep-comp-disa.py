@@ -68,4 +68,4 @@ if proceed:
             print(i)
             print(i.header, i.content)
 
-    ldap_disconnect()
+    ldap_disconnect(connection)

@@ -202,7 +202,8 @@ def ldap_connect(uri, user_name, user_password, debug=False):
     return ldap_connection
 
 
-def ldap_disconnect():
+def ldap_disconnect(my_connection):
+    my_connection.unbind()
     return
 
 
