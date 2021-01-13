@@ -427,7 +427,13 @@ def main():
         look_for = input("Search AD for :")
         user_password = getpass.getpass()
 
-        connection = ldap_connect(URI, user_name, user_password)
+        try:
+            connection = ldap_connect(URI, user_name, user_password)
+        except BaseException as ldap_connection_error:
+            print("user_name", user_name)
+            print("URI", URI)
+            print("BASE", BASE)
+            print(ldap_connection_error)
 
         domains = find_domains(BASE, connection)
 
