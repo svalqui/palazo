@@ -51,4 +51,7 @@ try:
     print(ldap_connection.extend.standard.who_am_i())
     ldap_connection.unbind()
 except BaseException as ldap_connection_error:
+    print("user_name", user_name)
+    print("URI", URI)
+    print("BASE", BASE)
     print(ldap_connection_error)
