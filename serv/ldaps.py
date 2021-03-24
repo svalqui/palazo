@@ -491,7 +491,14 @@ def main():
                         for i in my_list:
                             if isinstance(i, list):
                                 for j in i:
-                                    print(j.header, j.content)
+                                    if j.header == "member":
+                                        print()
+                                        print("members")
+                                        for k in j.content:
+                                            print(k)
+                                        print()
+                                    else:
+                                        print(j.header, j.content)
                                 print()
                             else:
                                 print(i)
