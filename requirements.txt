@@ -3,4 +3,5 @@ ldap3
 requests
 selenium
 beautifulsoup4
-
+python-novaclient
+python-cinderclient

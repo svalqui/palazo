@@ -1,4 +1,4 @@
-# Copyright 2019 by Sergio Valqui. All rights reserved.
+# Copyright 2019-2021 by Sergio Valqui. All rights reserved.
 import requests
 import pathlib
 import configparser
