@@ -56,8 +56,13 @@ def main():
     if proceed:
         nova = client.Client(version=os_version, username=os_user_name, password=os_user_pass,
                              project_id=os_project_id, auth_url=os_auth_url, user_domain_name=os_user_domain)
-        print(nova.servers.list())
+        l = nova.servers.list()
+        print(dir(l[0]))
+        print(l)
+        for instance in nova.servers.list():
+            print(instance.name, instance.addresses)
         print(nova.flavors.list())
+
 
 
 if __name__ == '__main__':
