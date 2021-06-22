@@ -1,4 +1,7 @@
 # Copyright 2021 by Sergio Valqui. All rights reserved.
+import pathlib
+import sys
+
 from novaclient import client
 from cinderclient import client as cinder_client
 from time import sleep
@@ -34,15 +37,32 @@ def main():
 
     try:
         config.read(str(file_conf_name))
-        user_name = config['openstack']['OS_USERNAME']
-        version = config['openstack']['OS_API_VERSION']
-        user_pass = config['openstack']['OS_PASSWORD']
-        project_id = config['openstack']['OS_PROJECT_ID']
-        auth_url = config['openstack']['OS_AUTH_URL']
+        os_user_name = config['openstack']['OS_USERNAME']
+        print(os_user_name)
+        os_user_pass = config['openstack']['OS_PASSWORD']
+        os_version = config['openstack']['OS_API_VERSION']
+        os_project_id = config['openstack']['OS_PROJECT_ID']
+        os_project_name = config['openstack']['OS_PROJECT_NAME']
+        os_auth_url = config['openstack']['OS_AUTH_URL']
+        os_user_domain = config['openstack']['OS_USER_DOMAIN_NAME']
+
         proceed = True
 
     except BaseException as e:
         print('--FileError: ', e)
         print('--Exception Name :', type(e))
         proceed = False
+
+    if proceed:
+        nova = client.Client(version=os_version, username=os_user_name, password=os_user_pass,
+                             project_id=os_project_id, auth_url=os_auth_url, user_domain_name=os_user_domain)
+        print(nova.servers.list())
+        print(nova.flavors.list())
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+
+
+
 
