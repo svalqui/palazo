@@ -1,4 +1,6 @@
 # Copyright 2021 by Sergio Valqui. All rights reserved.
+# based on launch.py by Jinyuan Chen (jinyuanc1@unimelb.edu.au)
+
 import pathlib
 import sys
 
@@ -9,6 +11,18 @@ import platform
 import subprocess
 import argparse
 import configparser
+
+
+def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
+
+    ret_obj = None
+    for my_obj in my_obj_list:
+        if my_att in dir(my_obj):
+            # print(getattr(my_obj, my_att), my_value)
+            if getattr(my_obj, my_att) == my_value:
+                ret_obj = my_obj
+                break
+    return ret_obj
 
 
 def main():
@@ -56,13 +70,90 @@ def main():
     if proceed:
         nova = client.Client(version=os_version, username=os_user_name, password=os_user_pass,
                              project_id=os_project_id, auth_url=os_auth_url, user_domain_name=os_user_domain)
-        l = nova.servers.list()
-        print(dir(l[0]))
-        print(l)
-        for instance in nova.servers.list():
-            print(instance.name, instance.addresses)
-        print(nova.flavors.list())
 
+        cinder = cinder_client.Client(version=os_version, username=os_user_name, api_key=os_user_pass,
+                                      project_id=os_project_name, auth_url=os_auth_url)
+
+#        l = nova.servers.list()
+        imas = nova.glance.list()
+        vols = cinder.volumes.list()
+
+        # print(dir(cinder.volumes))
+        # print()
+        # print(dir(cinder.volumes.list()[0]))
+        # print()
+# # nova structure
+#         print(dir(nova))
+#         print()
+# # servers structure
+#         print(dir(nova.servers))
+#         print()
+# # images structure
+#         print(dir(nova.glance))
+#         print()
+#         print(nova.glance.list())
+#         print()
+#         print(dir(nova.glance.list()[0]))
+#         print()
+#         print(nova.glance.list()[0].name)
+# # a server structure
+#         print(dir(l[0]))
+#         print()
+# # addresses, a server has a list of ip adds
+#         print(dir(l[0].addresses))
+#         print()
+# # server properties
+#         print(l[0].name)
+#         print(l[0].image)
+#         print()
+        i_name = ''
+        i_ip = ''
+        i_image = ''
+        i_flavor = ''
+        line = ''
+        # for i in imas:
+        #     print(i, i.id, i.name)
+        for instance in nova.servers.list():
+            i_name = instance.name
+            # print("Ins :", i_name)
+            # find IP fromm networks
+            for net in instance.addresses.keys():  # Str
+                for ip_list in instance.addresses[net]:  # list
+                    i_ip += ip_list['addr'] + ' '
+            i_image = str(instance.image)
+            # print("Ima :", i_image)
+            # for item in dir(instance):
+            #     print(item, getattr(instance, item), type(getattr(instance, item)).__name__)
+            if i_image == '':  # N/A (booted from volume)
+                # id of the first volume, os-extended-volumes:volumes_attached returns a list of volumes
+                i_first_volume_id = getattr(instance, "os-extended-volumes:volumes_attached")[0]['id']
+                i_first_vol = cinder.volumes.get(i_first_volume_id)
+                # print(dir(i_first_vol))
+                i_image_name = i_first_vol.volume_image_metadata['image_name']
+                msg = "No Image booted from volume"
+            else:
+                # print("Image no empty ", i_image)
+                # id of the image
+                i_image_id = instance.image['id']
+                ima = look_for_obj_by_att_val(imas, 'id', i_image_id)
+                if ima is not None:
+                    # print(ima.name)
+                    i_image_name = ima.name
+                    msg = "Image on imas"
+                else:
+                    i_image_name = "Image not available"
+                    msg = "Image not on imas"
+
+
+                #i_image = nova.glance.find_image(i_image_id)
+                #if i_image is not None:
+                #                    print(i_image)
+
+            line = i_name + ' ' + i_ip + ' ' + i_image_name + ' ' + msg
+            i_ip = ''
+            i_image_name = ''
+            print(line)
+            print()
 
 
 if __name__ == '__main__':
