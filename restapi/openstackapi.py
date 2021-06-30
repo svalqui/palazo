@@ -4,6 +4,7 @@
 import pathlib
 import sys
 
+import novaclient
 from novaclient import client
 from cinderclient import client as cinder_client
 from time import sleep
@@ -74,7 +75,7 @@ def main():
         cinder = cinder_client.Client(version=os_version, username=os_user_name, api_key=os_user_pass,
                                       project_id=os_project_name, auth_url=os_auth_url)
 
-#        l = nova.servers.list()
+        l = nova.servers.list()
         imas = nova.glance.list()
         vols = cinder.volumes.list()
 
@@ -115,7 +116,7 @@ def main():
         #     print(i, i.id, i.name)
         for instance in nova.servers.list():
             i_name = instance.name
-            # print("Ins :", i_name)
+            #print("Ins :", i_name)
             # find IP fromm networks
             for net in instance.addresses.keys():  # Str
                 for ip_list in instance.addresses[net]:  # list
@@ -128,32 +129,26 @@ def main():
                 # id of the first volume, os-extended-volumes:volumes_attached returns a list of volumes
                 i_first_volume_id = getattr(instance, "os-extended-volumes:volumes_attached")[0]['id']
                 i_first_vol = cinder.volumes.get(i_first_volume_id)
-                # print(dir(i_first_vol))
                 i_image_name = i_first_vol.volume_image_metadata['image_name']
-                msg = "No Image booted from volume"
-            else:
-                # print("Image no empty ", i_image)
+            else:  # Has an image
                 # id of the image
                 i_image_id = instance.image['id']
                 ima = look_for_obj_by_att_val(imas, 'id', i_image_id)
-                if ima is not None:
-                    # print(ima.name)
+                if ima is not None:  # image on nova.glance.list()
                     i_image_name = ima.name
-                    msg = "Image on imas"
-                else:
-                    i_image_name = "Image not available"
-                    msg = "Image not on imas"
-
-
-                #i_image = nova.glance.find_image(i_image_id)
-                #if i_image is not None:
-                #                    print(i_image)
-
-            line = i_name + ' ' + i_ip + ' ' + i_image_name + ' ' + msg
+                else:  # no image on nova.glance.list()
+                    try:
+                        ima = nova.glance.find_image(instance.image['id'])
+                        i_image_name = ima.name
+                    except novaclient.exceptions.NotFound:
+                        i_image_name = "Img no longer available"
+                        print()
+                    except Exception as e:
+                        print(e)
+            line = i_name + ' ' + i_ip + ' ' + i_image_name
             i_ip = ''
             i_image_name = ''
             print(line)
-            print()
 
 
 if __name__ == '__main__':
