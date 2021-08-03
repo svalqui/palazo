@@ -11,7 +11,7 @@ import getpass
 import configparser
 import pathlib
 
-
+# Set the configuration directory away from the project, 2 directories up.
 file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
 print('file_conf_dir', file_conf_dir)
 file_conf_name = pathlib.Path(file_conf_dir) / 'ldapq.ini'
@@ -40,6 +40,7 @@ if proceed:
     look_for = input("Search AD for computer accounts containing :")
     user_password = getpass.getpass()
 
+    # One year ago on LDAP format
     time_now = datetime.datetime.now()
     year = datetime.timedelta(days=365)
     year_ago = time_now - year
@@ -58,6 +59,7 @@ if proceed:
                                                          "userAccountControl"])
     list_length = len(list_report)
 
+    # Better save the names of all computers deleted by this code
     filename = 'ldap_delete_comp_acc-' + time_now.strftime('-%Y%m%d-%H%M%S') + '_detailed.txt'
     path = Path.home()
     fs_filename = path / filename
@@ -86,6 +88,7 @@ if proceed:
 
     sure_to_delete = input("Are you sure you want to delete the listed accounts? (y)")
 
+    # Delete computers from AD and save a file of the computers deleted
     if sure_to_delete == 'y':
         filename = 'ldap_delete_comp_acc-' + time_now.strftime('-%Y%m%d-%H%M%S') + '_deleted.txt'
         path = Path.home()
