@@ -149,12 +149,15 @@ def main():
             i_flavor_name = i_flavor.name
             # get description
             # i_des = instance.description
+            i_des = ''
 
             line = i_name + ' ' + i_ip + ' ' + i_image_name + ' ' + i_flavor_name + ' ' + i_des
             i_ip = ''
             i_image_name = ''
             i_flavor = ''
             print(line)
+            print(dir(instance.get()))
+            break
 
 
 if __name__ == '__main__':
