@@ -15,6 +15,7 @@ import configparser
 
 
 def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
+    """Search for an Obj with an attribute of a given value, for methods that return list of Obj."""
 
     ret_obj = None
     for my_obj in my_obj_list:
@@ -27,6 +28,7 @@ def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
 
 
 def print_structure(my_obj):
+    """Prints attributes of an Obj."""
     for att in dir(my_obj):
         print(att, getattr(my_obj, att), type(getattr(my_obj, att)).__name__)
 
@@ -55,6 +57,7 @@ def main():
     # Reading configuration
     config = configparser.ConfigParser()
 
+    # Get project site and authentication credentials
     try:
         config.read(str(file_conf_name))
         os_user_name = config['openstack']['OS_USERNAME']
@@ -156,8 +159,6 @@ def main():
             i_image_name = ''
             i_flavor = ''
             print(line)
-            print(dir(instance.get()))
-            break
 
 
 if __name__ == '__main__':
