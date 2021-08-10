@@ -327,6 +327,12 @@ def find_users(base, connection, look_for):
     return response  # List of list of class Ld,
 
 
+def find_users_by_mobile(base, connection, look_for):
+    query = '(&(objectClass=user)(objectCategory=person)(mobile=*' + look_for + '*))'
+    response = find_generic(base, connection, query)
+    return response  # List of list of class Ld,
+
+
 def find_users_brief(base, connection, look_for, fields):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
     response = find_generic(base, connection, query, fields)
@@ -456,6 +462,25 @@ def main():
                     print(">>>-------------->DOMAIN BASE : ", base, domains)
                     if look_in == "u":
                         my_list = find_users(base, connection, look_for)
+                        print(" ------       search concluded... printing ", len(my_list))
+                        for i in my_list:
+                            if isinstance(i, list):
+                                for j in i:
+                                    if j.header == "memberOf":
+                                        print()
+                                        print("memberOf")
+                                        for k in j.content:
+                                            print(k)
+                                        print()
+                                    elif j.header != "msExchUMSpokenName":
+                                        print(j.header, j.content)
+                                print()
+                            else:
+                                print(i)
+                                print(i.header, i.content)
+
+                    if look_in == "p":
+                        my_list = find_users_by_mobile(base, connection, look_for)
                         print(" ------       search concluded... printing ", len(my_list))
                         for i in my_list:
                             if isinstance(i, list):
