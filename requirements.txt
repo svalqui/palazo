@@ -3,5 +3,11 @@ ldap3
 requests
 selenium
 beautifulsoup4
+#Openstack
 python-novaclient
 python-cinderclient
+python-keystoneclient
+python-glanceclient
+python-quantumclient
+python-swiftclient
+
