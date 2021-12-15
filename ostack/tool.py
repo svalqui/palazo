@@ -1,4 +1,9 @@
 # Copyright 2017 - 2021 by Sergio Valqui. All rights reserved.
+#
+# References
+# https://docs.openstack.org/python-keystoneclient/latest/using-sessions.html
+# https://docs.openstack.org/api-ref/identity/v3/#identity-api-operations
+# https://docs.openstack.org/api-quick-start/
 
 import os
 import sys
