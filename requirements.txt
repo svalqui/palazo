@@ -10,4 +10,10 @@ python-keystoneclient
 python-glanceclient
 python-quantumclient
 python-swiftclient
+# OPenstack Nectar
+nectar-osc
+nectarallocationclient
+manukaclient
+osc-placement
+
 
