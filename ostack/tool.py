@@ -26,10 +26,13 @@ def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
     return ret_obj
 
 
-def print_structure(my_obj):
+def print_structure(my_obj, geta=True):
     """Prints attributes of an Obj."""
     for att in dir(my_obj):
-        print(att, getattr(my_obj, att), type(getattr(my_obj, att)).__name__)
+        if geta:
+            print(att, getattr(my_obj, att), type(getattr(my_obj, att)).__name__)
+        else:
+            print(att, type(getattr(my_obj, att)).__name__)
 
 
 def os_auth_env():
@@ -47,18 +50,57 @@ def os_auth_env():
     return os_session
 
 
+def prj_list(ks_client):
+    """Print a list of all projects"""
+
+    prjs = ks_client.projects.list()
+    # print_structure(prjs.data[0])
+    for i in prjs.data:
+        print(i.id, i.name, i.description)
+    ## Projects
+    #    Attributes:
+    #        * id: a uuid that identifies the project
+    #        * name: project name
+    #        * description: project description
+    #        * enabled: boolean to indicate if project is enabled
+    #        * parent_id: a uuid representing this project's parent in hierarchy
+    #        * parents: a list or a structured dict containing the parents of this
+    #                   project in the hierarchy
+    #        * subtree: a list or a structured dict containing the subtree of this
+    #                   project in the hierarchy
+    # COntain other attributes from parent such:
+    return
+
+
+def user_list(ks_client):
+    """Print a list of all users"""
+
+    users = ks_client.users.list()
+    # print_structure(users.data[0],geta=False)
+    for i in users.data:
+        print(i.id, i.name, i.enabled)
+
+    return
+
+
 def main():
     """ CLI implementation temporal for fast trial while developing
     """
     print(os.environ['OS_AUTH_URL'])
     print(os.environ['OS_USERNAME'])
 
-    ks = ks_client.Client(session=os_auth_env(), include_metadata=True)
-    print_structure(ks)
+    # Authenticate using environmental variables
+    my_session = os_auth_env()
 
-#    prjs = ks.projects.list()
-#    print(prjs.data)
-    # users = ks.users.list()
+    # Create a keystone client interface
+    # https://docs.openstack.org/python-keystoneclient/latest/api/keystoneclient.v3.html#module-keystoneclient.v3.client
+    ks_cli = ks_client.Client(session=my_session, include_metadata=True)
+
+    # print_structure(ks_cli.users)
+
+    # prj_list(ks_client)
+    user_list(ks_cli)
+
 
 
 if __name__ == '__main__':
