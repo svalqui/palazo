@@ -1,6 +1,6 @@
 # python3   -m pip install SomePackage
-ldap3
-requests
+ldap3~=2.9.1
+requests~=2.27.1
 selenium
 beautifulsoup4
 #Openstack
@@ -10,6 +10,7 @@ python-keystoneclient
 python-glanceclient
 python-quantumclient
 python-swiftclient
+python-ceilometerclient
 # OPenstack Nectar
 nectar-osc
 nectarallocationclient
@@ -17,3 +18,6 @@ manukaclient
 osc-placement
 
 
+
+keystoneauth1~=4.4.0
+argparse~=1.4.0

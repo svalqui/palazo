@@ -54,7 +54,8 @@ def prj_list(ks_client):
     """Print a list of all projects"""
 
     prjs = ks_client.projects.list()
-    # print_structure(prjs.data[0])
+    #print_structure(prjs.data[0])
+    print_structure(ks_client.projects)
     for i in prjs.data:
         print(i.id, i.name, i.description)
     ## Projects
@@ -72,7 +73,7 @@ def prj_list(ks_client):
     return
 
 
-def user_list(ks_client):
+def user_list(ks_cli):
     """Print a list of all users"""
 
     users = ks_client.users.list()
@@ -83,16 +84,16 @@ def user_list(ks_client):
     return
 
 
-def assig_list(ks_client):
+def assig_list(ks_cli):
     """Print role assignments per user"""
 #    role_assigns = ks_client.role_assignments.list(include_names=True) # Doesn't work
 #    role_assigns = ks_client.role_assignments.list()  # Works
 #    role_assigns = ks_client.role_assignments.RoleAssignmentManager.list(include_names=True) # Doesn't work
-    role_assigns = ks_client.role_assignments.list(user='')
+    role_assigns = ks_client.role_assignments.list()
     print_structure(role_assigns, geta=False)
     print(len(role_assigns.data))
     print("***")
-    print_structure(role_assigns.data[0], geta=False)
+    print_structure(role_assigns.data[0])
     print("++++")
     print(role_assigns.data[0])
     return
@@ -111,10 +112,10 @@ def main():
     # https://docs.openstack.org/python-keystoneclient/latest/api/keystoneclient.v3.html#module-keystoneclient.v3.client
     ks_cli = ks_client.Client(session=my_session, include_metadata=True)
 
-    # prj_list(ks_client)
-    # user_list(ks_cli)
-    assig_list(ks_cli)
+    prj_list(ks_cli)
 
+    #user_list(ks_cli)
+    # assig_list(ks_cli)
 
 
 if __name__ == '__main__':
