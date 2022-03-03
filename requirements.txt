@@ -1,5 +1,5 @@
 # python3   -m pip install SomePackage
-ldap3~=2.9.1
+ldap3
 requests~=2.27.1
 selenium
 beautifulsoup4
