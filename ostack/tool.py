@@ -1,4 +1,4 @@
-# Copyright 2017 - 2021 by Sergio Valqui. All rights reserved.
+# Copyright 2017 - 2022 by Sergio Valqui. All rights reserved.
 #
 # References
 # https://docs.openstack.org/python-keystoneclient/latest/using-sessions.html
@@ -51,7 +51,7 @@ def os_auth_env():
 
 
 def prj_list(ks_client):
-    """Print a list of all projects"""
+    """Print a list of all projects, Requires ADMIN Credentials."""
 
     prjs = ks_client.projects.list()
     #print_structure(prjs.data[0])
@@ -69,14 +69,14 @@ def prj_list(ks_client):
     #                   project in the hierarchy
     #        * subtree: a list or a structured dict containing the subtree of this
     #                   project in the hierarchy
-    # COntain other attributes from parent such:
+    # Contains other attributes from parent such:
     return
 
 
 def user_list(ks_cli):
-    """Print a list of all users"""
+    """Print a list of all users, Requires ADMIN Credentials."""
 
-    users = ks_client.users.list()
+    users = ks_cli.users.list()
     # print_structure(users.data[0],geta=False)
     for i in users.data:
         print(i.id, i.name, i.enabled)
@@ -84,18 +84,26 @@ def user_list(ks_cli):
     return
 
 
-def assig_list(ks_cli):
-    """Print role assignments per user"""
+def assign_list(ks_cli):
+    """Print role assignments per user, Requires ADMIN Credentials."""
 #    role_assigns = ks_client.role_assignments.list(include_names=True) # Doesn't work
 #    role_assigns = ks_client.role_assignments.list()  # Works
 #    role_assigns = ks_client.role_assignments.RoleAssignmentManager.list(include_names=True) # Doesn't work
-    role_assigns = ks_client.role_assignments.list()
+    role_assigns = ks_cli.role_assignments.list()
     print_structure(role_assigns, geta=False)
     print(len(role_assigns.data))
     print("***")
     print_structure(role_assigns.data[0])
     print("++++")
     print(role_assigns.data[0])
+    ## Assignments
+    # Attributes:
+    #     * role: an object which contains a role uuid
+    #     * user or group: an object which contains either a user or
+    #                      group uuid
+    #     * scope: an object which has either a project or domain object
+    #              containing an uuid
+
     return
 
 
@@ -112,10 +120,9 @@ def main():
     # https://docs.openstack.org/python-keystoneclient/latest/api/keystoneclient.v3.html#module-keystoneclient.v3.client
     ks_cli = ks_client.Client(session=my_session, include_metadata=True)
 
-    prj_list(ks_cli)
-
-    #user_list(ks_cli)
-    # assig_list(ks_cli)
+    # prj_list(ks_cli) # this works
+    # user_list(ks_cli) # this works
+    #assign_list(ks_cli) # Needs link to role.id, project.id, user.id
 
 
 if __name__ == '__main__':
