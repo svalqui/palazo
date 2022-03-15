@@ -119,16 +119,14 @@ def main():
         for net in instance.addresses.keys():  # Str
             for ip_list in instance.addresses[net]:  # list
                 i_ip += ip_list['addr'] + ' '
+
         # get image name
         i_image = str(instance.image)
-        if i_image == '':  # N/A (booted from volume) no image info on instance but on volume
-            # id of the first volume, os-extended-volumes:volumes_attached returns a list of volumes
-            i_first_volume_id = getattr(instance, "os-extended-volumes:volumes_attached")[0]['id']
-            i_first_vol = cinder.volumes.get(i_first_volume_id)
-            i_image_name = i_first_vol.volume_image_metadata['image_name']
-        else:  # Has an image
+
+        if i_image != '':  # Has an image
             # id of the image
             i_image_id = instance.image['id']
+            i_image_name = "Image Name Below"
             try:
                  ima = nova.glance.find_image(instance.image['id'])
                  i_image_name = ima.name
@@ -143,11 +141,29 @@ def main():
         # i_des = instance.description
         i_des = ''
 #
-        line = i_name + ' ' + i_ip + ' ' + i_image_name + ' ' + i_flavor_name + ' ' + i_des
+        line = '| ' + i_name + ' || ' + i_ip + ' || ' + i_image_name + ' || ' + i_flavor_name + ' ' + i_des
         i_ip = ''
         i_image_name = ''
         i_flavor = ''
         print(line)
+
+        if i_image == '':  # N/A (booted from volume) no image info on instance but on volume
+            inst_vols = getattr(instance, "os-extended-volumes:volumes_attached")
+            if len(inst_vols) > 0:
+                i_first_volume_id = inst_vols[0]['id']
+                i_first_vol = cinder.volumes.get(i_first_volume_id)
+                i_image_name = i_first_vol.volume_image_metadata['image_name']
+
+                for vol in inst_vols:
+                    # id of the first volume, os-extended-volumes:volumes_attached returns a list of volumes
+                    i_first_volume_id = vol['id']
+                    other_vol = cinder.volumes.get(vol['id'])
+                    if hasattr(other_vol, 'volume_image_metadata'):
+                        i_image_name =other_vol.volume_image_metadata['image_name']
+                    else:
+                        i_image_name = 'No Img Name'
+                    print("     Vol: ", vol['id'], "Img Name: ", i_image_name)
+
 
 if __name__ == '__main__':
     sys.exit(main())

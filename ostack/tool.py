@@ -12,6 +12,10 @@ from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from keystoneclient.v3 import client as ks_client
 
+import novaclient
+from novaclient import client as nov_cli
+from cinderclient import client as cin_cli
+
 
 def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
     """Search for an Obj with an attribute of a given value, for methods that return list of Obj."""
@@ -35,7 +39,7 @@ def print_structure(my_obj, geta=True):
             print(att, type(getattr(my_obj, att)).__name__)
 
 
-def os_auth_env():
+def os_auth_env_sess():
     """Authenticates using keystone, using environmental variables. returns a session"""
     auth = v3.Password(auth_url=os.environ['OS_AUTH_URL'],
                        username=os.environ['OS_USERNAME'],
@@ -45,7 +49,6 @@ def os_auth_env():
     #                   project_domain_id='default')
     #                   user_domain_id=os.environ['OS_USER_DOMAIN_NAME'])
     os_session = session.Session(auth=auth)
-    print(os_session)
 
     return os_session
 
@@ -107,6 +110,48 @@ def assign_list(ks_cli):
     return
 
 
+def get_ip_dns_name(svr_dns_name):
+    import socket
+    ip = ''
+    ip_list = list({addr[-1][0] for addr in socket.getaddrinfo(svr_dns_name, 0, 0, 0, 0)})
+    if len(ip_list) > 0:
+        ip = ip_list[0]
+    return ip
+
+
+def server_prj_det_by_dnsname(svr_dns_names, my_session):
+
+    print(my_session)
+    nova = nov_cli.Client(version=2, session=my_session)
+    print("svr_ip, svr_id, svr_name, prj_id, prj_name, prj_des, usr_id, usr_name, usr_email, usr_full_name, user_enabled")
+    for dns_name in svr_dns_names:
+
+        svr_ip = get_ip_dns_name(dns_name)
+        #print("svr_ip", svr_ip)
+        svrs = nova.servers.list(search_opts={'access_ip_v4': svr_ip, 'all_tenants': 1})
+        # print('no svrs :', len(svrs))
+        my_server = svrs[0]
+        #print(my_server.name, my_server.id, my_server.accessIPv4, my_server.tenant_id, my_server.user_id)
+
+        ks_cli = ks_client.Client(session=my_session, include_metadata=True)
+
+        prj = ks_cli.projects.get(my_server.tenant_id)
+        #print(prj.data.id, prj.data.name, prj.data.description)
+
+        user = ks_cli.users.get(my_server.user_id)
+        #print(user.data.id, "Username:", user.data.name, "Email:",user.data.email, "FullName:",user.data.full_name, "Enabled:", user.data.enabled)
+
+        #print_structure(user.data, True)
+
+        line = svr_ip + ", " + my_server.id + ", " + my_server.name + ", " + prj.data.id + ", " + prj.data.name + \
+               ", " + prj.data.description + ", " + user.data.id + ", " + user.data.name + ", " + user.data.email + \
+               ", " + user.data.full_name + ", " + str(user.data.enabled)
+
+        print(line)
+
+    return ()
+
+
 def main():
     """ CLI implementation temporal for fast trial while developing
     """
@@ -114,7 +159,7 @@ def main():
     print(os.environ['OS_USERNAME'])
 
     # Authenticate using environmental variables
-    my_session = os_auth_env()
+    my_session = os_auth_env_sess()
 
     # Create a keystone client interface
     # https://docs.openstack.org/python-keystoneclient/latest/api/keystoneclient.v3.html#module-keystoneclient.v3.client
@@ -123,6 +168,19 @@ def main():
     # prj_list(ks_cli) # this works
     # user_list(ks_cli) # this works
     #assign_list(ks_cli) # Needs link to role.id, project.id, user.id
+
+    nova = nov_cli.Client(version=2, session=my_session)
+    #print(len(nova.hypervisors.list()))
+
+    #svrs = nova.servers.list(search_opts={'all_tenants': 'yes'})
+    #len(svrs)
+
+    # print_structure(nova.servers.list(search_opts={'access_ip_v4': '115.146.87.115', 'all_tenants': 1}))
+    # print()
+    # svr = nova.servers.get('e4dd3cf4-4b44-417b-a989-abc5772372a1') # This works
+    # svr = nova.servers.list(search_opts={'access_ip_v4': '10.10.10.10', 'all_tenants': 1})) # This works
+
+    server_prj_det_by_dnsname(my_list, my_session)
 
 
 if __name__ == '__main__':
