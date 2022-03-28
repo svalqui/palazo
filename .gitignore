@@ -4,3 +4,7 @@
 .idea/
 #pycache
 **/__pycache__/
+# Web related
+geckodriver.log
+# Other
+functional-tests.log
