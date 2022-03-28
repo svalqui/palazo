@@ -8,7 +8,7 @@ python-novaclient
 python-cinderclient
 python-keystoneclient
 python-glanceclient
-python-quantumclient
+# python-quantumclient
 python-swiftclient
 python-ceilometerclient
 # OPenstack Nectar
@@ -17,7 +17,10 @@ nectarallocationclient
 manukaclient
 osc-placement
 
-
+pandas
+numpy
+lxml
+yfinance
 
 keystoneauth1~=4.4.0
 argparse~=1.4.0
