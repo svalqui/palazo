@@ -57,8 +57,39 @@ def os_auth_env_sess():
     return os_session
 
 
+def prj_det(ks_client, p_name):
+    """Print project details."""
+
+    my_prj = ks_client.projects.list(name=p_name)
+    print_structure(my_prj.data[0])
+    return
+
+
 def prj_list(ks_client):
     """Print a list of all projects, Requires ADMIN Credentials."""
+
+    prjs = ks_client.projects.list()
+    #print_structure(prjs.data[0])
+    print_structure(ks_client.projects)
+    for i in prjs.data:
+        print(i.id, i.name, i.description)
+    ## Projects
+    #    Attributes:
+    #        * id: a uuid that identifies the project
+    #        * name: project name
+    #        * description: project description
+    #        * enabled: boolean to indicate if project is enabled
+    #        * parent_id: a uuid representing this project's parent in hierarchy
+    #        * parents: a list or a structured dict containing the parents of this
+    #                   project in the hierarchy
+    #        * subtree: a list or a structured dict containing the subtree of this
+    #                   project in the hierarchy
+    # Contains other attributes from parent such:
+    return
+
+
+def prj_list_by_az(ks_client, az_name):
+    """Print a list of all projects by availability zone, Requires ADMIN Credentials."""
 
     prjs = ks_client.projects.list()
     #print_structure(prjs.data[0])
@@ -107,7 +138,6 @@ def assigns_search(ks_cli, os_user_name):
     """Print a list role assignments for a user."""
 
     my_user = ks_cli.users.list(name=os_user_name)
-    print_structure(my_user.data[0])
     assigns = ks_cli.role_assignments.list(user=my_user.data[0].id)
     roles = ks_cli.roles.list()
     u_projects = ks_cli.projects.list(user=my_user.data[0].id)
@@ -184,6 +214,15 @@ def server_list_per_az(av_zone, nv_client):
     return()
 
 
+def server_list_per_prjid(nv_client, prj_id):
+    """List servers on the given project-id."""
+    svrs = nv_client.servers.list(search_opts={'project_id': prj_id, 'all_tenants': 1})
+    for counter, svr in enumerate(svrs):
+        print(counter, svr.id, svr.name, svr.status, svr.addresses, svr.metadata)
+    # print_structure(svrs[0])
+    return()
+
+
 def server_status(svr_id, nv_client):
     my_svr = nv_client.servers.get(svr_id)
     # print_structure(my_svr)
@@ -247,7 +286,7 @@ def main():
 
     # prj_list(ks_cli) # this works
     # user_list(ks_cli) # this works
-    #assign_list(ks_cli) # Needs link to role.id, project.id, user.id
+    # assign_list(ks_cli) # Needs link to role.id, project.id, user.id
 
     # nova = nov_cli.Client(version=2, session=my_session)
     #print(len(nova.hypervisors.list()))
@@ -281,20 +320,21 @@ def main():
     # av_zone = input("av zone :")
     # server_list_per_az(av_zone, nv_client)
 
-    look_in = input("Servers (s), Projects(p), Servers in Prj (sp), user role assignment(r): ")
+    look_in = input("Servers (s), Projects(p), prj det (pd), Servers in Prj-id (sp), user role assignment(r): ")
     look_for = input("Search for :")
 
     if look_in == "s":
         sleep(1)
     elif look_in == "p":
         sleep(1)
+    elif look_in == "pd":
+        prj_det(ks_cli, look_for)
     elif look_in == "sp":
-        sleep(1)
+        server_list_per_prjid(nv_client, look_for)
     elif look_in == "r":
         assigns_search(ks_cli, look_for)
     else:
         print("No option available")
-
 
 
 if __name__ == '__main__':
