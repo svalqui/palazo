@@ -1,5 +1,6 @@
-# Copyright 2019-2020 by Sergio Valqui. All rights reserved.
+# Copyright 2019-2022 by Sergio Valqui. All rights reserved.
 """Uses https://pypi.org/project/yfinance/
+
 """
 
 import sys
