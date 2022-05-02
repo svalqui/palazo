@@ -2,6 +2,7 @@ import configparser
 import pathlib
 import sys
 
+import pandas as pd
 import yfinance as yf
 
 
@@ -19,10 +20,21 @@ def main():
     print(his_path)
 
     ticket = input("T? :")
-    print("getting ", ticket)
-    cia_his = yf.download(ticket, period="2y")
-    print(his_path / ticket)
-    cia_his.to_csv(his_path / ticket)
+    print("getting :", ticket)
+    # If file exist get the latest date
+    hisfile_path = his_path / ticket
+    print("Histfile path :",hisfile_path)
+    if hisfile_path.expanduser().exists():
+        print("File exists")
+        # get most recent date
+        cur_hist = pd.read_csv(hisfile_path, index_col=['Date'], parse_dates=['Date'])
+        cur_hist.info()
+
+    else:
+        print("Download:", ticket)
+        cia_his = yf.download(ticket, period="2y")
+        print(hisfile_path)
+        cia_his.to_csv(hisfile_path)
 
 
 if __name__ == '__main__':
