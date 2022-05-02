@@ -271,6 +271,31 @@ def server_start(svr_id, nv_client):
     return()
 
 
+def flavor_det(nv_client):
+    # (is_public=None) For Admin lists all flavors
+    flavors = nv_client.flavors.list(is_public=None)
+
+    for f in flavors:
+        print(f.name, f.id, f.vcpus, f.ram)
+    return()
+
+
+def flavor_prj(nv_client, fla, prj_id):
+    print()
+    fla = nv_client.flavors.list(is_public=None)[7]
+    print("fla :", fla)
+    f_acc = nv_client.flavor_access.list(flavor=fla)
+    print("flavor acc list len: ", len(f_acc) )
+    print(fla.name)
+
+    for prj in f_acc:
+        print(prj.flavor_id, prj.tenant_id)
+
+    # print_structure(f_acc[0])
+
+    return()
+
+
 def main():
     """ CLI implementation temporal for fast trial while developing
     """
@@ -311,6 +336,7 @@ def main():
     # print_structure(my_alloc.quotas.list(search_opts={'project_name':'<prj-name>>'}))
 
     nv_client = nov_cli.Client(version=2, session=my_session)
+    # ci_client = cin_cli.Client(version=3, session=my_session)
 
     ## works
     # server_status('7d55e9fe-ed55-43b0-93ef-b9d56bf30035', nv_client)
@@ -320,7 +346,8 @@ def main():
     # av_zone = input("av zone :")
     # server_list_per_az(av_zone, nv_client)
 
-    look_in = input("Servers (s), Projects(p), prj det (pd), Servers in Prj-id (sp), user role assignment(r): ")
+    look_in = input("Servers (s), Projects(p), prj det (pd), Servers in Prj-id (sp), user role assignment(r), "
+                    "Flavors(f), Flavor access Projects(fa): ")
     look_for = input("Search for :")
 
     if look_in == "s":
@@ -333,6 +360,10 @@ def main():
         server_list_per_prjid(nv_client, look_for)
     elif look_in == "r":
         assigns_search(ks_cli, look_for)
+    elif look_in == "f":
+        flavor_det(nv_client)
+    elif look_in == "fa":   # Flavor Access Projects
+        flavor_prj(nv_client,"Fla", "Flu")
     else:
         print("No option available")
 
