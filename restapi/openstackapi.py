@@ -115,7 +115,7 @@ def main():
         i_image_name = ''
         # get instance name
         i_name = instance.name
-        # get IP address  TODO get ip address from other attribute  'accessIPv4'
+        # TODO get IP address   get ip address from other attribute  'accessIPv4'
         for net in instance.addresses.keys():  # Str
             for ip_list in instance.addresses[net]:  # list
                 i_ip += ip_list['addr'] + ' '
@@ -128,12 +128,13 @@ def main():
             i_image_id = instance.image['id']
             i_image_name = "Image Name Below"
             try:
-                 ima = nova.glance.find_image(instance.image['id'])
-                 i_image_name = ima.name
+                ima = nova.glance.find_image(instance.image['id'])
+                i_image_name = ima.name
             except novaclient.exceptions.NotFound:
-                 i_image_name = "Img no longer available"
+                i_image_name = "Img no longer available"
             except Exception as e:
-                 print(e)
+                print(e)
+
         # get flavor name
         i_flavor = nova.flavors.get(instance.flavor['id'])
         i_flavor_name = i_flavor.name

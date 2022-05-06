@@ -16,7 +16,7 @@ from keystoneclient.v3 import client as ks_client
 import novaclient
 from novaclient import client as nov_cli
 from cinderclient import client as cin_cli
-from nectarallocationclient import client as allo_cli
+from nectarallocationclient import client as allo_client
 
 from time import sleep
 
@@ -144,8 +144,48 @@ def assigns_search(ks_cli, os_user_name):
 
     for assign in assigns.data:
 
-        print(look_for_obj_by_att_val(roles.data, 'id', assign.role['id']).name, my_user.data[0].name,
-              look_for_obj_by_att_val(u_projects.data, 'id', assign.scope['project']['id']).name)
+        print(look_for_obj_by_att_val(roles.data, 'id', assign.role['id']).name,
+              my_user.data[0].name,
+              look_for_obj_by_att_val(u_projects.data, 'id', assign.scope['project']['id']).name
+              )
+
+    return()
+
+
+def assign_usr_resources(my_session, os_user_name):
+    """List projects for a user including the VMs in the project"""
+
+    ks_cli = ks_client.Client(session=my_session, include_metadata=True)
+    my_user = ks_cli.users.list(name=os_user_name)
+    assigns = ks_cli.role_assignments.list(user=my_user.data[0].id)
+    roles = ks_cli.roles.list()
+    u_projects = ks_cli.projects.list(user=my_user.data[0].id)
+    usr_prj_ids = []
+
+    # Projects and Roles
+    print("User: ", os_user_name)
+    print("Roles:")
+    for assign in assigns.data:
+        prj_name = look_for_obj_by_att_val(u_projects.data, 'id', assign.scope['project']['id']).name
+        role_name = look_for_obj_by_att_val(roles.data, 'id', assign.role['id']).name
+
+        print(prj_name,
+              role_name,
+              )
+        if assign.scope['project']['id'] not in usr_prj_ids:
+            usr_prj_ids.append(assign.scope['project']['id']),
+
+    # Servers on a Project
+    print()
+    for prj_id in usr_prj_ids:
+        prj = look_for_obj_by_att_val(u_projects.data, 'id', prj_id)
+        print("Project: ", prj.name, prj.id)
+        if hasattr(prj, 'allocation_id'):
+            allo_brief(my_session, prj.allocation_id)
+        nova = nov_cli.Client(version=2, session=my_session)
+        print ("VMs :")
+        server_list_per_prjid(nova, prj_id)
+        print()
 
     return()
 
@@ -217,8 +257,16 @@ def server_list_per_az(av_zone, nv_client):
 def server_list_per_prjid(nv_client, prj_id):
     """List servers on the given project-id."""
     svrs = nv_client.servers.list(search_opts={'project_id': prj_id, 'all_tenants': 1})
+
     for counter, svr in enumerate(svrs):
-        print(counter, svr.id, svr.name, svr.status, svr.addresses, svr.metadata)
+        av_zone = getattr(svr, "OS-EXT-AZ:availability_zone")
+        # locked = getattr(svr, "locked") # it seems it can't be queried
+        print(counter+1, svr.id, svr.name, svr.status, av_zone,
+              svr.addresses, svr.metadata)
+        inst_vols = getattr(svr, "os-extended-volumes:volumes_attached")
+        if len(inst_vols) > 0:
+            for inst_vol in inst_vols:
+                print("    vol_att_id:", inst_vol['id'])
     # print_structure(svrs[0])
     return()
 
@@ -272,6 +320,7 @@ def server_start(svr_id, nv_client):
 
 
 def flavor_det(nv_client):
+    """Lists the flavors"""
     # (is_public=None) For Admin lists all flavors
     flavors = nv_client.flavors.list(is_public=None)
 
@@ -280,18 +329,53 @@ def flavor_det(nv_client):
     return()
 
 
-def flavor_prj(nv_client, fla, prj_id):
+def flavor_prjs(my_session, fla, prj_id):
+    """Lists the projects on the access list of the flavor, projects that access the flavor"""
+    # TODO 
+    nov = nov_cli.Client(version=2, session=my_session)
+    ks = ks_client.Client(session=my_session, include_metadata=True)
     print()
-    fla = nv_client.flavors.list(is_public=None)[7]
+    fla = nov.flavors.list(is_public=None)[7]
     print("fla :", fla)
-    f_acc = nv_client.flavor_access.list(flavor=fla)
+    f_acc = nov.flavor_access.list(flavor=fla)
     print("flavor acc list len: ", len(f_acc) )
     print(fla.name)
 
-    for prj in f_acc:
-        print(prj.flavor_id, prj.tenant_id)
+    for acc in f_acc:
+        prj = ks.projects.get(acc.tenant_id)
+        print(acc.flavor_id, acc.tenant_id, prj.data.name)
 
     # print_structure(f_acc[0])
+
+    return()
+
+
+def allo_per_prj_name(my_session, prj_name):
+    allo_cli = allo_client.Client(version=1, session=my_session)
+    ks_cli = ks_client.Client(session=my_session, include_metadata=True)
+
+    my_prj = ks_cli.projects.list(name=prj_name)
+    # print_structure(my_prj)
+
+    my_all_id = my_prj.data[0].allocation_id
+
+    my_allo = allo_cli.allocations.get(my_all_id)
+    print("allocation_home ", my_allo.allocation_home)
+    print("national ", my_allo.national)
+
+    # get works , need allocation id
+    # allo_per_prj_name = allo.allocations.get('105619')
+    # works but returns all, needs review
+    # allo_per_prj_name = allo.allocations.list(search_opts={'project_id': prj_id, 'all_tenants': 1})
+
+    return()
+
+
+def allo_brief(my_session, allo_id):
+    allo_cli = allo_client.Client(version=1, session=my_session)
+    my_allo = allo_cli.allocations.get(allo_id)
+    print("allocation_home ", my_allo.allocation_home)
+    print("national ", my_allo.national)
 
     return()
 
@@ -347,7 +431,7 @@ def main():
     # server_list_per_az(av_zone, nv_client)
 
     look_in = input("Servers (s), Projects(p), prj det (pd), Servers in Prj-id (sp), user role assignment(r), "
-                    "Flavors(f), Flavor access Projects(fa): ")
+                    "User resources (ur), Flavors(f), Flavor access Projects(fa), allocations (a): ")
     look_for = input("Search for :")
 
     if look_in == "s":
@@ -363,7 +447,11 @@ def main():
     elif look_in == "f":
         flavor_det(nv_client)
     elif look_in == "fa":   # Flavor Access Projects
-        flavor_prj(nv_client,"Fla", "Flu")
+        flavor_prjs(my_session, "Fla", "Flu")
+    elif look_in == "ur":
+        assign_usr_resources(my_session, look_for)
+    elif look_in == "a":
+        allo_per_prj_name(my_session)
     else:
         print("No option available")
 
