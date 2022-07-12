@@ -69,7 +69,7 @@ def prj_list(ks_client):
     """Print a list of all projects, Requires ADMIN Credentials."""
 
     prjs = ks_client.projects.list()
-    #print_structure(prjs.data[0])
+    # print_structure(prjs.data[0])
     print_structure(ks_client.projects)
     for i in prjs.data:
         print(i.id, i.name, i.description)
@@ -92,7 +92,7 @@ def prj_list_by_az(ks_client, az_name):
     """Print a list of all projects by availability zone, Requires ADMIN Credentials."""
 
     prjs = ks_client.projects.list()
-    #print_structure(prjs.data[0])
+    # print_structure(prjs.data[0])
     print_structure(ks_client.projects)
     for i in prjs.data:
         print(i.id, i.name, i.description)
@@ -113,9 +113,9 @@ def prj_list_by_az(ks_client, az_name):
 
 def assign_list(ks_cli):
     """Print role assignments per user, Requires ADMIN Credentials."""
-#    role_assigns = ks_client.role_assignments.list(include_names=True) # Doesn't work
-#    role_assigns = ks_client.role_assignments.list()  # Works
-#    role_assigns = ks_client.role_assignments.RoleAssignmentManager.list(include_names=True) # Doesn't work
+    #    role_assigns = ks_client.role_assignments.list(include_names=True) # Doesn't work
+    #    role_assigns = ks_client.role_assignments.list()  # Works
+    #    role_assigns = ks_client.role_assignments.RoleAssignmentManager.list(include_names=True) # Doesn't work
     role_assigns = ks_cli.role_assignments.list()
     print_structure(role_assigns, geta=False)
     print(len(role_assigns.data))
@@ -143,13 +143,12 @@ def assigns_search(ks_cli, os_user_name):
     u_projects = ks_cli.projects.list(user=my_user.data[0].id)
 
     for assign in assigns.data:
-
         print(look_for_obj_by_att_val(roles.data, 'id', assign.role['id']).name,
               my_user.data[0].name,
               look_for_obj_by_att_val(u_projects.data, 'id', assign.scope['project']['id']).name
               )
 
-    return()
+    return ()
 
 
 def assign_usr_resources(my_session, os_user_name):
@@ -183,11 +182,11 @@ def assign_usr_resources(my_session, os_user_name):
         if hasattr(prj, 'allocation_id'):
             allo_brief(my_session, prj.allocation_id)
         nova = nov_cli.Client(version=2, session=my_session)
-        print ("VMs :")
+        print("VMs :")
         server_list_per_prjid(nova, prj_id)
         print()
 
-    return()
+    return ()
 
 
 def user_list(ks_cli):
@@ -202,6 +201,7 @@ def user_list(ks_cli):
 
 
 def get_ip_dns_name(svr_dns_name):
+    """get the IP address given the DNS name"""
     import socket
     ip = ''
     ip_list = list({addr[-1][0] for addr in socket.getaddrinfo(svr_dns_name, 0, 0, 0, 0)})
@@ -211,28 +211,27 @@ def get_ip_dns_name(svr_dns_name):
 
 
 def server_prj_det_by_dnsname(svr_dns_names, my_session):
-
     print(my_session)
     nova = nov_cli.Client(version=2, session=my_session)
-    print("svr_ip, svr_id, svr_name, prj_id, prj_name, prj_des, usr_id, usr_name, usr_email, usr_full_name, user_enabled")
+    print(
+        "svr_ip, svr_id, svr_name, prj_id, prj_name, prj_des, usr_id, usr_name, usr_email, usr_full_name, user_enabled")
     for dns_name in svr_dns_names:
-
         svr_ip = get_ip_dns_name(dns_name)
-        #print("svr_ip", svr_ip)
+        # print("svr_ip", svr_ip)
         svrs = nova.servers.list(search_opts={'access_ip_v4': svr_ip, 'all_tenants': 1})
         # print('no svrs :', len(svrs))
         my_server = svrs[0]
-        #print(my_server.name, my_server.id, my_server.accessIPv4, my_server.tenant_id, my_server.user_id)
+        # print(my_server.name, my_server.id, my_server.accessIPv4, my_server.tenant_id, my_server.user_id)
 
         ks_cli = ks_client.Client(session=my_session, include_metadata=True)
 
         prj = ks_cli.projects.get(my_server.tenant_id)
-        #print(prj.data.id, prj.data.name, prj.data.description)
+        # print(prj.data.id, prj.data.name, prj.data.description)
 
         user = ks_cli.users.get(my_server.user_id)
-        #print(user.data.id, "Username:", user.data.name, "Email:",user.data.email, "FullName:",user.data.full_name, "Enabled:", user.data.enabled)
+        # print(user.data.id, "Username:", user.data.name, "Email:",user.data.email, "FullName:",user.data.full_name, "Enabled:", user.data.enabled)
 
-        #print_structure(user.data, True)
+        # print_structure(user.data, True)
 
         line = svr_ip + ", " + my_server.id + ", " + my_server.name + ", " + prj.data.id + ", " + prj.data.name + \
                ", " + prj.data.description + ", " + user.data.id + ", " + user.data.name + ", " + user.data.email + \
@@ -243,15 +242,56 @@ def server_prj_det_by_dnsname(svr_dns_names, my_session):
     return ()
 
 
-def server_list_per_az(av_zone, nv_client):
+def server_prj_det_by_ip(svr_ip_adds, my_session):
+    """Server and Project Details by IP addresses"""
 
+    nova = nov_cli.Client(version=2, session=my_session)
+    print(
+        "svr_ip, svr_id, svr_name, prj_id, prj_name, prj_des, usr_id, usr_name, usr_email, usr_full_name, user_enabled")
+    ks_cli = ks_client.Client(session=my_session, include_metadata=True)
+
+    for my_ip in svr_ip_adds:
+        svrs = nova.servers.list(search_opts={'access_ip_v4': my_ip, 'all_tenants': 1})
+
+        my_server = svrs[0]
+        # print(my_server.name, my_server.id, my_server.accessIPv4, my_server.tenant_id, my_server.user_id)
+
+        prj = ks_cli.projects.get(my_server.tenant_id)
+        # print(prj.data.id, prj.data.name, prj.data.description)
+
+        user = ks_cli.users.get(my_server.user_id)
+        # print(user.data.id, "Username:", user.data.name, "Email:",user.data.email, "FullName:",user.data.full_name, "Enabled:", user.data.enabled)
+
+        # print_structure(user.data, True)
+
+        if 'email' in dir( user.data) :
+            usr_email = user.data.email
+        else:
+            usr_email = "No-email"
+
+        if 'full_name' in dir( user.data) :
+            usr_f_name = user.data.full_name
+        else:
+            usr_f_name = ""
+
+
+        line = my_ip + ", " + my_server.id + ", " + my_server.name + ", " + prj.data.id + ", " + prj.data.name + \
+               ", " + prj.data.description + ", " + user.data.id + ", " + user.data.name + ", " + usr_email + \
+               ", " + usr_f_name + ", " + str(user.data.enabled)
+
+        print(line)
+
+    return ()
+
+
+def server_list_per_az(av_zone, nv_client):
     # This doesn't work availability zone doesn;t filter properly
     # svrs = nv_client.servers.list(search_opts={'availability_zone': av_zone, 'all_tenants': 1})
     svrs = nv_client.servers.list(search_opts={'all_tenants': 1})
     for count, svr in enumerate(svrs):
-        print(count, svr.id, getattr(svr, "OS-EXT-AZ:availability_zone"),svr.addresses)
+        print(count, svr.id, getattr(svr, "OS-EXT-AZ:availability_zone"), svr.addresses)
 
-    return()
+    return ()
 
 
 def server_list_per_prjid(nv_client, prj_id):
@@ -261,14 +301,14 @@ def server_list_per_prjid(nv_client, prj_id):
     for counter, svr in enumerate(svrs):
         av_zone = getattr(svr, "OS-EXT-AZ:availability_zone")
         # locked = getattr(svr, "locked") # it seems it can't be queried
-        print(counter+1, svr.id, svr.name, svr.status, av_zone,
+        print(counter + 1, svr.id, svr.name, svr.status, av_zone,
               svr.addresses, svr.metadata)
         inst_vols = getattr(svr, "os-extended-volumes:volumes_attached")
         if len(inst_vols) > 0:
             for inst_vol in inst_vols:
                 print("    vol_att_id:", inst_vol['id'])
     # print_structure(svrs[0])
-    return()
+    return ()
 
 
 def server_status(svr_id, nv_client):
@@ -276,7 +316,7 @@ def server_status(svr_id, nv_client):
     # print_structure(my_svr)
     print(my_svr.id, my_svr.name, getattr(my_svr, "OS-EXT-STS:vm_state"), my_svr.status)
 
-    return()
+    return ()
 
 
 def server_det_basic(svr_id, nv_client):
@@ -284,14 +324,14 @@ def server_det_basic(svr_id, nv_client):
     # print_structure(my_svr)
     print(my_svr.id, my_svr.name, my_svr.status, my_svr.addresses)
 
-    return()
+    return ()
 
 
 def server_det_obj(svr_id, nv_client):
     my_svr = nv_client.servers.get(svr_id)
     print_structure(my_svr)
 
-    return()
+    return ()
 
 
 def server_stop(svr_id, nv_client):
@@ -307,7 +347,7 @@ def server_stop(svr_id, nv_client):
     else:
         print(svr_id, att_sts, " Not active nor stopped passing it")
 
-    return()
+    return ()
 
 
 def server_start(svr_id, nv_client):
@@ -323,7 +363,7 @@ def server_start(svr_id, nv_client):
     else:
         print(svr_id, att_sts, " Not active nor stopped passing it")
 
-    return()
+    return ()
 
 
 def flavor_det(nv_client):
@@ -333,7 +373,7 @@ def flavor_det(nv_client):
 
     for f in flavors:
         print(f.name, f.id, f.vcpus, f.ram)
-    return()
+    return ()
 
 
 def flavor_prjs(my_session, fla, prj_id):
@@ -345,7 +385,7 @@ def flavor_prjs(my_session, fla, prj_id):
     fla = nov.flavors.list(is_public=None)[7]
     print("fla :", fla)
     f_acc = nov.flavor_access.list(flavor=fla)
-    print("flavor acc list len: ", len(f_acc) )
+    print("flavor acc list len: ", len(f_acc))
     print(fla.name)
 
     for acc in f_acc:
@@ -354,7 +394,7 @@ def flavor_prjs(my_session, fla, prj_id):
 
     # print_structure(f_acc[0])
 
-    return()
+    return ()
 
 
 def allo_per_prj_name(my_session, prj_name):
@@ -375,7 +415,7 @@ def allo_per_prj_name(my_session, prj_name):
     # works but returns all, needs review
     # allo_per_prj_name = allo.allocations.list(search_opts={'project_id': prj_id, 'all_tenants': 1})
 
-    return()
+    return ()
 
 
 def allo_brief(my_session, allo_id):
@@ -384,7 +424,7 @@ def allo_brief(my_session, allo_id):
     print("allocation_home ", my_allo.allocation_home)
     print("national ", my_allo.national)
 
-    return()
+    return ()
 
 
 def main():
@@ -405,10 +445,10 @@ def main():
     # assign_list(ks_cli) # Needs link to role.id, project.id, user.id
 
     # nova = nov_cli.Client(version=2, session=my_session)
-    #print(len(nova.hypervisors.list()))
+    # print(len(nova.hypervisors.list()))
 
-    #svrs = nova.servers.list(search_opts={'all_tenants': 'yes'})
-    #len(svrs)
+    # svrs = nova.servers.list(search_opts={'all_tenants': 'yes'})
+    # len(svrs)
 
     # print_structure(nova.servers.list(search_opts={'access_ip_v4': '<ip>', 'all_tenants': 1}))
     # print()
@@ -440,7 +480,8 @@ def main():
     print("(s) Servers, look for server names matching \n"
           "(sd) Server details by server id, all obj att \n"
           "(p) Projects, look for project names matching \n"
-          "(pd) prj det, show project details \n"
+          "(pd) prj det, show project details for the given project name \n"
+          "(pbip) Project and Server Details by list of IPs ([ip1,ip2....])"
           "Servers in Prj-id (sp)\n"
           "user role assignment(r), \n"
           "User resources (ur), \n"
@@ -448,6 +489,9 @@ def main():
 
     look_in = input(" your choice: ")
     look_for = input("Search for :")
+
+    ips = []
+
 
     if look_in == "s":
         sleep(1)
@@ -457,13 +501,15 @@ def main():
         sleep(1)
     elif look_in == "pd":
         prj_det(ks_cli, look_for)
+    elif look_in == "pbip":
+        server_prj_det_by_ip(ips, my_session)
     elif look_in == "sp":
         server_list_per_prjid(nv_client, look_for)
     elif look_in == "r":
         assigns_search(ks_cli, look_for)
     elif look_in == "f":
         flavor_det(nv_client)
-    elif look_in == "fa":   # Flavor Access Projects
+    elif look_in == "fa":  # Flavor Access Projects
         flavor_prjs(my_session, "Fla", "Flu")
     elif look_in == "ur":
         assign_usr_resources(my_session, look_for)
