@@ -19,7 +19,7 @@ osc-placement
 
 pandas==1.4.2
 numpy
-lxml==4.9.0
+lxml==4.9.1
 yfinance==0.1.72
 
 keystoneauth1==4.6.0
