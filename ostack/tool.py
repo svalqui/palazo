@@ -287,6 +287,13 @@ def server_det_basic(svr_id, nv_client):
     return()
 
 
+def server_det_obj(svr_id, nv_client):
+    my_svr = nv_client.servers.get(svr_id)
+    print_structure(my_svr)
+
+    return()
+
+
 def server_stop(svr_id, nv_client):
     my_svr = nv_client.servers.get(svr_id)
     att_sts = getattr(my_svr, "OS-EXT-STS:vm_state")
@@ -430,12 +437,22 @@ def main():
     # av_zone = input("av zone :")
     # server_list_per_az(av_zone, nv_client)
 
-    look_in = input("Servers (s), Projects(p), prj det (pd), Servers in Prj-id (sp), user role assignment(r), "
-                    "User resources (ur), Flavors(f), Flavor access Projects(fa), allocations (a): ")
+    print("(s) Servers, look for server names matching \n"
+          "(sd) Server details by server id, all obj att \n"
+          "(p) Projects, look for project names matching \n"
+          "(pd) prj det, show project details \n"
+          "Servers in Prj-id (sp)\n"
+          "user role assignment(r), \n"
+          "User resources (ur), \n"
+          "Flavors(f), Flavor access Projects(fa), allocations (a))\n")
+
+    look_in = input(" your choice: ")
     look_for = input("Search for :")
 
     if look_in == "s":
         sleep(1)
+    elif look_in == "sd":
+        server_det_obj(look_for, nv_client)
     elif look_in == "p":
         sleep(1)
     elif look_in == "pd":
