@@ -398,6 +398,7 @@ def flavor_prjs(my_session, fla, prj_id):
 
 
 def allo_per_prj_name(my_session, prj_name):
+    """Allocation details for a given project name."""
     allo_cli = allo_client.Client(version=1, session=my_session)
     ks_cli = ks_client.Client(session=my_session, include_metadata=True)
 
@@ -419,10 +420,14 @@ def allo_per_prj_name(my_session, prj_name):
 
 
 def allo_brief(my_session, allo_id):
+    """Allocation brief."""
     allo_cli = allo_client.Client(version=1, session=my_session)
     my_allo = allo_cli.allocations.get(allo_id)
     print("allocation_home ", my_allo.allocation_home)
     print("national ", my_allo.national)
+    print("contact ", my_allo.contact_email)
+    print("status ", my_allo.status)
+    print("end date ", my_allo.end_date)
 
     return ()
 
