@@ -247,19 +247,22 @@ def server_prj_det_by_ip(svr_ip_adds, my_session):
 
     nova = nov_cli.Client(version=2, session=my_session)
     print(
-        "svr_ip, svr_id, svr_name, prj_id, prj_name, prj_des, usr_id, usr_name, usr_email, usr_full_name, user_enabled")
+        "svr_ip, svr_id, svr_name, svr_status, prj_id, prj_name, prj_des, prj_contact"
+        ", usr_name, usr_email, usr_full_name, user_enabled")
     ks_cli = ks_client.Client(session=my_session, include_metadata=True)
+    allo_cli = allo_client.Client(version=1, session=my_session)
 
     for my_ip in svr_ip_adds:
         svrs = nova.servers.list(search_opts={'access_ip_v4': my_ip, 'all_tenants': 1})
-
         my_server = svrs[0]
         # print(my_server.name, my_server.id, my_server.accessIPv4, my_server.tenant_id, my_server.user_id)
 
         prj = ks_cli.projects.get(my_server.tenant_id)
         # print(prj.data.id, prj.data.name, prj.data.description)
 
-        user = ks_cli.users.get(my_server.user_id)
+        my_allo = allo_cli.allocations.get(prj.data.allocation_id)
+
+        user = ks_cli.users.get(my_allo.contact_email)
         # print(user.data.id, "Username:", user.data.name, "Email:",user.data.email, "FullName:",user.data.full_name, "Enabled:", user.data.enabled)
 
         # print_structure(user.data, True)
@@ -274,10 +277,9 @@ def server_prj_det_by_ip(svr_ip_adds, my_session):
         else:
             usr_f_name = ""
 
-
-        line = my_ip + ", " + my_server.id + ", " + my_server.name + ", " + prj.data.id + ", " + prj.data.name + \
-               ", " + prj.data.description + ", " + user.data.id + ", " + user.data.name + ", " + usr_email + \
-               ", " + usr_f_name + ", " + str(user.data.enabled)
+        line = my_ip + ", " + my_server.id + ", " + my_server.name + ", " + my_server.status + ", " + \
+               prj.data.id + ", " + prj.data.name + ", " + prj.data.description + ", " + my_allo.contact_email + ", " + \
+               user.data.name + ", " + usr_email + ", " + usr_f_name + ", " + str(user.data.enabled)
 
         print(line)
 
@@ -378,7 +380,7 @@ def flavor_det(nv_client):
 
 def flavor_prjs(my_session, fla, prj_id):
     """Lists the projects on the access list of the flavor, projects that access the flavor"""
-    # TODO 
+    #
     nov = nov_cli.Client(version=2, session=my_session)
     ks = ks_client.Client(session=my_session, include_metadata=True)
     print()
