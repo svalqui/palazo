@@ -5,6 +5,8 @@
 # https://docs.openstack.org/api-ref/identity/v3/#identity-api-operations
 # https://docs.openstack.org/api-quick-start/
 # https://docs.openstack.org/python-novaclient/stein/reference/api/novaclient.v2.servers.html
+#
+# https://github.com/NeCTAR-RC/python-nectarallocationclient
 
 import os
 import sys
@@ -253,32 +255,55 @@ def server_prj_det_by_ip(svr_ip_adds, my_session):
     allo_cli = allo_client.Client(version=1, session=my_session)
 
     for my_ip in svr_ip_adds:
+        # print(my_ip)
         svrs = nova.servers.list(search_opts={'access_ip_v4': my_ip, 'all_tenants': 1})
-        my_server = svrs[0]
+        # TODO for some reason returns a list of various VMs that No exists
+        # print(len(svrs))
+        # filtering exact match
+        my_server = look_for_obj_by_att_val(svrs, 'accessIPv4', my_ip)
         # print(my_server.name, my_server.id, my_server.accessIPv4, my_server.tenant_id, my_server.user_id)
 
         prj = ks_cli.projects.get(my_server.tenant_id)
         # print(prj.data.id, prj.data.name, prj.data.description)
+        # print(prj.data.allocation_id)
 
-        my_allo = allo_cli.allocations.get(prj.data.allocation_id)
+        if prj.data.name == 'trove':
+            #print_structure(my_server)
+            # if is trove reload project with user's project
+            usr_prj = my_server.metadata['project_id']
+            prj = ks_cli.projects.get(usr_prj)
 
-        user = ks_cli.users.get(my_allo.contact_email)
+            # reload allocation details
+            if hasattr(prj.data, 'allocation_id'):
+                my_allo = allo_cli.allocations.get(prj.data.allocation_id)
+                prj_contact_email = my_allo.contact_email
+            else:
+                prj_contact_email = "None"
+        else:
+
+            if hasattr(prj, 'allocation_id'):
+                my_allo = allo_cli.allocations.get(prj.data.allocation_id)
+                prj_contact_email = my_allo.contact_email
+            else:
+                prj_contact_email = "None"
+
+        user = ks_cli.users.get(my_server.user_id)
         # print(user.data.id, "Username:", user.data.name, "Email:",user.data.email, "FullName:",user.data.full_name, "Enabled:", user.data.enabled)
 
         # print_structure(user.data, True)
 
-        if 'email' in dir( user.data) :
+        if 'email' in dir(user.data):
             usr_email = user.data.email
         else:
             usr_email = "No-email"
 
-        if 'full_name' in dir( user.data) :
+        if 'full_name' in dir(user.data):
             usr_f_name = user.data.full_name
         else:
             usr_f_name = ""
 
         line = my_ip + ", " + my_server.id + ", " + my_server.name + ", " + my_server.status + ", " + \
-               prj.data.id + ", " + prj.data.name + ", " + prj.data.description + ", " + my_allo.contact_email + ", " + \
+               prj.data.id + ", " + prj.data.name + ", " + prj.data.description + ", " + prj_contact_email + ", " + \
                user.data.name + ", " + usr_email + ", " + usr_f_name + ", " + str(user.data.enabled)
 
         print(line)
@@ -497,8 +522,9 @@ def main():
     look_in = input(" your choice: ")
     look_for = input("Search for :")
 
-    ips = []
+    ips = [
 
+    ]
 
     if look_in == "s":
         sleep(1)
