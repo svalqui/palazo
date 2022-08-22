@@ -269,7 +269,7 @@ def server_prj_det_by_ip(svr_ip_adds, my_session):
 
         if prj.data.name == 'trove':
             #print_structure(my_server)
-            # if is trove reload project with user's project
+            # if is trove reload project with user's project, not trove project details
             usr_prj = my_server.metadata['project_id']
             prj = ks_cli.projects.get(usr_prj)
 

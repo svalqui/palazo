@@ -1,7 +1,11 @@
 # python3   -m pip install SomePackage
-ldap3
+
+# Networks and ssh
+netmiko~=4.1.2
+
+ldap3~=2.9.1
 requests~=2.27.1
-selenium
+selenium~=4.1.3
 beautifulsoup4
 #Openstack
 python-novaclient
@@ -13,7 +17,7 @@ python-swiftclient
 python-ceilometerclient
 # OPenstack Nectar
 nectar-osc
-nectarallocationclient
+nectarallocationclient~=1.6.0
 manukaclient
 osc-placement
 
@@ -29,3 +33,5 @@ scipy
 matplotlib
 statsmodels
 pymc3
+
+paramiko~=2.11.0
