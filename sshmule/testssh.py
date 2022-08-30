@@ -26,7 +26,8 @@ def main():
 
     net_connect = ConnectHandler(**admin)
     print(net_connect.send_command("hostnamectl"))
-    print(net_connect.send_command("ceph status"))
+#    print(net_connect.send_command("ceph status"))
+    print(net_connect.send_command("rpm -qa tmux"))
     net_connect.disconnect()
 
 
