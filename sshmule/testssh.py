@@ -28,6 +28,8 @@ def main():
     print(net_connect.send_command("hostnamectl"))
 #    print(net_connect.send_command("ceph status"))
     print(net_connect.send_command("rpm -qa tmux"))
+    print(net_connect.send_command("df -h"))
+
     net_connect.disconnect()
 
 
