@@ -22,7 +22,6 @@ from nectarallocationclient import client as allo_client
 
 from time import sleep
 
-
 def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
     """Search for an Obj with an attribute of a given value, for methods that return list of Obj."""
 
@@ -153,8 +152,8 @@ def assigns_search(ks_cli, os_user_name):
     return ()
 
 
-def assign_usr_resources(my_session, os_user_name):
-    """List projects for a user including the VMs in the project"""
+def assigned_usr_resources(my_session, os_user_name):
+    """List projects for a user including Project brief, VMs."""
 
     ks_cli = ks_client.Client(session=my_session, include_metadata=True)
     my_user = ks_cli.users.list(name=os_user_name)
@@ -183,9 +182,12 @@ def assign_usr_resources(my_session, os_user_name):
         print("Project: ", prj.name, prj.id)
         if hasattr(prj, 'allocation_id'):
             allo_brief(my_session, prj.allocation_id)
-        nova = nov_cli.Client(version=2, session=my_session)
+        nova_cli = nov_cli.Client(version=2, session=my_session)
+        cinder_cli = cin_cli.Client(version=3, session=my_session)
+        quota_brief(nova_cli, cinder_cli, prj_id)
+
         print("VMs :")
-        server_list_per_prjid(nova, prj_id)
+        server_list_per_prjid(nova_cli, prj_id)
         print()
 
     return ()
@@ -447,7 +449,7 @@ def allo_per_prj_name(my_session, prj_name):
 
 
 def allo_brief(my_session, allo_id):
-    """Allocation brief."""
+    """Allocation brief by allocation ID."""
     allo_cli = allo_client.Client(version=1, session=my_session)
     my_allo = allo_cli.allocations.get(allo_id)
     print("allocation_home ", my_allo.allocation_home)
@@ -455,8 +457,22 @@ def allo_brief(my_session, allo_id):
     print("contact ", my_allo.contact_email)
     print("status ", my_allo.status)
     print("end date ", my_allo.end_date)
+    print()
 
     return ()
+
+
+def quota_brief(nv_client, cin_client, prj_id):
+    """Quota brief by Project ID."""
+
+    my_nv_quota = nv_client.quotas.get(prj_id)
+    my_ci_quota = cin_client.quotas.get(prj_id)
+    # print_structure(my_ci_quota)
+    print("cores", my_nv_quota.cores)
+    print("gigabytes", my_ci_quota.gigabytes)
+    print("instances", my_nv_quota.instances)
+    print("ram", my_nv_quota.ram)
+    print()
 
 
 def main():
@@ -477,7 +493,6 @@ def main():
     # assign_list(ks_cli) # Needs link to role.id, project.id, user.id
 
     # nova = nov_cli.Client(version=2, session=my_session)
-    # print(len(nova.hypervisors.list()))
 
     # svrs = nova.servers.list(search_opts={'all_tenants': 'yes'})
     # len(svrs)
@@ -513,10 +528,10 @@ def main():
           "(sd) Server details by server id, all obj att \n"
           "(p) Projects, look for project names matching \n"
           "(pd) prj det, show project details for the given project name \n"
-          "(pbip) Project and Server Details by list of IPs ([ip1,ip2....])"
-          "Servers in Prj-id (sp)\n"
-          "user role assignment(r), \n"
-          "User resources (ur), \n"
+          "(pbip) Project and Server Details by list of IPs ([ip1,ip2....]) \n"
+          "(sp) Servers in Prj, for a given Prj-id\n"
+          "(r) user role assignment, \n"
+          "(ur) User resources, \n"
           "Flavors(f), Flavor access Projects(fa), allocations (a))\n")
 
     look_in = input(" your choice: ")
@@ -545,7 +560,7 @@ def main():
     elif look_in == "fa":  # Flavor Access Projects
         flavor_prjs(my_session, "Fla", "Flu")
     elif look_in == "ur":
-        assign_usr_resources(my_session, look_for)
+        assigned_usr_resources(my_session, look_for)
     elif look_in == "a":
         allo_per_prj_name(my_session)
     else:

@@ -419,6 +419,8 @@ def main():
         URI = config['Settings']['uri']
         BASE = config['Settings']['default_base']
         show_fields = config['Filters']['show_attributes'].split(',')
+        q_u = config['Settings']['query_user']
+        q_p = config['Settings']['query_pass']
         proceed = True
 
     except BaseException as e:
@@ -435,6 +437,7 @@ def main():
 
         try:
             connection = ldap_connect(URI, user_name, user_password)
+            # connection = ldap_connect(URI, q_u, q_p)
         except BaseException as ldap_connection_error:
             print("user_name", user_name)
             print("URI", URI)

@@ -2,18 +2,18 @@
 
 
 import sys
-from netmiko import ConnectHandler
+# from netmiko import ConnectHandler
 import logging
 import paramiko
+from paramiko_expect import SSHClientInteraction
 
 
 def main():
     my_pkey = paramiko.agent.Agent().get_keys()[0]
-    logging.basicConfig(filename="/home/sergio/sshdebug.log", level=logging.DEBUG)
+    logging.basicConfig(filename="/home/sergio/sshtest2debug.log", level=logging.DEBUG)
     logger = logging.getLogger("netmiko")
 
     svr_admin = input("svr_admin :")
-    svr_node = input("svr_node :")
 
     admin = {
         "device_type": "linux",
@@ -25,11 +25,9 @@ def main():
     }
 
     svr_connect = ConnectHandler(**admin)
-#    print(svr_connect.send_command("hostnamectl"))
-#    print(net_connect.send_command("ceph status"))
 ##    print(svr_connect.send_command("rpm -qa tmux"))
-#    print(svr_connect.send_command("df -h"))
-    print(svr_connect.send_command("ls -la"))
+    print (svr_connect.send_command_expect("ls -la", expect_string="bash_history"))
+#    print(svr_connect.send_command(command_string="ls -la", expect_string="bash_history"))
 
     svr_connect.disconnect()
 
