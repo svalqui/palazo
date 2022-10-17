@@ -61,8 +61,19 @@ def os_auth_env_sess():
 def prj_det(ks_client, p_name):
     """Print project details."""
 
-    my_prj = ks_client.projects.list(name=p_name)
-    print_structure(my_prj.data[0])
+    my_prj = ks_client.projects.list(name=p_name)[0]
+    # print_structure(my_prj.data[0])
+
+    if hasattr(my_prj, 'allocation_id'):
+        allo_brief(my_session, prj.allocation_id)
+    nova_cli = nov_cli.Client(version=2, session=my_session)
+    cinder_cli = cin_cli.Client(version=3, session=my_session)
+    quota_brief(nova_cli, cinder_cli, prj_id)
+
+    print("VMs :")
+    server_list_per_prjid(nova_cli, prj_id)
+    print()
+
     return
 
 
@@ -259,7 +270,7 @@ def server_prj_det_by_ip(svr_ip_adds, my_session):
     for my_ip in svr_ip_adds:
         # print(my_ip)
         svrs = nova.servers.list(search_opts={'access_ip_v4': my_ip, 'all_tenants': 1})
-        # TODO for some reason returns a list of various VMs that No exists
+        # TODO for some reason returns a list of various VMs, some don't exist, others have similar regexp
         # print(len(svrs))
         # filtering exact match
         my_server = look_for_obj_by_att_val(svrs, 'accessIPv4', my_ip)
@@ -405,23 +416,25 @@ def flavor_det(nv_client):
     return ()
 
 
-def flavor_prjs(my_session, fla, prj_id):
-    """Lists the projects on the access list of the flavor, projects that access the flavor"""
+def flavor_prjs(my_session, prj_id):
+    """Lists of active flavors for the given project."""
     #
     nov = nov_cli.Client(version=2, session=my_session)
     ks = ks_client.Client(session=my_session, include_metadata=True)
-    print()
-    fla = nov.flavors.list(is_public=None)[7]
-    print("fla :", fla)
-    f_acc = nov.flavor_access.list(flavor=fla)
-    print("flavor acc list len: ", len(f_acc))
-    print(fla.name)
+    all_fla = nov.flavors.list(is_public=None)
+    # all_fla = nov.flavors.list()
+    print("All flavors ", len(all_fla))
+    print("Project :", prj_id, " has these flavors :")
 
-    for acc in f_acc:
-        prj = ks.projects.get(acc.tenant_id)
-        print(acc.flavor_id, acc.tenant_id, prj.data.name)
-
-    # print_structure(f_acc[0])
+    for f in all_fla:
+        is_public = getattr(f, "os-flavor-access:is_public")
+        # print(f.name, is_public)
+        if not is_public:  # Not public, Access list not available for public flavors
+            fla_acl = nov.flavor_access.list(flavor=f)
+            # print(len(fla_acl))
+            for acl in fla_acl:
+                if acl.tenant_id == prj_id:
+                    print(f.name, "Ram ", f.ram, "vcpu ", f.vcpus, )
 
     return ()
 
@@ -528,11 +541,13 @@ def main():
           "(sd) Server details by server id, all obj att \n"
           "(p) Projects, look for project names matching \n"
           "(pd) prj det, show project details for the given project name \n"
-          "(pbip) Project and Server Details by list of IPs ([ip1,ip2....]) \n"
+          "(pbip) Project and Server Details by list of VM IPs ([ip1,ip2....]) \n"
           "(sp) Servers in Prj, for a given Prj-id\n"
           "(r) user role assignment, \n"
           "(ur) User resources, \n"
-          "Flavors(f), Flavor access Projects(fa), allocations (a))\n")
+          "(f )Flavors, \n"
+          "(fa) Flavor accessed by a Project-id, \n"
+          "(a) allocations (a))\n")
 
     look_in = input(" your choice: ")
     look_for = input("Search for :")
@@ -557,8 +572,8 @@ def main():
         assigns_search(ks_cli, look_for)
     elif look_in == "f":
         flavor_det(nv_client)
-    elif look_in == "fa":  # Flavor Access Projects
-        flavor_prjs(my_session, "Fla", "Flu")
+    elif look_in == "fa":  # Flavor Accessed by Project-id
+        flavor_prjs(my_session, look_for)
     elif look_in == "ur":
         assigned_usr_resources(my_session, look_for)
     elif look_in == "a":

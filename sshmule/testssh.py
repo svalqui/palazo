@@ -1,6 +1,10 @@
 # Copyright 2019-2022 by Sergio Valqui. All rights reserved.
 
-
+"""Test ssh to linux using netmiko
+Works well to send commands that return the prompt
+for commands that return continuous fails, tail-like, better use something else
+`FAILED - RETRYING:`
+"""
 import sys
 from netmiko import ConnectHandler
 import logging
