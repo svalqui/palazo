@@ -58,20 +58,27 @@ def os_auth_env_sess():
     return os_session
 
 
-def prj_det(ks_client, p_name):
+def prj_det(ks_client, p_name, my_session):
     """Print project details."""
 
-    my_prj = ks_client.projects.list(name=p_name)[0]
+    q_prjs = ks_client.projects.list(name=p_name)
+    my_prj = q_prjs.data[0]
     # print_structure(my_prj.data[0])
 
     if hasattr(my_prj, 'allocation_id'):
-        allo_brief(my_session, prj.allocation_id)
+        allo_brief(my_session, my_prj.allocation_id)
     nova_cli = nov_cli.Client(version=2, session=my_session)
     cinder_cli = cin_cli.Client(version=3, session=my_session)
-    quota_brief(nova_cli, cinder_cli, prj_id)
+    quota_brief(nova_cli, cinder_cli, my_prj.id)
+
+    print_structure(cinder_cli)
+    prj_vols = cinder_cli.volumes.list(search_opts={'project_id': my_prj.id, 'all_tenants': 1})
+    print("prj vols ", len(prj_vols))
+    print_structure(prj_vols[0])
+
 
     print("VMs :")
-    server_list_per_prjid(nova_cli, prj_id)
+    server_list_per_prjid(nova_cli, my_prj.id)
     print()
 
     return
@@ -341,8 +348,9 @@ def server_list_per_prjid(nv_client, prj_id):
     for counter, svr in enumerate(svrs):
         av_zone = getattr(svr, "OS-EXT-AZ:availability_zone")
         # locked = getattr(svr, "locked") # it seems it can't be queried
+        # print_structure(svr)
         print(counter + 1, svr.id, svr.name, svr.status, av_zone,
-              svr.addresses, svr.metadata)
+              svr.addresses, svr.security_groups, svr.metadata)
         inst_vols = getattr(svr, "os-extended-volumes:volumes_attached")
         if len(inst_vols) > 0:
             for inst_vol in inst_vols:
@@ -480,6 +488,10 @@ def quota_brief(nv_client, cin_client, prj_id):
 
     my_nv_quota = nv_client.quotas.get(prj_id)
     my_ci_quota = cin_client.quotas.get(prj_id)
+
+    my_vols = cin_client.volumes.list()
+    print("vols len ", len(my_vols))
+
     # print_structure(my_ci_quota)
     print("cores", my_nv_quota.cores)
     print("gigabytes", my_ci_quota.gigabytes)
@@ -563,7 +575,7 @@ def main():
     elif look_in == "p":
         sleep(1)
     elif look_in == "pd":
-        prj_det(ks_cli, look_for)
+        prj_det(ks_cli, look_for, my_session)
     elif look_in == "pbip":
         server_prj_det_by_ip(ips, my_session)
     elif look_in == "sp":
