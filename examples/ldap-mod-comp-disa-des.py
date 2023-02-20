@@ -1,4 +1,4 @@
-# Copyright 2020 by Sergio Valqui. All rights reserved.
+# Copyright 2020 - 2023 by Sergio Valqui. All rights reserved.
 #
 # Modify computers, disables computers that lastLogonTimestamp is more than 2 years old and adds a time stamp on
 # the description, on an AD distinguished name branch.

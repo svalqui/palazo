@@ -1,4 +1,5 @@
-# Copyright 2019 by Sergio Valqui. All rights reserved.
+# Copyright 2019-2023 by Sergio Valqui. All rights reserved.
+
 from restapi.maclookapi import QueryMac
 
 input_mac = input('Mac Address: ')

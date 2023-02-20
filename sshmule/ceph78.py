@@ -1,5 +1,4 @@
-# Copyright 2019-2022 by Sergio Valqui. All rights reserved.
-
+# Copyright 2019-2023 by Sergio Valqui. All rights reserved.
 
 import sys
 from netmiko import ConnectHandler

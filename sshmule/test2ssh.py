@@ -1,4 +1,5 @@
-# Copyright 2019-2022 by Sergio Valqui. All rights reserved.
+# Copyright 2019-2023 by Sergio Valqui. All rights reserved.
+
 # https://stackoverflow.com/questions/9921115/what-is-ssh-equivalent-read-until-and-read-very-eager-methods-at-telnet
 
 import sys

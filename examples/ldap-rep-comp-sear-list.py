@@ -1,4 +1,4 @@
-# Copyright 2020 by Sergio Valqui. All rights reserved.
+# Copyright 2020 -2023 by Sergio Valqui. All rights reserved.
 #
 # Report Computers in an AD that match the look for string, list the computers (chosen attributes)
 #

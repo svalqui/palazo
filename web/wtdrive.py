@@ -1,3 +1,5 @@
+# Copyright 2019-2023 by Sergio Valqui. All rights reserved.
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By

@@ -1,4 +1,4 @@
-# Copyright 2017 - 2022 by Sergio Valqui. All rights reserved.
+# Copyright 2017 - 2023 by Sergio Valqui. All rights reserved.
 """
     --- ldapq.ini ---
     [Settings]

@@ -1,3 +1,5 @@
+# Copyright 2019-2023 by Sergio Valqui. All rights reserved.
+
 # # Run this in the command line while on the palazo directory so python can find serv
 # export PYTHONPATH=`pwd`
 # python3 examples/test_server_connection.py

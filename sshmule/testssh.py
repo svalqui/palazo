@@ -1,4 +1,4 @@
-# Copyright 2019-2022 by Sergio Valqui. All rights reserved.
+# Copyright 2019-2023 by Sergio Valqui. All rights reserved.
 
 """Test ssh to linux using netmiko
 Works well to send commands that return the prompt
