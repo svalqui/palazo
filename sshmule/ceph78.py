@@ -1,7 +1,6 @@
 # Copyright 2019-2023 by Sergio Valqui. All rights reserved.
 
 import sys
-from netmiko import ConnectHandler
 import logging
 import paramiko
 import time
@@ -36,7 +35,6 @@ def osversion(connection):
 def main():
     my_pkey = paramiko.agent.Agent().get_keys()[0]
     logging.basicConfig(filename="/home/sergio/sshdebugceph78.log", level=logging.DEBUG)
-    logger = logging.getLogger("netmiko")
 
     svr_domain = input("server domain name :")
     svr_domain = "." + svr_domain
