@@ -5,6 +5,7 @@
 # https://docs.openstack.org/api-ref/identity/v3/#identity-api-operations
 # https://docs.openstack.org/api-quick-start/
 # https://docs.openstack.org/python-novaclient/stein/reference/api/novaclient.v2.servers.html
+# https://docs.openstack.org/api-ref/compute/#list-servers
 #
 # https://github.com/NeCTAR-RC/python-nectarallocationclient
 
@@ -107,14 +108,16 @@ def prj_list(ks_client):
     return
 
 
-def prj_list_by_az(ks_client, az_name):
+def prj_list_by_az(ks_cli, az_name):  # todo: filter by availability zone no working
     """Print a list of all projects by availability zone, Requires ADMIN Credentials."""
 
-    prjs = ks_client.projects.list()
+    prjs = ks_cli.projects.list(compute_zones=az_name)
+
     # print_structure(prjs.data[0])
-    print_structure(ks_client.projects)
     for i in prjs.data:
         print(i.id, i.name, i.description)
+        print_structure(i,True)
+        break
     ## Projects
     #    Attributes:
     #        * id: a uuid that identifies the project
@@ -331,7 +334,7 @@ def server_prj_det_by_ip(svr_ip_adds, my_session):
     return ()
 
 
-def server_list_per_az(av_zone, nv_client):
+def server_list_per_az(av_zone, nv_client): # todo: filter by availability zone
     # This doesn't work availability zone doesn;t filter properly
     # svrs = nv_client.servers.list(search_opts={'availability_zone': av_zone, 'all_tenants': 1})
     svrs = nv_client.servers.list(search_opts={'all_tenants': 1})
@@ -539,6 +542,7 @@ def main():
     # print_structure(my_alloc.quotas.list(search_opts={'project_name':'<prj-name>>'}))
 
     nv_client = nov_cli.Client(version=2, session=my_session)
+
     # ci_client = cin_cli.Client(version=3, session=my_session)
 
     ## works
@@ -557,9 +561,10 @@ def main():
           "(sp) Servers in Prj, for a given Prj-id\n"
           "(r) user role assignment, \n"
           "(ur) User resources, \n"
-          "(f )Flavors, \n"
+          "(f) Flavors, \n"
           "(fa) Flavor accessed by a Project-id, \n"
-          "(a) allocations (a))\n")
+          "(a) allocations\n"
+          "(paz) projects per availability zone\n")
 
     look_in = input(" your choice: ")
     look_for = input("Search for :")
@@ -582,14 +587,16 @@ def main():
         server_list_per_prjid(nv_client, look_for)
     elif look_in == "r":
         assigns_search(ks_cli, look_for)
-    elif look_in == "f":
+    elif look_in == "f": # flavor details
         flavor_det(nv_client)
     elif look_in == "fa":  # Flavor Accessed by Project-id
         flavor_prjs(my_session, look_for)
-    elif look_in == "ur":
+    elif look_in == "ur": # User resources, role, projects, allocations, servers
         assigned_usr_resources(my_session, look_for)
     elif look_in == "a":
         allo_per_prj_name(my_session)
+    elif look_in == "paz": # Projects per availability zone
+        prj_list_by_az(ks_cli, look_for)
     else:
         print("No option available")
 
