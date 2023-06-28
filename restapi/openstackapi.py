@@ -52,6 +52,16 @@ def session_env_var():
 
     return os_session
 
+def os_auth_app_cred():
+    application_credential=v3.ApplicationCredentialMethod(
+        application_credential_secret=os.environ['OS_APPLICATION_CREDENTIAL_SECRET'],
+        application_credential_id=os.environ['OS_APPLICATION_CREDENTIAL_ID']
+    )
+    auth=v3.Auth(auth_url='https://keystone.rc.nectar.org.au:5000/v3/',
+                 auth_methods=[application_credential])
+    os_session = session.Session(auth=auth, split_loggers=True)
+
+    return os_session
 
 def main():
     """ CLI implementation temporal for fast trial while developing

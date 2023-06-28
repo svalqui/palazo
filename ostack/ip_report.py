@@ -8,6 +8,16 @@ from keystoneclient.v3 import client as keys_client
 
 from novaclient import client as nova_cli
 from nectarallocationclient import client as allo_client
+from neutronclient.v2_0 import client as neut_client
+
+def print_structure(my_obj, geta=True):
+    """Prints attributes of an Obj."""
+    for att in dir(my_obj):
+        if geta:
+            print(att, getattr(my_obj, att), type(getattr(my_obj, att)).__name__)
+        else:
+            print(att, type(getattr(my_obj, att)).__name__)
+
 def os_auth_env_sess():
     """Authenticates using keystone, using environmental variables. returns a session"""
     auth = v3.Password(auth_url=os.environ['OS_AUTH_URL'],
@@ -30,11 +40,76 @@ def main():
     nv_client = nova_cli.Client(version=2, session=my_session)
     ks_client = keys_client.Client(session=my_session, include_metadata=True)
     al_client = allo_client.Client(version=1, session=my_session)
+    ne_client = neut_client.Client(session=my_session)
 
-    # print("Getting availability zones")
+    print("Getting networks")
+    nets = ne_client.list_networks()
+    subnets = ne_client.list_subnets()
+
+    # print(nets.keys())
+    # print(subnets.keys())
+    # for s in subnets['subnets']:
+    #    print(s.keys())
+    #    break
+
+    #for n in nets['networks']:
+        # print(n.keys())
+    #    print(n['id'],
+    #          n['name'],
+    #          n['project_id'],
+    #          n["provider:network_type"],
+    #          n['router:external'],
+    #          n['subnets']
+    #          )
+
+
+    # networks routed externally, Net_name key, list of True/False item
+    nets_rext = {}
+    for n in nets['networks']:
+        if n['name'] in nets_rext.keys():
+            nets_rext[n['name']].append(n["router:external"])
+        else:
+            nets_rext[n['name']] = [n["router:external"]]
+        # print (n['name'], n["router:external"], nets_rext[n['name']] )
+
+
+    # subnets_id per network_name, network_name key
+    nets_subnets = {}
+    for n in nets['networks']:
+        if n['name'] in nets_subnets.keys():
+            nets_subnets[n['name']].extend(n['subnets'])
+        else:
+            nets_subnets[n['name']] = n['subnets']
+        # print_structure(n, True)
+        print()
+        print(n.keys())
+        print()
+        print(n['subnets'])
+        break
+
+    # cidr per subnet_id, subnet_id key
+    subnet_cidr = {}
+    for s in subnets['subnets']:
+        #print(s.keys())
+        subnet_cidr[s['id']] = s['cidr']
+
+    #for i in nets_subnets.keys():
+        # print("subn key ", i)
+        #for s in nets_subnets[i]:
+            # print("  ", s, subnet_cidr[s])
+
+    for n in nets_rext.keys():
+        if True in nets_rext[n]:
+            print("Ext ", n)
+            for s_id in nets_subnets[n]:
+                print("    ", n, s_id, subnet_cidr[s_id])
+
+    exit()
+
+    print("Getting availability zones")
     av_zones = nv_client.availability_zones.list()
 
-    # print("Getting users")
+    print("Getting users")
     users = ks_client.users.list()
     # list of users on users.data
 
@@ -43,7 +118,7 @@ def main():
     for user in users.data:
         users_dict[user.id] = user
 
-    # print("Getting the projects")
+    print("Getting the projects")
     projects = ks_client.projects.list()
     # list of projects on projects.data
 
@@ -52,7 +127,7 @@ def main():
     for project in projects.data:
         projects_dict[project.id] = project
 
-    # print("Getting the allocations")
+    print("Getting the allocations")
     allocations = al_client.allocations.list()
 
     # index allocations by allocation id
