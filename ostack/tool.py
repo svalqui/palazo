@@ -432,8 +432,8 @@ def flavor_prjs(my_session, prj_id):
     #
     nov = nov_cli.Client(version=2, session=my_session)
     ks = ks_client.Client(session=my_session, include_metadata=True)
-    all_fla = nov.flavors.list(is_public=None)
-    # all_fla = nov.flavors.list()
+    all_fla = nov.flavors.list(is_public=None)  #todo where "is_public" comes from?
+    #all_fla = nov.flavors.list()
     print("All flavors ", len(all_fla))
     print("Project :", prj_id, " has these flavors :")
 
