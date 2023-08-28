@@ -42,14 +42,14 @@ def print_structure_det(my_obj, geta=True, my_space=''):
                 # print(my_space, "-- abs list in list")
                 # print(my_space, list_obj_type)
                 my_space += "  "
-                print_structure(list_obj, True, my_space)
+                print_structure_det(list_obj, True, my_space)
 
             elif list_obj_type == 'dict':
                 # print(my_space, "-- abs dict in list")
                 # print(my_space, list_obj_type)
                 # print(list_obj.keys())
                 my_space += "  "
-                print_structure(list_obj, True, my_space)
+                print_structure_det(list_obj, True, my_space)
             else:
                 print(my_space, list_obj, list_obj_type)
 
@@ -68,7 +68,7 @@ def print_structure_det(my_obj, geta=True, my_space=''):
                     if len(val_obj) > 0:
                         my_space += "  "
                         print(my_space, "-- abs dict in dict - sending ", k, my_val_type, " to print_structure")
-                        print_structure(val_obj, True, my_space)
+                        print_structure_det(val_obj, True, my_space)
                 elif my_val_type == 'list':
                     # print(my_space, "-- abs list in dict")
                     # print(my_space, k, val_obj, my_val_type)
@@ -76,7 +76,7 @@ def print_structure_det(my_obj, geta=True, my_space=''):
                         my_space += "  "
                         print(my_space, "-- abs list in dict - sending ", k, my_val_type,
                               " to print_structure")
-                        print_structure(val_obj, True, my_space)
+                        print_structure_det(val_obj, True, my_space)
                 elif my_val_type == 'str':
                     print(my_space, k, val_obj, my_val_type)
                 elif my_val_type == 'int':
@@ -90,7 +90,7 @@ def print_structure_det(my_obj, geta=True, my_space=''):
                 else:
                     print(my_space, '=> ', k, val_obj, my_val_type)
 
-    else:
+    else: # If is a Class
 
         for att in dir(my_obj):
             if geta:
@@ -103,7 +103,7 @@ def print_structure_det(my_obj, geta=True, my_space=''):
                     if my_obj_type == 'dict':
                         if len(new_obj) > 0:
                             # print(my_space,"-- dict")
-                            # print(my_space, att, new_obj, my_obj_type)
+                            # print(my_space, att, new_obj, my_obj_type, "Class - dict in class")
                             # print(new_obj.keys())
                             my_space += "  "
                             for k in new_obj.keys():
@@ -111,20 +111,20 @@ def print_structure_det(my_obj, geta=True, my_space=''):
                                 my_val_type = type(val_obj).__name__
                                 # print(my_space, k, val_obj, my_val_type)
                                 if my_val_type == 'dict':
-                                    print(my_space, "-- dict in dict")
+                                    # print(my_space, "-- dict in dict")
                                     # print(my_space, k, val_obj, my_val_type)
                                     if len(val_obj) > 0:
                                         my_space += "  "
-                                        print(my_space, "sending ", k, my_val_type, " to print_structure")
-                                        print_structure(val_obj, True, my_space)
+                                        print(my_space, "sending ", k, my_val_type, " to print_structure, Class dict in dict")
+                                        print_structure_det(val_obj, True, my_space)
                                 elif my_val_type == 'list':
                                     # print(my_space, "-- list in dict")
                                     # print(my_space, k, val_obj, my_val_type)
                                     if len(val_obj) > 0:
                                         my_space += "  "
                                         print(my_space, "-- list in dict - sending ", k, my_val_type,
-                                              " to print_structure")
-                                        print_structure(val_obj, True, my_space)
+                                              " to print_structure, Class list in dict")
+                                        print_structure_det(val_obj, True, my_space)
                                 elif my_val_type == 'str':
                                     print(my_space, k, val_obj, my_val_type)
                                 elif my_val_type == 'int':
@@ -143,15 +143,33 @@ def print_structure_det(my_obj, geta=True, my_space=''):
                         for i in new_obj:
                             list_obj = i
                             list_obj_type = type(list_obj).__name__
-                            print(my_space, list_obj, list_obj_type)
+                            print(my_space, list_obj, list_obj_type, "Class list in class")
                             if list_obj_type == 'dict':
-                                print(my_space, "-- dict in list")
-                                print(my_space, att, i, list_obj_type)
+                                # print(my_space, "-- dict in list")
+                                # print(my_space, att, i, list_obj_type)
                                 # print(new_obj.keys())
                                 my_space += "  "
-                                print_structure(list_obj, True, my_space)
+                                print(my_space, att, "sending dict",
+                                      " to print_structure, Class dict in list")
+                                print_structure_det(list_obj, True, my_space)
+                            elif list_obj_type == 'list':
+                                if len(list_obj) > 0:
+                                    my_space += "  "
+                                    print(my_space, "-- list in list - sending list to print_structure, Class list in list")
+                                    print_structure_det(list_obj, True, my_space)
+                            elif list_obj_type == 'str':
+                                print(my_space, list_obj, list_obj_type)
+                            elif list_obj_type == 'int':
+                                print(my_space, list_obj, list_obj_type)
+                            elif list_obj_type == 'float':
+                                print(my_space, list_obj, list_obj_type)
+                            elif list_obj_type == 'bool':
+                                print(my_space, list_obj, list_obj_type)
+                            elif list_obj_type == 'NoneType':
+                                print(my_space, list_obj, list_obj_type)
+                            else:
+                                print(my_space, '=> ', k, val_obj, my_val_type, "Class list member")
 
-                            # todo include dict
                     elif my_obj_type == 'str':
                         print(my_space, att, new_obj, my_obj_type)
                     elif my_obj_type == 'NoneType':
