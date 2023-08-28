@@ -9,22 +9,33 @@ selenium==4.11.2
 beautifulsoup4==4.12.2
 
 #Openstack
+aodhclient
 python-novaclient==18.3
 python-cinderclient==9.3
 python-keystoneclient==5.1.0
 python-glanceclient==4.4.0
 python-neutronclient==11.0.0
-gnocchiclient
+python-cloudkittyclient
+python-designateclient
+python-heatclient
+python-magnumclient
+python-muranoclient
+python-octaviaclient
+python-openstackclient==6.2.0
+python-troveclient
 
+gnocchiclient
 # python-quantumclient
 python-swiftclient==4.3.0
 python-ceilometerclient
-# OPenstack Nectar
+
+# Openstack Nectar
 nectar-osc
 nectarallocationclient==1.8.0
 manukaclient
 osc-placement==4.1.0
 
+# Maths
 pandas==2.0.3
 numpy==1.24.4
 lxml==4.9.3
@@ -38,6 +49,7 @@ matplotlib==3.7.2
 statsmodels==0.14.0
 pymc3
 
+# Network, ssh
 paramiko~=3.3.1
 paramiko-expect==0.3.5
 
