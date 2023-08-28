@@ -21,7 +21,14 @@ from novaclient import client as nov_cli
 from cinderclient import client as cin_cli
 from nectarallocationclient import client as allo_client
 
+from os import path
+import sys
+sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+
+
 from time import sleep
+
+from tools.util_obj import print_structure_det
 
 def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
     """Search for an Obj with an attribute of a given value, for methods that return list of Obj."""
@@ -34,16 +41,6 @@ def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
                 ret_obj = my_obj
                 break
     return ret_obj
-
-
-def print_structure(my_obj, geta=True):
-    """Prints attributes of an Obj."""
-    for att in dir(my_obj):
-        if geta:
-            print(att, getattr(my_obj, att), type(getattr(my_obj, att)).__name__)
-        else:
-            print(att, type(getattr(my_obj, att)).__name__)
-
 
 def os_auth_env_sess():
     """Authenticates using keystone, using environmental variables. returns a session"""
@@ -502,6 +499,21 @@ def quota_brief(nv_client, cin_client, prj_id):
     print("ram", my_nv_quota.ram)
     print()
 
+def sec_per_svrid(my_session, svr_id):
+    """Security groups per project id"""
+    nov = nov_cli.Client(version=2, session=my_session)
+    svr = nov.servers.get(svr_id)
+    sec_grps = svr.list_security_group()
+    for i in sec_grps:
+        print(i)
+        print(i.name)
+        print(i.description)
+        for r in i.rules:
+            #print(r)
+            print(r['ip_protocol'], r['from_port'], r['to_port'], r['ip_range'])
+            # print_structure_det(r)
+        print()
+
 
 def main():
     """ CLI implementation temporal for fast trial while developing
@@ -564,7 +576,8 @@ def main():
           "(f) Flavors, \n"
           "(fa) Flavor accessed by a Project-id, \n"
           "(a) allocations\n"
-          "(paz) projects per availability zone\n")
+          "(paz) projects per availability zone\n"
+          "(sec) security groups per srv_id\n")
 
     look_in = input(" your choice: ")
     look_for = input("Search for :")
@@ -597,6 +610,9 @@ def main():
         allo_per_prj_name(my_session)
     elif look_in == "paz": # Projects per availability zone
         prj_list_by_az(ks_cli, look_for)
+    elif look_in == "sec": # security groups per svr_id
+        sec_per_svrid(my_session, look_for)
+
     else:
         print("No option available")
 
