@@ -31,7 +31,15 @@ def main():
     for m in client.machines.list():
         print(repr(m))
         print("To print structure detailed")
-        print_structure_det(m, True)
+        print()
+        print(m.hostname)
+        print(m.zone)
+        print(m.zone.name)
+        print(m.zone.virtualblockdevice_set)
+        for i in m.zone:
+            print (i)
+        #print_structure_det(m, True)
+
         break
 
 
