@@ -8,7 +8,7 @@
 # https://docs.openstack.org/api-ref/compute/#list-servers
 #
 # https://github.com/NeCTAR-RC/python-nectarallocationclient
-
+import datetime
 import os
 import sys
 
@@ -28,19 +28,9 @@ sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
 from time import sleep
 
+from tools.util_obj import print_structure
 from tools.util_obj import print_structure_det
-
-def look_for_obj_by_att_val(my_obj_list, my_att, my_value):
-    """Search for an Obj with an attribute of a given value, for methods that return list of Obj."""
-
-    ret_obj = None
-    for my_obj in my_obj_list:
-        if my_att in dir(my_obj):
-            # print(getattr(my_obj, my_att), my_value)
-            if getattr(my_obj, my_att) == my_value:
-                ret_obj = my_obj
-                break
-    return ret_obj
+from tools.util_obj import look_for_obj_by_att_val
 
 def os_auth_env_sess():
     """Authenticates using keystone, using environmental variables. returns a session"""
@@ -446,20 +436,67 @@ def flavor_prjs(my_session, prj_id):
 
     return ()
 
+def allo_per_site(my_session, my_associated_site):
+    """Allocation report per a given site"""
+    allo_cli = allo_client.Client(version=1, session=my_session)
+
+    print("Getting Allocations")
+    allocations = allo_cli.allocations.list()
+
+    # index allocations by allocation id
+    allocations_dict = {}
+    for allocation in allocations:
+        allocations_dict[allocation.id] = allocation
+
+    hide =["Deleted", "Approved" ]
+
+    my_today = datetime.datetime.today()
+
+    for a in allocations:
+#        if a.allocation_home_display == site_name and a.status_display not in hide:
+        if a.associated_site == my_associated_site and not a.provisioned and a.parent_request is None:
+
+            if a.end_date is None:
+                my_end = my_today
+            else:
+                my_end = datetime.datetime.strptime(a.end_date, '%Y-%m-%d')
+
+            my_delta = my_today - my_end
+            if my_delta.days < 60 and my_delta.days != 0:
+                print(a.id, a.associated_site, a.national, a.project_name,
+                      a.start_date, a.end_date, a.submit_date, a.status,
+                      a.status_display, a.allocation_home_display, a.provisioned, my_delta.days)
+
 
 def allo_per_prj_name(my_session, prj_name):
     """Allocation details for a given project name."""
     allo_cli = allo_client.Client(version=1, session=my_session)
     ks_cli = ks_client.Client(session=my_session, include_metadata=True)
 
+    print("Getting the project...")
     my_prj = ks_cli.projects.list(name=prj_name)
     # print_structure(my_prj)
 
+    print(" Project Name ", my_prj.data[0].name)
+    print(" Project id ", my_prj.data[0].id)
+    print(" Project allocation id ", my_prj.data[0].allocation_id)
+
     my_all_id = my_prj.data[0].allocation_id
 
+    print("Getting the allocation...")
     my_allo = allo_cli.allocations.get(my_all_id)
     print("allocation_home ", my_allo.allocation_home)
+    print("allocation_home_display ", my_allo.allocation_home_display)
+    print("associated_site ", my_allo.associated_site)
+    print("chief_investigator ", my_allo.chief_investigator)
     print("national ", my_allo.national)
+    print("contact ", my_allo.contact_email)
+    print("status ", my_allo.status)
+    print("end date ", my_allo.end_date)
+    print("status_display ", my_allo.status_display)
+    print("provisioned ", my_allo.provisioned)
+    print("duration ", my_allo.estimated_project_duration, " Months")
+    print()
 
     # get works , need allocation id
     # allo_per_prj_name = allo.allocations.get('105619')
@@ -472,13 +509,19 @@ def allo_per_prj_name(my_session, prj_name):
 def allo_brief(my_session, allo_id):
     """Allocation brief by allocation ID."""
     allo_cli = allo_client.Client(version=1, session=my_session)
+    print("Getting allocation...")
     my_allo = allo_cli.allocations.get(allo_id)
     print("allocation_home ", my_allo.allocation_home)
+    print("allocation_home_display ", my_allo.allocation_home_display)
+    print("associated_site ", my_allo.associated_site)
+    print("chief_investigator ", my_allo.chief_investigator)
     print("national ", my_allo.national)
     print("contact ", my_allo.contact_email)
     print("status ", my_allo.status)
     print("end date ", my_allo.end_date)
     print()
+
+    print_structure(my_allo)
 
     return ()
 
@@ -575,7 +618,9 @@ def main():
           "(ur) User resources, \n"
           "(f) Flavors, \n"
           "(fa) Flavor accessed by a Project-id, \n"
-          "(a) allocations\n"
+          "(ai) allocation brief by allocation id\n"
+          "(an) allocation brief by project name\n"
+          "(ar) allocation report per site name\n"
           "(paz) projects per availability zone\n"
           "(sec) security groups per srv_id\n")
 
@@ -606,8 +651,12 @@ def main():
         flavor_prjs(my_session, look_for)
     elif look_in == "ur": # User resources, role, projects, allocations, servers
         assigned_usr_resources(my_session, look_for)
-    elif look_in == "a":
-        allo_per_prj_name(my_session)
+    elif look_in == "ai": # allocation brief by allocation id
+        allo_brief(my_session, look_for)
+    elif look_in == "an":  # allocation brief by project name
+        allo_per_prj_name(my_session, look_for)
+    elif look_in == "ar": # allocation report per site name
+        allo_per_site(my_session, look_for)
     elif look_in == "paz": # Projects per availability zone
         prj_list_by_az(ks_cli, look_for)
     elif look_in == "sec": # security groups per svr_id
