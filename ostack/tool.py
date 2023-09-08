@@ -59,11 +59,9 @@ def prj_det(ks_client, p_name, my_session):
     cinder_cli = cin_cli.Client(version=3, session=my_session)
     quota_brief(nova_cli, cinder_cli, my_prj.id)
 
-    print_structure(cinder_cli)
     prj_vols = cinder_cli.volumes.list(search_opts={'project_id': my_prj.id, 'all_tenants': 1})
     print("prj vols ", len(prj_vols))
-    print_structure(prj_vols[0])
-
+    # print_structure(prj_vols[0])
 
     print("VMs :")
     server_list_per_prjid(nova_cli, my_prj.id)
@@ -320,7 +318,6 @@ def server_prj_det_by_ip(svr_ip_adds, my_session):
 
     return ()
 
-
 def server_list_per_az(av_zone, nv_client): # todo: filter by availability zone
     # This doesn't work availability zone doesn;t filter properly
     # svrs = nv_client.servers.list(search_opts={'availability_zone': av_zone, 'all_tenants': 1})
@@ -338,8 +335,11 @@ def server_list_per_prjid(nv_client, prj_id):
     for counter, svr in enumerate(svrs):
         av_zone = getattr(svr, "OS-EXT-AZ:availability_zone")
         # locked = getattr(svr, "locked") # it seems it can't be queried
-        # print_structure(svr)
+        # print_structure(svr, True)
+        # get the flavor obj to get the name, base only have id
+        svr._info["flavor"] = nv_client.flavors.get(svr._info["flavor"]["id"])
         print(counter + 1, svr.id, svr.name, svr.status, av_zone,
+              svr._info["flavor"].name,
               svr.addresses, svr.security_groups, svr.metadata)
         inst_vols = getattr(svr, "os-extended-volumes:volumes_attached")
         if len(inst_vols) > 0:
@@ -520,8 +520,6 @@ def allo_brief(my_session, allo_id):
     print("status ", my_allo.status)
     print("end date ", my_allo.end_date)
     print()
-
-    print_structure(my_allo)
 
     return ()
 
