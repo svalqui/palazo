@@ -441,7 +441,9 @@ def allo_per_site(my_session, my_associated_site):
     allo_cli = allo_client.Client(version=1, session=my_session)
 
     print("Getting Allocations")
-    allocations = allo_cli.allocations.list()
+    allocations = allo_cli.allocations.list(associated_site=my_associated_site,
+                                            provisioned=False,
+                                            )
 
     # index allocations by allocation id
     allocations_dict = {}
@@ -454,7 +456,7 @@ def allo_per_site(my_session, my_associated_site):
 
     for a in allocations:
 #        if a.allocation_home_display == site_name and a.status_display not in hide:
-        if a.associated_site == my_associated_site and not a.provisioned and a.parent_request is None:
+        if a.parent_request is None:
 
             if a.end_date is None:
                 my_end = my_today
@@ -463,9 +465,42 @@ def allo_per_site(my_session, my_associated_site):
 
             my_delta = my_today - my_end
             if my_delta.days < 60 and my_delta.days != 0:
-                print(a.id, a.associated_site, a.national, a.project_name,
-                      a.start_date, a.end_date, a.submit_date, a.status,
-                      a.status_display, a.allocation_home_display, a.provisioned, my_delta.days)
+                print(
+                    a.id, a.associated_site, a.national, a.project_name,
+                    a.start_date, a.end_date, a.submit_date, a.status, a.status_display,
+                    a.allocation_home_display, a.provisioned, my_delta.days,
+                    a.parent_request
+                )
+    return ()
+
+
+def allo_per_approver(my_session, my_email):
+    """Allocation report per a approver email"""
+    allo_cli = allo_client.Client(version=1, session=my_session)
+
+    print("Getting Allocations")
+    allocations = allo_cli.allocations.list(associated_site='uom',
+                                            status="A",
+                                            approver_email=my_email
+                                            )
+    # allocations.filter(parent_request=None).filter(status__in=('A', 'X', 'J')).order_by('project_name')
+
+    print("Length of allocations: ", len(allocations))
+
+    hide = ["Deleted", "Approved"]
+
+    my_today = datetime.datetime.today()
+
+    print("Filtering allocations ...")
+    for a in allocations:
+        #        if a.allocation_home_display == site_name and a.status_display not in hide:
+        if a.status == "A":
+            print(a.id, a.associated_site, a.national, a.project_name,
+                  a.start_date, a.end_date, a.submit_date, a.status,
+                  a.status_display, a.allocation_home_display, a.provisioned,
+                  a.approver_email
+                  )
+    return ()
 
 
 def allo_per_prj_name(my_session, prj_name):
@@ -504,6 +539,8 @@ def allo_per_prj_name(my_session, prj_name):
     # allo_per_prj_name = allo.allocations.list(search_opts={'project_id': prj_id, 'all_tenants': 1})
 
     return ()
+
+
 
 
 def allo_brief(my_session, allo_id):
@@ -619,6 +656,7 @@ def main():
           "(ai) allocation brief by allocation id\n"
           "(an) allocation brief by project name\n"
           "(ar) allocation report per site name\n"
+          "(aa) allocation report per approver email\n"
           "(paz) projects per availability zone\n"
           "(sec) security groups per srv_id\n")
 
@@ -655,6 +693,8 @@ def main():
         allo_per_prj_name(my_session, look_for)
     elif look_in == "ar": # allocation report per site name
         allo_per_site(my_session, look_for)
+    elif look_in == "aa":  # allocation report per approver email
+        allo_per_approver(my_session, look_for)
     elif look_in == "paz": # Projects per availability zone
         prj_list_by_az(ks_cli, look_for)
     elif look_in == "sec": # security groups per svr_id
