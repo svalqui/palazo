@@ -20,6 +20,7 @@ import novaclient
 from novaclient import client as nov_cli
 from cinderclient import client as cin_cli
 from nectarallocationclient import client as allo_client
+from glanceclient import client as gla_cli
 
 from os import path
 import sys
@@ -328,9 +329,12 @@ def server_list_per_az(av_zone, nv_client): # todo: filter by availability zone
     return ()
 
 
-def server_list_per_prjid(nv_client, prj_id):
+def server_list_per_prjid(my_session, prj_id):
     """List servers on the given project-id."""
+    nv_client = nov_cli.Client(version=2, session=my_session)
     svrs = nv_client.servers.list(search_opts={'project_id': prj_id, 'all_tenants': 1})
+    gl_client = gla_cli.Client(version=2, session=my_session)
+    ci_client = cin_cli.Client(version=3, session=my_session)
 
     for counter, svr in enumerate(svrs):
         av_zone = getattr(svr, "OS-EXT-AZ:availability_zone")
@@ -338,13 +342,54 @@ def server_list_per_prjid(nv_client, prj_id):
         # print_structure(svr, True)
         # get the flavor obj to get the name, base only have id
         svr._info["flavor"] = nv_client.flavors.get(svr._info["flavor"]["id"])
-        print(counter + 1, svr.id, svr.name, svr.status, av_zone,
-              svr._info["flavor"].name,
-              svr.addresses, svr.security_groups, svr.metadata)
         inst_vols = getattr(svr, "os-extended-volumes:volumes_attached")
+
+        if svr.image:
+            try:
+                my_image = gl_client.images.get (svr.image["id"])
+                display_image = my_image.name
+            except Exception as e:
+                # print(type(exception).__name__)
+                display_image = "No_Image_ID_Found"
+        else:
+            display_image = "No_Image"
+            if len(inst_vols) > 0:
+                first_disk_id = inst_vols[0]['id']
+                my_vol = ci_client.volumes.get(first_disk_id)
+                if hasattr(my_vol, 'volume_image_metadata'):
+                    if 'image_name' in my_vol.volume_image_metadata.keys():
+                        display_image = my_vol.volume_image_metadata['image_name']
+                    else:
+                        display_image = "No image name for vol"
+                else:
+                    display_image = "No image on vol metadata"
+
+
+
+        if svr.key_name:
+            display_key = svr.key_name
+        else:
+            display_key = "No_ssh_key"
+        print(
+            #counter + 1,
+            svr.id, svr.name,
+            svr.status,
+            av_zone,
+            svr._info["flavor"].name,
+            #svr.addresses,
+            svr.accessIPv4,
+            display_image,
+            #svr.security_groups,
+            #svr.metadata,
+            len(inst_vols),
+        )
+
         if len(inst_vols) > 0:
             for inst_vol in inst_vols:
-                print("    vol_att_id:", inst_vol['id'])
+                #print("    vol_att_id:", inst_vol['id'])
+                break
+
+
     # print_structure(svrs[0])
     return ()
 
@@ -678,7 +723,7 @@ def main():
     elif look_in == "pbip":
         server_prj_det_by_ip(ips, my_session)
     elif look_in == "sp":
-        server_list_per_prjid(nv_client, look_for)
+        server_list_per_prjid(my_session, look_for)
     elif look_in == "r":
         assigns_search(ks_cli, look_for)
     elif look_in == "f": # flavor details
