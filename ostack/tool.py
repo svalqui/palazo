@@ -370,6 +370,12 @@ def server_list_per_prjid(my_session, prj_id):
             display_key = svr.key_name
         else:
             display_key = "No_ssh_key"
+
+        if svr.accessIPv4:
+            display_ip = svr.accessIPv4
+        else:
+            display_ip = svr.addresses[next(iter(svr.addresses))][0]['addr']
+
         print(
             #counter + 1,
             svr.id, svr.name,
@@ -377,8 +383,9 @@ def server_list_per_prjid(my_session, prj_id):
             av_zone,
             svr._info["flavor"].name,
             #svr.addresses,
-            svr.accessIPv4,
+            display_ip,
             display_image,
+            display_key,
             #svr.security_groups,
             #svr.metadata,
             len(inst_vols),
