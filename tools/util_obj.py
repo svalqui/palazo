@@ -23,17 +23,18 @@ def print_structure(my_obj, geta=True, my_space=''):
             print(my_space, att, getattr(my_obj, att), type(getattr(my_obj, att)).__name__)
             if type(getattr(my_obj, att)).__name__ == 'dict':
                 my_space += '  '
-                print_structure(att,True, my_space)
+                print(att, my_obj.attr)
 
         else:
-            print(att, type(getattr(my_obj, att)).__name__)
+            print(att, getattr(my_obj, att), type(getattr(my_obj, att)).__name__)
 
 def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
     """Prints attributes of an Obj."""
     abs_type = type(my_obj).__name__
-    print("OBJ Name: ", my_name, " OBJ type: ", abs_type)
+    # print("OBJ Name: ", my_name, " OBJ type: ", abs_type)
 
     if abs_type == 'list':
+        print("OBJ Name: ", my_name, " OBJ type: ", abs_type, " List")
         if len(my_obj) > 0:
             for i in my_obj:
                 list_obj = i
@@ -59,6 +60,7 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
             print(my_cosmetic + "[]")
 
     elif abs_type == 'dict':
+        print("OBJ Name: ", my_name, " OBJ type: ", abs_type, " Dict")
         if len(my_obj) > 0:
             # print(my_cosmetic, "-- abs dict")
             # print(my_obj.keys())
@@ -97,16 +99,16 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
             print(my_cosmetic + "[]")
 
     else: # If is a Class
-
+        print("OBJ Name: ", my_name, " OBJ type: ", abs_type, " Class")
         for att in dir(my_obj):
             if geta:
                 new_obj = getattr(my_obj, att)
                 my_obj_type = type(new_obj).__name__
                 # print(my_cosmetic, att, new_obj, my_obj_type)
-                if not att.startswith('__'): # not builtin
+                if not att.startswith('__'): # not builtins
                     #if my_obj_type != 'builtin_function_or_method':
                     #   print("++", my_obj_type)
-                    print(my_cosmetic, att, my_obj_type)
+                    # print(my_cosmetic, att, my_obj_type)
                     if my_obj_type == 'dict':
                         if len(new_obj) > 0:
                             # print(my_space,"-- dict")
@@ -142,16 +144,19 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                                     print(my_cosmetic, k, val_obj, my_val_type)
                                 elif my_val_type == 'NoneType':
                                     print(my_cosmetic, k, val_obj, my_val_type)
+                                elif my_val_type == 'method':
+                                    print(my_cosmetic, k, my_val_type)
                                 else:
                                     print(my_cosmetic, '=> ', k, val_obj, my_val_type)
 
 
                     elif my_obj_type == 'list':
-                        print(my_obj_type, " in Class att")
+                        print(my_cosmetic, my_obj_type, "List in Class att")
+                        my_cosmetic += " "
                         for i in new_obj:
                             list_obj = i
                             list_obj_type = type(list_obj).__name__
-                            print(my_cosmetic, list_obj, list_obj_type, "Class, list in class att")
+                            # print(my_cosmetic, list_obj, list_obj_type, "Class, list in class att")
                             if list_obj_type == 'dict':
                                 # print(my_space, "-- dict in list")
                                 # print(my_space, att, i, list_obj_type)
@@ -166,9 +171,9 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                                     my_cosmetic += "L->"
                                     print_structure_det(list_obj, True, my_cosmetic)
                             elif list_obj_type == 'str':
-                                print(my_cosmetic, list_obj, list_obj_type)
+                                print(my_cosmetic, list_obj,  getattr(my_obj, list_obj), list_obj_type)
                             elif list_obj_type == 'int':
-                                print(my_cosmetic, list_obj, list_obj_type)
+                                print(my_cosmetic, list_obj, getattr(my_obj, list_obj),list_obj_type)
                             elif list_obj_type == 'float':
                                 print(my_cosmetic, list_obj, list_obj_type)
                             elif list_obj_type == 'bool':
@@ -188,8 +193,10 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                         print(my_cosmetic, att, new_obj, my_obj_type)
                     elif my_obj_type == 'bool':
                         print(my_cosmetic, att, new_obj, my_obj_type)
+                    elif my_obj_type == 'method':
+                        print(my_cosmetic, att, my_obj_type)
                     elif my_obj_type == 'builtin_function_or_method':
-                        continue
+                        continue  # ignore builtin
                     else:
                         print(my_cosmetic, ' -> ', att, new_obj, my_obj_type)
 
