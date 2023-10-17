@@ -9,8 +9,7 @@ import sys
 
 
 # from restapi.infobloxapi import IB
-from infoblox_client import connector
-from infoblox_client import objects
+from infoblox_client import connector, objects, utils, exceptions
 
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
@@ -45,21 +44,25 @@ def q_ip(my_ip, my_connector):
         )
         # print(return_net)
         # print_structure_det(return_net, )
-        print(i)
+        # print(i)
         for net in return_net:
             ret_net_ip = ipaddress.ip_network(net.cidr)
             print("ip", my_ip)
             print("cidr:", net.cidr)
             print("netmask:",ret_net_ip.netmask)
+            print("gateway",ret_net_ip.network_address + 1)
             print("range:",
                   ret_net_ip.network_address,
                   "-",
                   ret_net_ip.broadcast_address,
+                  "(",
                   ret_net_ip.num_addresses,
                   "addresses",
+                  ")",
             )
+            if i.mac_address != "":
+                print("mac:", i.mac_address)
             print("comment:",net.comment)
-            my_extattrs = net.extattrs
 
             my_ea_keys = net.extattrs._ea_dict.keys()
             if 'Zone' in my_ea_keys:
@@ -69,28 +72,57 @@ def q_ip(my_ip, my_connector):
             if 'VRF' in my_ea_keys:
                 print("vrf:", net.extattrs._ea_dict['VRF'])
 
-            if i.mac_address != "":
-                print("mac:", i.mac_address)
-
-            print(my_ip, str(i.names))
-
+            print("status:", i.status)
+            print("Types of records associated with this IP:", i.types)
+            my_names = ", ".join(i.names)
+            print(my_ip, my_names)
 
 def q_net(my_cidr, my_connector):
     """Query Network"""
-    my_ips = objects.IPv4Address.search_all(
-        my_connector,
-        network=my_cidr,
-    )
 
     my_nets =objects.Network.search_all(
         my_connector,
         network=my_cidr,
-
     )
-    for i in my_ips:
-        print(i.ip_address, i.status)
-        print_structure_det(i)
-        break
+    for net in my_nets:
+        # Get Network IPs
+        network_ips = objects.IPv4Address.search_all(
+            my_connector,
+            network=my_cidr,
+            paging=True,
+        )
+        ret_net_ip = ipaddress.ip_network(net.cidr)
+        print("cidr:", net.cidr)
+        print("netmask:", ret_net_ip.netmask)
+        print("gateway", ret_net_ip.network_address + 1)
+        print("range:",
+              ret_net_ip.network_address,
+              "-",
+              ret_net_ip.broadcast_address,
+              "(",
+              ret_net_ip.num_addresses,
+              "addresses",
+              ")",
+              )
+        my_ea_keys = net.extattrs._ea_dict.keys()
+        if 'Zone' in my_ea_keys:
+            print("zone:", net.extattrs._ea_dict['Zone'])
+        if 'VLAN' in my_ea_keys:
+            print("vlan:", net.extattrs._ea_dict['VLAN'])
+        if 'VRF' in my_ea_keys:
+            print("vrf:", net.extattrs._ea_dict['VRF'])
+        print()
+
+        for subset_ips in utils.paging(network_ips, max_results=256):
+            for i in subset_ips:
+                my_display = i.status
+                if i.status != "UNUSED":
+                    my_display = ", ".join(i.names)
+                    if "RESERVATION" in i.types:
+                        my_display = 'RESERVATION'
+                    elif "UNMANAGED" in i.types:
+                        my_display = 'UNMANAGED'
+                print(i.ip_address, my_display)
 
 
 def main():
@@ -123,8 +155,10 @@ def main():
     look_for = input("Search for :")
 
     if look_in == "i": # Look for ip
+        print()
         q_ip(look_for, my_connection)
     elif look_in == "n": # look for network by cidr
+        print()
         q_net(look_for, my_connection)
     else:
         print("No option available")
