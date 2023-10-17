@@ -122,6 +122,10 @@ def q_net(my_cidr, my_connector):
                         my_display = 'RESERVATION'
                     elif "UNMANAGED" in i.types:
                         my_display = 'UNMANAGED'
+                    elif "NETWORK" in i.types:
+                        my_display = 'NETWORK'
+                    elif "BROADCAST" in i.types:
+                        my_display = 'BROADCAST'
                 print(i.ip_address, my_display)
 
 
