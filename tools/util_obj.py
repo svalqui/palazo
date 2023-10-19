@@ -30,6 +30,8 @@ def print_structure(my_obj, geta=True, my_space=''):
 
 def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
     """Prints attributes of an Obj."""
+    # TODO choose to print builtins or not __something
+    # TODO review private attrs, choose print them or not, _something
     abs_type = type(my_obj).__name__
     # print("OBJ Name: ", my_name, " OBJ type: ", abs_type)
 
@@ -196,7 +198,8 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                     elif my_obj_type == 'method':
                         print(my_cosmetic, att, my_obj_type)
                     elif my_obj_type == 'builtin_function_or_method':
-                        continue  # ignore builtin
+                        print(my_cosmetic,att, my_obj_type)
+                        #continue  # ignore builtin
                     else:
                         print(my_cosmetic, ' -> ', att, new_obj, my_obj_type)
 

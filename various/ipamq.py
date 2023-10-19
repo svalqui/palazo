@@ -46,6 +46,7 @@ def q_ip(my_ip, my_connector):
         # print_structure_det(return_net, )
         # print(i)
         for net in return_net:
+            # print_structure_det(net)
             ret_net_ip = ipaddress.ip_network(net.cidr)
             print("ip", my_ip)
             print("cidr:", net.cidr)
@@ -64,13 +65,16 @@ def q_ip(my_ip, my_connector):
                 print("mac:", i.mac_address)
             print("comment:",net.comment)
 
-            my_ea_keys = net.extattrs._ea_dict.keys()
-            if 'Zone' in my_ea_keys:
-                print("zone:", net.extattrs._ea_dict['Zone'])
-            if 'VLAN' in my_ea_keys:
-                print("vlan:", net.extattrs._ea_dict['VLAN'])
-            if 'VRF' in my_ea_keys:
-                print("vrf:", net.extattrs._ea_dict['VRF'])
+            if net.extattrs:
+                print()
+
+                for my_ea in net.extattrs.ea_dict.keys():
+                    if 'Zone' == my_ea:
+                        print("zone:", net.extattrs.ea_dict['Zone'])
+                    if 'VLAN' == my_ea:
+                        print("vlan:", net.extattrs.ea_dict['VLAN'])
+                    if 'VRF' == my_ea:
+                        print("vrf:", net.extattrs.ea_dict['VRF'])
 
             print("status:", i.status)
             print("Types of records associated with this IP:", i.types)
@@ -88,7 +92,7 @@ def q_net(my_cidr, my_connector):
         # Get Network IPs
         network_ips = objects.IPv4Address.search_all(
             my_connector,
-            network=my_cidr,
+            network=net.cidr,
             paging=True,
         )
         ret_net_ip = ipaddress.ip_network(net.cidr)
@@ -104,13 +108,15 @@ def q_net(my_cidr, my_connector):
               "addresses",
               ")",
               )
-        my_ea_keys = net.extattrs._ea_dict.keys()
-        if 'Zone' in my_ea_keys:
-            print("zone:", net.extattrs._ea_dict['Zone'])
-        if 'VLAN' in my_ea_keys:
-            print("vlan:", net.extattrs._ea_dict['VLAN'])
-        if 'VRF' in my_ea_keys:
-            print("vrf:", net.extattrs._ea_dict['VRF'])
+
+        if net.extattrs:
+            for my_ea in net.extattrs.ea_dict.keys():
+                if 'Zone' == my_ea:
+                    print("zone:", net.extattrs.ea_dict['Zone'])
+                if 'VLAN' == my_ea:
+                    print("vlan:", net.extattrs.ea_dict['VLAN'])
+                if 'VRF' == my_ea:
+                    print("vrf:", net.extattrs.ea_dict['VRF'])
         print()
 
         for subset_ips in utils.paging(network_ips, max_results=256):
@@ -151,19 +157,26 @@ def main():
 
     my_connection = ipam_connect(ipam_opts)
 
-    print("(i) look for IP address \n"
-          "(n) look for network cidr \n"
+    print("(l) look for \n"
           "(tba) tba\n")
 
     look_in = input("your choice: ")
     look_for = input("Search for :")
 
-    if look_in == "i": # Look for ip
+    if look_in == "l":
         print()
-        q_ip(look_for, my_connection)
-    elif look_in == "n": # look for network by cidr
-        print()
-        q_net(look_for, my_connection)
+        try:
+            ipaddress.IPv4Address(look_for)
+            # print("ip ", look_for)
+            q_ip(look_for, my_connection)
+        except (ValueError, ipaddress.AddressValueError):
+            # print(look_for, "No ip")
+            try:
+                ipaddress.IPv4Network(look_for)
+                # print("network ", look_for)
+                q_net(look_for, my_connection)
+            except ValueError:
+                print(look_for, "The input is No ip nor Network")
     else:
         print("No option available")
 
