@@ -608,7 +608,12 @@ def allo_brief(my_session, allo_id):
     print("contact ", my_allo.contact_email)
     print("status ", my_allo.status)
     print("end date ", my_allo.end_date)
-    print()
+    print("quotas: ")
+    for q in my_allo.quotas:
+        print("  ",q.zone, q.resource, q.quota)
+
+    #print(my_allo.quotas)
+    #print_structure_det(my_allo)
 
     return ()
 

@@ -3,6 +3,7 @@
 
 import configparser
 import ipaddress
+from fqdn import FQDN
 import pathlib
 from os import path
 import sys
@@ -135,6 +136,72 @@ def q_net(my_cidr, my_connector):
                 print(i.ip_address, my_display)
 
 
+def q_zone(my_zone, my_connector):
+    """query zone name"""
+    my_zone_fqdn = FQDN(my_zone)
+    if my_zone_fqdn.is_valid:
+        print("Absolute: ", my_zone_fqdn.absolute)
+        print("Relative: ", my_zone_fqdn.relative)
+
+
+        my_zones = objects.DNSZone.search_all(
+            my_connector,
+            fqdn = my_zone_fqdn.relative
+        )
+        for z in my_zones:
+            print(z)
+    else:
+        print("No valid zone", my_zone)
+
+
+def q_ip_records(my_ip, my_connector):
+    return_ip = objects.IPv4Address.search_all(
+        my_connector,
+        ip_address=my_ip,
+    )
+
+
+    for i in return_ip:
+        print("status:", i.status)
+        for o in i.objects:
+            my_obj = my_connector.get_object(o)
+            # returns {'_ref': 'record:?/...
+            # print_structure_det(my_obj)
+            my_record_type = my_obj['_ref'].split('/')[0]
+            # print(my_record_type)
+            if my_record_type == "record:a":
+                print(my_record_type,
+                      my_obj['view'],
+                      my_obj['ipv4addr'],
+                      my_obj['name'],
+                      )
+            elif my_record_type == "record:ptr":
+                print(my_record_type,
+                      my_obj['view'],
+                      my_obj['ptrdname'],
+                      )
+                # my_ptr = objects.PtrRecord.search(my_connector,
+                #                                   ipv4addr=my_ip,
+                #                                   ptrdname=my_obj['ptrdname'],
+                #                                   view=my_obj['view'],
+                #                                   )
+            elif my_record_type == "record:host":
+                # print_structure_det(my_obj)
+                for addr in my_obj['ipv4addrs']:
+                    print(my_record_type,
+                          my_obj['view'],
+                          addr['ipv4addr'],
+                          my_obj['name'],
+                          )
+            else:
+                print("Record type :", my_record_type, " no coded yet")
+
+
+        print("Types of records associated with this IP:", i.types)
+        my_names = ", ".join(i.names)
+        print(my_ip, my_names)
+
+
 def main():
     """Testing infoblox_client"""
     file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
@@ -158,6 +225,8 @@ def main():
     my_connection = ipam_connect(ipam_opts)
 
     print("(l) look for \n"
+          "(z) look for zone \n"
+          "(ri) look for records by ip \n"
           "(tba) tba\n")
 
     look_in = input("your choice: ")
@@ -177,6 +246,11 @@ def main():
                 q_net(look_for, my_connection)
             except ValueError:
                 print(look_for, "The input is No ip nor Network")
+    elif look_in == 'z':
+        q_zone(look_for, my_connection)
+    elif look_in == 'ri':
+        q_ip_records(look_for, my_connection)
+
     else:
         print("No option available")
 

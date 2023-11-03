@@ -36,7 +36,7 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
     # print("OBJ Name: ", my_name, " OBJ type: ", abs_type)
 
     if abs_type == 'list':
-        print("OBJ Name: ", my_name, " OBJ type: ", abs_type, " List")
+        print("OBJ Name: ", my_name, " OBJ type: List")
         if len(my_obj) > 0:
             for i in my_obj:
                 list_obj = i
@@ -45,7 +45,7 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                 if list_obj_type == 'list':
                     # print(my_space, "-- abs list in list")
                     # print(my_space, list_obj_type)
-                    print(my_cosmetic, "-- abs list in list - sending list to print_structure")
+                    print(my_cosmetic, "-- abs list in List - sending list to print_structure")
                     my_cosmetic += "L->"  # List
                     print_structure_det(list_obj, True, my_cosmetic)
 
@@ -53,7 +53,7 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                     # print(my_space, "-- abs dict in list")
                     # print(my_space, list_obj_type)
                     # print(list_obj.keys())
-                    print(my_cosmetic, "-- abs dict in list - sending dict to print_structure")
+                    print(my_cosmetic, i, "is a dict -- abs dict in List - sending dict to print_structure")
                     my_cosmetic += "D->"  # Dictionary
                     print_structure_det(list_obj, True, my_cosmetic)
                 else:
@@ -81,7 +81,7 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                     # print(my_space, "-- abs list in dict")
                     # print(my_space, k, val_obj, my_val_type)
                     if len(val_obj) > 0:
-                        print(my_cosmetic, "-- abs list in k value - sending ", k, my_val_type,
+                        print(my_cosmetic, k, "is a List -- abs list in Dict att - sending ", my_val_type,
                               " to print_structure")
                         my_cosmetic += "['" + k + "']"  # List in key value
                         print_structure_det(val_obj, True, my_cosmetic)
@@ -114,7 +114,7 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                     if my_obj_type == 'dict':
                         if len(new_obj) > 0:
                             # print(my_space,"-- dict")
-                            # print(my_space, att, new_obj, my_obj_type, "Class - dict in class")
+                            print(my_cosmetic, att, my_obj_type, " Class - dict in class")
                             # print(new_obj.keys())
                             my_cosmetic += "['" + att + "']" # Dictionary in class att
                             for k in new_obj.keys():
@@ -153,7 +153,7 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
 
 
                     elif my_obj_type == 'list':
-                        print(my_cosmetic, my_obj_type, "List in Class att")
+                        print(my_cosmetic, att, "is List in Class att")
                         my_cosmetic += " "
                         for i in new_obj:
                             list_obj = i
@@ -173,7 +173,8 @@ def print_structure_det(my_obj, geta=True, my_cosmetic='', my_name=''):
                                     my_cosmetic += "L->"
                                     print_structure_det(list_obj, True, my_cosmetic)
                             elif list_obj_type == 'str':
-                                print(my_cosmetic, list_obj,  getattr(my_obj, list_obj), list_obj_type)
+                                #print(my_cosmetic, list_obj,  getattr(my_obj, list_obj), list_obj_type)
+                                print(my_cosmetic, list_obj, list_obj_type)
                             elif list_obj_type == 'int':
                                 print(my_cosmetic, list_obj, getattr(my_obj, list_obj),list_obj_type)
                             elif list_obj_type == 'float':
