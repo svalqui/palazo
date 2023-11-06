@@ -186,13 +186,15 @@ def q_ip_records(my_ip, my_connector):
                 #                                   view=my_obj['view'],
                 #                                   )
             elif my_record_type == "record:host":
-                # print_structure_det(my_obj)
+                print_structure_det(my_obj)
+                print(my_record_type,
+                      my_obj['view'],
+                      my_obj['name'],
+                      )
                 for addr in my_obj['ipv4addrs']:
-                    print(my_record_type,
-                          my_obj['view'],
-                          addr['ipv4addr'],
-                          my_obj['name'],
+                    print(addr['ipv4addr'],
                           )
+                print()
             else:
                 print("Record type :", my_record_type, " no coded yet")
 
