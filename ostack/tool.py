@@ -21,6 +21,7 @@ from novaclient import client as nov_cli
 from cinderclient import client as cin_cli
 from nectarallocationclient import client as allo_client
 from glanceclient import client as gla_cli
+import openstack
 
 from os import path
 import sys
@@ -48,9 +49,10 @@ def os_auth_env_sess():
 
 
 def prj_det(ks_client, p_name, my_session):
-    """Print project details."""
+    """Print project details by project name."""
 
     q_prjs = ks_client.projects.list(name=p_name)
+
     my_prj = q_prjs.data[0]
     # print_structure(my_prj.data[0])
 
@@ -562,11 +564,12 @@ def allo_per_prj_name(my_session, prj_name):
 
     print("Getting the project...")
     my_prj = ks_cli.projects.list(name=prj_name)
-    # print_structure(my_prj)
+    #print_structure_det(my_prj.data[0])
 
     print(" Project Name ", my_prj.data[0].name)
     print(" Project id ", my_prj.data[0].id)
     print(" Project allocation id ", my_prj.data[0].allocation_id)
+    print(" Project tags ", my_prj.data[0].tags)
 
     my_all_id = my_prj.data[0].allocation_id
 
@@ -613,7 +616,9 @@ def allo_brief(my_session, allo_id):
         print("  ",q.zone, q.resource, q.quota)
 
     #print(my_allo.quotas)
-    #print_structure_det(my_allo)
+    print()
+    print(my_allo)
+    print_structure_det(my_allo)
 
     return ()
 
@@ -659,18 +664,12 @@ def main():
     # Authenticate using environmental variables
     my_session = os_auth_env_sess()
 
+    # Latest module
+    os_conn = openstack.connect(cloud='envvars')
+
     # Create a keystone client interface
     # https://docs.openstack.org/python-keystoneclient/latest/api/keystoneclient.v3.html#module-keystoneclient.v3.client
     # ks_cli = ks_client.Client(session=my_session, include_metadata=True)
-
-    # prj_list(ks_cli) # this works
-    # user_list(ks_cli) # this works
-    # assign_list(ks_cli) # Needs link to role.id, project.id, user.id
-
-    # nova = nov_cli.Client(version=2, session=my_session)
-
-    # svrs = nova.servers.list(search_opts={'all_tenants': 'yes'})
-    # len(svrs)
 
     # print_structure(nova.servers.list(search_opts={'access_ip_v4': '<ip>', 'all_tenants': 1}))
     # print()
@@ -689,6 +688,8 @@ def main():
     # print_structure(my_alloc.quotas.list(search_opts={'project_name':'<prj-name>>'}))
 
     nv_client = nov_cli.Client(version=2, session=my_session)
+
+    # neu_cli.SessionClient(version=2, session=my_session)
 
     # ci_client = cin_cli.Client(version=3, session=my_session)
 

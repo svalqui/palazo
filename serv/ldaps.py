@@ -555,29 +555,23 @@ def main():
                                 print(i)
                                 print(i.header, i.content)
                     elif look_in == 'tm':
-                        my_computer = input("Comp  Name (Unique) :")
-
-                        det_list = find_computers(base, connection, my_computer)
+                        det_list = find_computers(base, connection, look_for)
                         existing_des = ''
                         new_des = ''
 
                         for i in det_list:
                             if isinstance(i, list):
                                 for j in i:
-                                    if j.header == 'description':
-                                        print('description ', j.content[0])
-                                        existing_des = j.content[0]
-                                        new_des = existing_des + " added to des"
-                                    if j.header == 'userAccountControl':
-                                        print('userAccountControl', j.content[0])
+                                    if j.header != 'userCertificate':
+                                        print(j.header, j.content)
                                 print()
 
 #                        change = {'description': [(MODIFY_REPLACE, [new_des])],
 #                                  'UserAccountControl': [(MODIFY_REPLACE, ['2'])]}
 
-                        change = {'description': [(MODIFY_REPLACE, [new_des])]}
+#                        change = {'description': [(MODIFY_REPLACE, [new_des])]}
 
-                        modify_replace(connection, my_computer, change, True)
+#                        modify_replace(connection, my_computer, change, True)
 
 
 if __name__ == '__main__':
