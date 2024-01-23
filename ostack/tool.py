@@ -459,13 +459,24 @@ def server_start(svr_id, nv_client):
 
 
 def flavor_det(nv_client):
-    """Lists the flavors"""
+    """Lists the flavors."""
     # (is_public=None) For Admin lists all flavors
     flavors = nv_client.flavors.list(is_public=None)
 
     for f in flavors:
         print(f.name, f.id, f.vcpus, f.ram)
     return ()
+
+def flavor_unset(my_os_conn, my_flavor):
+    """Unset all projects of a given flavor."""
+#    flavors = nov.flavors.list(is_public=None)
+    flavor = my_os_conn.get_flavor(my_flavor)
+    fl_accas = my_os_conn.list_flavor_access(my_flavor)
+    for fa in fl_accas:
+        print(fa)
+        print(fa['flavor_id'], fa['tenant_id'])
+
+
 
 
 def flavor_prjs(my_session, prj_id):
@@ -711,6 +722,7 @@ def main():
           "(ur) User resources, \n"
           "(f) Flavors, \n"
           "(fa) Flavor accessed by a Project-id, \n"
+          "(fun) Flavor unset projects on a flavor \n"
           "(ai) allocation brief by allocation id\n"
           "(an) allocation brief by project name\n"
           "(ar) allocation report per site name\n"
@@ -743,6 +755,8 @@ def main():
         flavor_det(nv_client)
     elif look_in == "fa":  # Flavor Accessed by Project-id
         flavor_prjs(my_session, look_for)
+    elif look_in == "fun":  # Flavor unset projects on flavor
+        flavor_unset(os_conn, look_for)
     elif look_in == "ur": # User resources, role, projects, allocations, servers
         assigned_usr_resources(my_session, look_for)
     elif look_in == "ai": # allocation brief by allocation id
