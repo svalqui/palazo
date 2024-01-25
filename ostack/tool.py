@@ -120,6 +120,77 @@ def prj_list_by_az(ks_cli, az_name):  # todo: filter by availability zone no wor
     # Contains other attributes from parent such:
     return
 
+def is_mido(os_conn, prj_id):
+    net = os_conn.network.get_network(prj_id)
+    if net.provider_network_type == 'midonet':
+        return True
+    else:
+        return False
+
+
+def prj_net_det(os_conn, my_prj):
+    project = os_conn.get_project(my_prj)
+    net_leg_names = []
+    if 'legacy-networking' in project.tags:
+        print("Project:", project.name, " is legacy")
+    nets = os_conn.network.networks(is_router_external=False, project_id=project.id)
+    for n in nets:
+        print(n.resource_key, n.id, n.name, getattr(n, 'provider_network_type'),)
+        for s in n.subnet_ids:
+            sub = os_conn.get_subnet(s)
+            print("   ", sub.resource_key, sub.id, sub.name, sub.cidr)
+        if n.provider_network_type == 'midonet':
+            if n.name not in net_leg_names:
+                net_leg_names.append(n.name)
+
+    # nets_mido = os_conn.network.networks(provider_network_type='midonet')
+    # for n in nets_mido:
+    #    print(n.name,)
+
+    rtrs = os_conn.network.routers(tenant_id=project.id)
+    for r in rtrs:
+        print(r.resource_key, r.name , r.status, )
+        my_info = ''
+        for i in r.external_gateway_info.keys():
+            if i == 'network_id':
+                if is_mido(os_conn,r.external_gateway_info[i]):
+                    print("    Legacy")
+                print('    network_id', r.external_gateway_info[i])
+
+            elif i == 'external_fixed_ips':
+                for ip in r.external_gateway_info[i]:
+                    # print(ip)
+                    print("        external_fixed_ips", ip['ip_address'])
+
+    lbs = os_conn.load_balancer.load_balancers(project_id=project.id)
+    for l in lbs:
+        if is_mido(os_conn, l.vip_network_id):
+            print("Legacy", l.resource_key, l.name, l.vip_address, l.vip_network_id)
+        else:
+            print(l.resource_key, l.name, l.vip_address, l.vip_network_id)
+
+    ips = os_conn.network.ips(project_id=project.id)
+    for i in ips:
+        if is_mido(os_conn, i.floating_network_id):
+            print("Legacy", i.resource_key, i.floating_ip_address,)
+        else:
+            print(i.resource_key, i.floating_ip_address)
+    print("working on servers now")
+
+    svrs = os_conn.list_servers(all_projects=True, filters={'project_id':project.id})
+    for s in svrs:
+        svr_adds = ""
+        is_leg = False
+        for net in s.addresses.keys():
+            svr_adds += net + " "
+            if net in net_leg_names:
+                is_leg = True
+            for ips in s.addresses[net]:
+                svr_adds += ips['addr'] + " "
+        if is_leg:
+            print(s.id, s.name, svr_adds)
+
+    return
 
 def assign_list(ks_cli):
     """Print role assignments per user, Requires ADMIN Credentials."""
@@ -728,6 +799,7 @@ def main():
           "(ar) allocation report per site name\n"
           "(aa) allocation report per approver email\n"
           "(paz) projects per availability zone\n"
+          "(pnd) project network details\n"
           "(sec) security groups per srv_id\n")
 
     look_in = input(" your choice: ")
@@ -769,6 +841,8 @@ def main():
         allo_per_approver(my_session, look_for)
     elif look_in == "paz": # Projects per availability zone
         prj_list_by_az(ks_cli, look_for)
+    elif look_in == "pnd":  # Projects network details
+        prj_net_det(os_conn, look_for)
     elif look_in == "sec": # security groups per svr_id
         sec_per_svrid(my_session, look_for)
 
