@@ -131,17 +131,21 @@ def is_mido(os_conn, prj_id):
 def prj_net_det(os_conn, my_prj):
     project = os_conn.get_project(my_prj)
     net_leg_names = []
-    if 'legacy-networking' in project.tags:
-        print("Project:", project.name, " is legacy")
+    if project.tags:
+        if 'legacy-networking' in project.tags:
+            print("Project:", project.name, "is legacy")
     nets = os_conn.network.networks(is_router_external=False, project_id=project.id)
     for n in nets:
-        print(n.resource_key, n.id, n.name, getattr(n, 'provider_network_type'),)
-        for s in n.subnet_ids:
-            sub = os_conn.get_subnet(s)
-            print("   ", sub.resource_key, sub.id, sub.name, sub.cidr)
         if n.provider_network_type == 'midonet':
             if n.name not in net_leg_names:
                 net_leg_names.append(n.name)
+            print("Legacy", n.resource_key, n.id, n.name, getattr(n, 'provider_network_type'),)
+        else:
+            print(n.resource_key, n.id, n.name,
+                  getattr(n, 'provider_network_type'), )
+        for s in n.subnet_ids:
+            sub = os_conn.get_subnet(s)
+            print("   ", sub.resource_key, sub.id, sub.name, sub.cidr)
 
     # nets_mido = os_conn.network.networks(provider_network_type='midonet')
     # for n in nets_mido:
@@ -149,12 +153,14 @@ def prj_net_det(os_conn, my_prj):
 
     rtrs = os_conn.network.routers(tenant_id=project.id)
     for r in rtrs:
-        print(r.resource_key, r.name , r.status, )
+
         my_info = ''
         for i in r.external_gateway_info.keys():
             if i == 'network_id':
                 if is_mido(os_conn,r.external_gateway_info[i]):
-                    print("    Legacy")
+                    print("Legacy", r.resource_key, r.id, r.name, r.status, )
+                else:
+                    print(r.resource_key, r.id, r.name, r.status, )
                 print('    network_id', r.external_gateway_info[i])
 
             elif i == 'external_fixed_ips':
@@ -172,11 +178,26 @@ def prj_net_det(os_conn, my_prj):
     ips = os_conn.network.ips(project_id=project.id)
     for i in ips:
         if is_mido(os_conn, i.floating_network_id):
-            print("Legacy", i.resource_key, i.floating_ip_address,)
+            print("Legacy",
+                  i.resource_key,
+                  i.floating_ip_address,
+                  i.status,
+                  "Router",
+                  i.router_id,
+                  "Port",
+                  i.port_id,
+            )
         else:
-            print(i.resource_key, i.floating_ip_address)
-    print("working on servers now")
+            print(i.resource_key,
+                  i.floating_ip_address,
+                  i.status,
+                  "Router",
+                  i.router_id,
+                  "Port",
+                  i.port_id,
+                  )
 
+    print("List of VMs")
     svrs = os_conn.list_servers(all_projects=True, filters={'project_id':project.id})
     for s in svrs:
         svr_adds = ""
@@ -792,6 +813,7 @@ def main():
           "(r) user role assignment, \n"
           "(ur) User resources, \n"
           "(f) Flavors, \n"
+          "(fagr) Flavors on aggregates, \n"
           "(fa) Flavor accessed by a Project-id, \n"
           "(fun) Flavor unset projects on a flavor \n"
           "(ai) allocation brief by allocation id\n"
