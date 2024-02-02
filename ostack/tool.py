@@ -559,6 +559,45 @@ def flavor_det(nv_client):
         print(f.name, f.id, f.vcpus, f.ram)
     return ()
 
+def flavor_aggregate(os_conn, look_for):
+    """List flavors on aggregates"""
+    my_flavs = os_conn.list_flavors()
+    my_aggres = os_conn.list_aggregates()
+    aggregate_classname = {}
+    for a in my_aggres:
+        if a.availability_zone:
+            if look_for in a.availability_zone:
+                if a.metadata:
+                    if 'flavor' in a.metadata.keys():
+                        if a.metadata['flavor'] in aggregate_classname.keys():
+                            aggregate_classname[a.metadata['flavor']].append(a)
+                        else:
+                            aggregate_classname[a.metadata['flavor']] = [a]
+
+    flavor_classname = {}
+    for f in my_flavs:
+       if "flavor_class:name" in f.extra_specs.keys():
+            if f.extra_specs['flavor_class:name'] in aggregate_classname.keys():
+                if f.extra_specs['flavor_class:name'] in flavor_classname.keys():
+                    flavor_classname[f.extra_specs['flavor_class:name']].append(f)
+                else:
+                    flavor_classname[f.extra_specs['flavor_class:name']] = [f]
+
+    for cn in aggregate_classname.keys():
+        for a in aggregate_classname[cn]:
+            print("Aggregate:", a.name)
+            print("Hosts:")
+            for h in a.hosts:
+                print("    ",h)
+            print("Flavors:")
+            if cn in flavor_classname.keys():
+                for f in flavor_classname[cn]:
+                    print("    ", f.name)
+            print()
+
+
+
+
 def flavor_unset(my_os_conn, my_flavor):
     """Unset all projects of a given flavor."""
 #    flavors = nov.flavors.list(is_public=None)
@@ -847,6 +886,8 @@ def main():
         assigns_search(ks_cli, look_for)
     elif look_in == "f": # flavor details
         flavor_det(nv_client)
+    elif look_in == "fagr":  # flavor details
+        flavor_aggregate(os_conn, look_for)
     elif look_in == "fa":  # Flavor Accessed by Project-id
         flavor_prjs(my_session, look_for)
     elif look_in == "fun":  # Flavor unset projects on flavor
