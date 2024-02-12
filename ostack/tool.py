@@ -550,6 +550,22 @@ def server_start(svr_id, nv_client):
     return ()
 
 
+def server_in_aggregate(os_conn, look_for):
+    """list vms in aggregate"""
+    my_aggres = os_conn.list_aggregates()
+    total = 0
+    for a in my_aggres:
+        if look_for == a.name:
+            for h in a.hosts:
+                servers_host = os_conn.list_servers(
+                    all_projects=True,
+                    filters={'host':h}
+                )
+                for s in servers_host:
+                    print(h, s.project_id, s.id, s.name, s.status, s.flavor.name)
+                    total += 1
+    print("Total:", total)
+
 def flavor_det(nv_client):
     """Lists the flavors."""
     # (is_public=None) For Admin lists all flavors
@@ -844,6 +860,7 @@ def main():
     # server_list_per_az(av_zone, nv_client)
 
     print("(s) Servers, look for server names matching \n"
+          "(sia) Server in an aggregate\n"
           "(sd) Server details by server id, all obj att \n"
           "(p) Projects, look for project names matching \n"
           "(pd) prj det, show project details for the given project name \n"
@@ -872,6 +889,8 @@ def main():
 
     if look_in == "s":
         sleep(1)
+    elif look_in == "sia":
+        server_in_aggregate(os_conn, look_for)
     elif look_in == "sd":
         server_det_obj(look_for, nv_client)
     elif look_in == "p":
