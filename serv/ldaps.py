@@ -33,6 +33,7 @@ import pathlib
 import datetime
 from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES, MODIFY_REPLACE
 
+import os
 
 class LdResponse(object):
     """
@@ -413,9 +414,12 @@ def main():
     # Reading configuration
     config = configparser.ConfigParser()
 
+    user_name = os.environ['AD_USERNAME'],
+    user_password = os.environ['AD_PASSWORD'],
+
     try:
         config.read(str(file_conf_name))
-        user_name = config['Settings']['default_user']
+        # user_name = config['Settings']['default_user']
         URI = config['Settings']['uri']
         BASE = config['Settings']['default_base']
         show_fields = config['Filters']['show_attributes'].split(',')
@@ -428,15 +432,21 @@ def main():
         print('--Exception Name :', type(e))
         proceed = False
 
+    user_name = user_name[0] + "@" + URI.split(':')[1][2:]
+    print(user_name)
+
     # Query
     if proceed:
         look_in = input("Users (u), Users Brief (us), "
                         "Groups (g), Groups Without Members (gnm), delete(delete) , test mod (tm):")
         look_for = input("Search AD for :")
-        user_password = getpass.getpass()
+
 
         try:
-            connection = ldap_connect(URI, user_name, user_password)
+            print("user_name", user_name, user_password)
+            print("URI", URI)
+            print("BASE", BASE)
+            connection = ldap_connect(URI, user_name, user_password[0])
             # connection = ldap_connect(URI, q_u, q_p)
         except BaseException as ldap_connection_error:
             print("user_name", user_name)

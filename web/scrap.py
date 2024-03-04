@@ -18,17 +18,19 @@ def main():
     soup = BeautifulSoup(page.content, "html.parser")
     # content is html Doctype
     print (len(soup.contents))
+    print(soup.getText())
     for c in soup.contents:
-        print(type(c))
+        print(type(c), c.name)
         print()
         if isinstance(c,bs4.element.Tag):
-            for index, child in enumerate(c.descendants):
-                print(child)
+
+            for index, descent in enumerate(c.descendants):
+                print("Type", type(descent), descent.name)
+                print(descent)
                 print(">>>>>>>>>>>")
-                if index == 50 :
+                print()
+                if index == 10 :
                     break
-
-
 
 if __name__ == '__main__':
     sys.exit(main())

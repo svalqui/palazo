@@ -611,9 +611,6 @@ def flavor_aggregate(os_conn, look_for):
                     print("    ", f.name)
             print()
 
-
-
-
 def flavor_unset(my_os_conn, my_flavor):
     """Unset all projects of a given flavor."""
 #    flavors = nov.flavors.list(is_public=None)
