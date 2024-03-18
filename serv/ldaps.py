@@ -443,7 +443,6 @@ def main():
 
 
         try:
-            print("user_name", user_name, user_password)
             print("URI", URI)
             print("BASE", BASE)
             connection = ldap_connect(URI, user_name, user_password[0])

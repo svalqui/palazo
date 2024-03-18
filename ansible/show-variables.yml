@@ -1,0 +1,12 @@
+---
+
+- name: script
+  hosts: localhost
+  connection: local
+  tasks:
+     - name: show vars
+       debug:
+         msg:
+           - "Username {{ansible_user_id}}"
+           - "Host {{inventory_hostname}}"
+

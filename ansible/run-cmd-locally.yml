@@ -1,0 +1,15 @@
+---
+- name: script.
+  hosts: localhost
+  connection: local
+  user: sergio
+  #  sudo: yes
+  tasks:
+     - name: Execute the script
+       command: ls -l
+       register: result
+
+     - name: show
+       debug:
+         var: result.stdout
+             

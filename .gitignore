@@ -8,3 +8,6 @@
 geckodriver.log
 # Other
 functional-tests.log
+# Ansible
+hosts
+ansible/*/hosts

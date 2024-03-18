@@ -131,9 +131,10 @@ def is_mido(os_conn, prj_id):
 def prj_net_det(os_conn, my_prj):
     project = os_conn.get_project(my_prj)
     net_leg_names = []
-    if project.tags:
-        if 'legacy-networking' in project.tags:
-            print("Project:", project.name, "is legacy")
+    if 'tags' in (dir(project)):
+        if project.tags:
+            if 'legacy-networking' in project.tags:
+                print("Project:", project.name, "is legacy")
     nets = os_conn.network.networks(is_router_external=False, project_id=project.id)
     for n in nets:
         if n.provider_network_type == 'midonet':
@@ -212,6 +213,15 @@ def prj_net_det(os_conn, my_prj):
             print(s.id, s.name, svr_adds)
 
     return
+
+
+def net_all(os_conn):
+    """List all network resources."""
+    nets = os_conn.network.networks(is_router_external=False, project_id=project.id)
+    rtrs = os_conn.network.routers(tenant_id=project.id)
+    lbs = os_conn.load_balancer.load_balancers(project_id=project.id)
+    ips = os_conn.network.ips(project_id=project.id)
+
 
 def assign_list(ks_cli):
     """Print role assignments per user, Requires ADMIN Credentials."""
@@ -562,7 +572,20 @@ def server_in_aggregate(os_conn, look_for):
                     filters={'host':h}
                 )
                 for s in servers_host:
-                    print(h, s.project_id, s.id, s.name, s.status, s.flavor.name)
+                    net= ''
+                    # one ip for now
+                    net_keys = s.addresses.keys()
+                    #print(net_keys, list(net_keys)[0])
+                    net = s.addresses[list(net_keys)[0]][0]['addr']
+                    print(
+                        h,
+                        s.project_id,
+                        s.id,
+                        s.name,
+                        s.status,
+                        s.flavor.name,
+                        net,
+                    )
                     total += 1
     print("Total:", total)
 
