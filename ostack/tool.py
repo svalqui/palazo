@@ -706,6 +706,45 @@ def allo_per_site(my_session, my_associated_site):
     return ()
 
 
+def allo_all_active(my_session):
+    """Allocation report all active"""
+    allo_cli = allo_client.Client(version=1, session=my_session)
+
+    print("Getting Allocations")
+    allocations = allo_cli.allocations.list(associated_site=my_associated_site,
+                                            provisioned=False,
+                                            )
+
+    # index allocations by allocation id
+    allocations_dict = {}
+    for allocation in allocations:
+        allocations_dict[allocation.id] = allocation
+
+    hide =["Deleted", "Approved" ]
+
+    my_today = datetime.datetime.today()
+
+    for a in allocations:
+#        if a.allocation_home_display == site_name and a.status_display not in hide:
+        if a.parent_request is None:
+
+            if a.end_date is None:
+                my_end = my_today
+            else:
+                my_end = datetime.datetime.strptime(a.end_date, '%Y-%m-%d')
+
+            my_delta = my_today - my_end
+            if my_delta.days < 60 and my_delta.days != 0:
+                print(
+                    a.id, a.associated_site, a.national, a.project_name,
+                    a.start_date, a.end_date, a.submit_date, a.status, a.status_display,
+                    a.allocation_home_display, a.provisioned, my_delta.days,
+                    a.parent_request
+                )
+    return ()
+
+
+
 def allo_per_approver(my_session, my_email):
     """Allocation report per a approver email"""
     allo_cli = allo_client.Client(version=1, session=my_session)
