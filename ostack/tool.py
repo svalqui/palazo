@@ -564,6 +564,7 @@ def server_in_aggregate(os_conn, look_for):
     """list vms in aggregate"""
     my_aggres = os_conn.list_aggregates()
     total = 0
+    my_flavors = {}
     for a in my_aggres:
         if look_for == a.name:
             for h in a.hosts:
@@ -586,8 +587,14 @@ def server_in_aggregate(os_conn, look_for):
                         s.flavor.name,
                         net,
                     )
+                    if s.flavoqr.name in my_flavors.keys():
+                        my_flavors[s.flavor.name] += 1
+                    else:
+                        my_flavors[s.flavor.name] = 1
                     total += 1
     print("Total:", total)
+    for i in my_flavors.keys():
+        print(i, my_flavors[i])
 
 def flavor_det(nv_client):
     """Lists the flavors."""
