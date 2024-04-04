@@ -199,7 +199,7 @@ def prj_net_det(os_conn, my_prj):
                   )
 
     print("List of VMs")
-    svrs = os_conn.list_servers(all_projects=True, filters={'project_id':project.id})
+    svrs = os_conn.qrvers(all_projects=True, filters={'project_id':project.id})
     for s in svrs:
         svr_adds = ""
         is_leg = False
@@ -577,7 +577,10 @@ def server_in_aggregate(os_conn, look_for):
                     # one ip for now
                     net_keys = s.addresses.keys()
                     #print(net_keys, list(net_keys)[0])
-                    net = s.addresses[list(net_keys)[0]][0]['addr']
+                    if len(s.addresses) > 0:
+                        net = s.addresses[list(net_keys)[0]][0]['addr']
+                    else:
+                        net = ''
                     print(
                         h,
                         s.project_id,
@@ -587,7 +590,7 @@ def server_in_aggregate(os_conn, look_for):
                         s.flavor.name,
                         net,
                     )
-                    if s.flavoqr.name in my_flavors.keys():
+                    if s.flavor.name in my_flavors.keys():
                         my_flavors[s.flavor.name] += 1
                     else:
                         my_flavors[s.flavor.name] = 1
@@ -971,7 +974,7 @@ def main():
         assigns_search(ks_cli, look_for)
     elif look_in == "f": # flavor details
         flavor_det(nv_client)
-    elif look_in == "fagr":  # flavor details
+    elif look_in == "fagr":  # flavor per aggregate
         flavor_aggregate(os_conn, look_for)
     elif look_in == "fa":  # Flavor Accessed by Project-id
         flavor_prjs(my_session, look_for)
