@@ -11,7 +11,7 @@ beautifulsoup4==4.12.2
 #Openstack
 aodhclient
 python-novaclient==18.3
-python-cinderclient==9.3
+python-cinderclient==9.5.0
 python-keystoneclient==5.1.0
 python-glanceclient==4.4.0
 python-neutronclient==11.0.0

@@ -882,6 +882,42 @@ def sec_per_svrid(my_session, svr_id):
         print()
 
 
+def cin_metrics(my_session, host_name):
+    cin_client = cin_cli.Client(version=3, session=my_session)
+    avs = cin_client.availability_zones.list()
+    for a in avs:
+        print(a)
+
+    print(dir(cin_client))
+    print()
+    print(dir(cin_client.volumes))
+
+    services = cin_client.services.list()
+    for s in services:
+        print(s)
+
+    pools = cin_client.pools.list()
+    for p in pools:
+        print(p)
+
+    vols = cin_client.volumes.list(search_opts={'host': host_name, 'all_tenants': 1})
+    total = 0
+    for v in vols:
+        print(v.id,
+              v.name,
+              v.size,
+              )
+        total += v.size
+
+    print(total)
+
+    print(len(vols))
+    print(dir(vols[0]))
+
+
+
+
+
 def main():
     """ CLI implementation temporal for fast trial while developing
     """
@@ -996,6 +1032,8 @@ def main():
         prj_net_det(os_conn, look_for)
     elif look_in == "sec": # security groups per svr_id
         sec_per_svrid(my_session, look_for)
+    elif look_in =='cin':
+        cin_metrics(my_session)
 
     else:
         print("No option available")
