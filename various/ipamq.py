@@ -7,14 +7,12 @@ from fqdn import FQDN
 import pathlib
 from os import path
 import sys
-
+import urllib3
 
 # from restapi.infobloxapi import IB
 from infoblox_client import connector, objects, utils, exceptions
 
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
-
-import urllib3
 
 # Remove: InsecureRequestWarning: Unverified HTTPS request is being made to host
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -27,6 +25,7 @@ from tools.util_obj import look_for_obj_by_att_val
 def ipam_connect(ipam_opts):
     ipam_connector = connector.Connector(ipam_opts)
     return ipam_connector
+
 
 def q_ip(my_ip, my_connector):
     """Query IP"""
@@ -81,6 +80,7 @@ def q_ip(my_ip, my_connector):
             print("Types of records associated with this IP:", i.types)
             my_names = ", ".join(i.names)
             print(my_ip, my_names)
+
 
 def q_net(my_cidr, my_connector):
     """Query Network"""
@@ -204,6 +204,29 @@ def q_ip_records(my_ip, my_connector):
         print(my_ip, my_names)
 
 
+def next_ip(my_cidr, my_connection):
+    print("my cidr", my_cidr)
+
+
+    my_next = objects.IPAllocation.next_available_ip_from_cidr('internal', my_cidr)
+    print(my_next)
+
+    ips_on_cidr = ipaddress.IPv4Network.
+
+    new_ip = objects.IP.create(ip=my_next)
+    print(new_ip)
+
+    #    new_ip = objects.IPv4Address.create(my_connection,ip=my_next)
+    a_record = objects.ARecord.create(my_connection,
+                                      ipv4addr=new_ip,
+                                      name='test-2024Apr',
+                                      view='internal',
+                                      )
+    print(a_record)
+
+    objects.IPAllocation.
+
+
 def main():
     """Testing infoblox_client"""
     file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
@@ -229,6 +252,7 @@ def main():
     print("(l) look for \n"
           "(z) look for zone \n"
           "(ri) look for records by ip \n"
+          "(n) next ip on cidr \n"
           "(tba) tba\n")
 
     look_in = input("your choice: ")
@@ -252,6 +276,8 @@ def main():
         q_zone(look_for, my_connection)
     elif look_in == 'ri':
         q_ip_records(look_for, my_connection)
+    elif look_in == 'n':
+        next_ip(look_for, my_connection)
 
     else:
         print("No option available")

@@ -3,10 +3,14 @@
 # Networks and ssh
 netmiko~=4.2
 
+# AD
 ldap3~=2.9.1
+
+# Web
 requests==2.31.0
 selenium==4.11.2
 beautifulsoup4==4.12.2
+urllib3
 
 #Openstack
 aodhclient
@@ -56,3 +60,7 @@ paramiko-expect==0.3.5
 # MAAS
 python-libmaas==0.6.8
 
+# Infoblox
+infoblox-client
+
+fqdn

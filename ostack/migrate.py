@@ -14,6 +14,7 @@ import os
 import random
 import sys
 import time
+import datetime
 
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
@@ -59,28 +60,31 @@ def server_list_per_host(nv_client, my_host):
     return svrs
 
 def put_in_main_agg(nv_client, my_host):
-    """."""
+    """Put the host in maintenance."""
     all_aggre = nv_client.aggregates.list()
     current_aggre= []
     current_aggre_names = []
     for agg in all_aggre:
-        if "m-" in agg.name:
+        print("Checking Agg ", agg.name, agg)
+        if "uom" in agg.name:
+            print("    in uom agg")
             # aggre = nv_client.aggregates.get(agg_name)
             if my_host in agg.hosts:
+                print("    Host", my_host, "is in agg")
                 current_aggre.append(agg)
                 current_aggre_names.append(agg.name)
     # put in main
     for a in current_aggre:
         print('Current Aggregates :', a.id, a.name)
-    if 'm1' not in current_aggre_names:
+        if 'maintenance' not in a.name:
 
-        print('adding :', my_host, ' to: m1')
-        nv_client.aggregates.add_host(<aggregte-maint-id>, my_host)
+            print('adding :', my_host, ' to: maintenance')
+            nv_client.aggregates.add_host('aggregte-maint-id', my_host)
 
-    # remove of all others
-        for current_a in current_aggre:
-            print('removing :', my_host, ' from: ', current_a.id, current_a.name )
-            nv_client.aggregates.remove_host(current_a.id, my_host)
+        # remove of all others
+            for current_a in current_aggre:
+                print('removing :', my_host, ' from: ', current_a.id, current_a.name )
+                nv_client.aggregates.remove_host(current_a.id, my_host)
     return
 
 def main():
@@ -97,7 +101,8 @@ def main():
     source_host = input('which host to evacuate: ')
     # input target host here
     #target_hosts = input('into which hosts(,): ')
-    target_hosts = [ 'qh2-rcc03', 'qh2-rcc04', 'qh2-rcc05' ]
+    #target_hosts = [ 'qh2-rcc03', 'qh2-rcc04', 'qh2-rcc05' ]
+    target_host = ''
 
     # List servers on host
     servers = server_list_per_host(nv_client, source_host)
@@ -105,14 +110,16 @@ def main():
 
     # check source host is on maintenance aggregate, if not
     # move the source host to the maintenance aggregate, add to maintenance remove from current
-    put_in_main_agg(nv_client, source_host)
+
+    # put_in_main_agg(nv_client, source_host)
 
     n_servers = len(servers)
     for idx, server in enumerate(servers):
         # line = " " + server.id + ", " + server.name + ", " + server.status + ", "
         # print(line)
 
-        target_host = random.choice(target_hosts)
+        if target_host != '':
+            target_host = random.choice(target_host)
         print ("---v ", idx+1 ," of ", n_servers)
         if server.status == "ACTIVE": # If active migrate
             print ("Migrating ", server.id, server.name, " from: ", source_host, " to ", target_host)
@@ -127,10 +134,10 @@ def main():
             my_server = nv_client.servers.get(server.id)
             # print(my_server.status)
             while my_server.status == "MIGRATING":
-                time.sleep(12)
+                time.sleep(10)
                 # refresh values
                 my_server = nv_client.servers.get(server.id)
-                print("  Still migrating ", server.id, " state ", my_svr_state, " host: ", my_svr_host)
+                print("  ", datetime.datetime.now(), " Still migrating ", server.id, " state ", my_svr_state, " host: ", my_svr_host)
         elif server.status == "SHUTOFF" and server.id != '78fbd971-bfac-471b-a142-43cc825008f2':
             print(server.id, " SHUTOFF , switching on")
             server.start()
@@ -138,7 +145,7 @@ def main():
             my_server = nv_client.servers.get(server.id)
             print(my_server.status)
             if my_server.status == "ACTIVE":
-                print("Migrating ", my_server.id, my_server.name, " from: ", source_host, " to ", target_host)
+                print(datetime.datetime.now(), "Migrating ", my_server.id, my_server.name, " from: ", source_host, " to ", target_host)
                 if target_host != '':
                     server.live_migrate(host=target_host)
                 else:
@@ -150,7 +157,7 @@ def main():
                 my_server = nv_client.servers.get(server.id) # refresh values
                 print(my_server.status)
                 while my_server.status == "MIGRATING":
-                    time.sleep(10)
+                    time.sleep(5)
                     # refresh values
                     my_server = nv_client.servers.get(server.id)
                     print("  Still migrating ", server.id, " state ", my_svr_state, " host: ", my_svr_host)
@@ -169,8 +176,8 @@ def main():
         my_server = nv_client.servers.get(server.id)
         print("Migrated ", my_server.id, my_server.name, my_server.status, getattr(my_server, "OS-EXT-SRV-ATTR:host") )
 
-        print('Stopping 5 Secs')
-        time.sleep(5)
+        print('Stopping 2 Secs')
+        time.sleep(2)
 
 if __name__ == '__main__':
     sys.exit(main())
