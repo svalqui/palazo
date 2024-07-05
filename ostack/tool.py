@@ -21,6 +21,7 @@ from novaclient import client as nov_cli
 from cinderclient import client as cin_cli
 from nectarallocationclient import client as allo_client
 from glanceclient import client as gla_cli
+
 import openstack
 
 from os import path
@@ -221,6 +222,25 @@ def net_all(os_conn):
     rtrs = os_conn.network.routers(tenant_id=project.id)
     lbs = os_conn.load_balancer.load_balancers(project_id=project.id)
     ips = os_conn.network.ips(project_id=project.id)
+
+
+def ip_to_lb(os_conn, my_ip):
+    """show lb and project details from IP"""
+    
+    # there are 2 types of lb
+    # lbs = os_conn.load_balancer.load_balancers()
+    # lbs = os_conn.load_balancer.amphorae()
+
+    lbs = os_conn.load_balancer.amphorae()
+    print(dir(lbs))
+
+
+
+
+    for l in lbs:
+        print(l)
+#        print(l.resource_key, l.name, l.vip_network_id, l.vip_address,)
+
 
 
 def assign_list(ks_cli):
@@ -981,7 +1001,8 @@ def main():
           "(aa) allocation report per approver email\n"
           "(paz) projects per availability zone\n"
           "(pnd) project network details\n"
-          "(sec) security groups per srv_id\n")
+          "(sec) security groups per srv_id\n"
+          "(lip) load balancers per ip\n")
 
     look_in = input(" your choice: ")
     look_for = input("Search for :")
@@ -1032,6 +1053,8 @@ def main():
         sec_per_svrid(my_session, look_for)
     elif look_in =='cin':
         cin_metrics(my_session, look_for)
+    elif look_in =='lip':
+        ip_to_lb(os_conn, look_for)
 
     else:
         print("No option available")
