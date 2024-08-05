@@ -580,20 +580,45 @@ def server_start(svr_id, nv_client):
     return ()
 
 
-def server_in_aggregate(os_conn, look_for):
+def server_in_aggregate(os_conn, look_for, my_site=''):
     """list vms in aggregate"""
     my_aggres = os_conn.list_aggregates()
     total = 0
     my_flavors = {}
+    include_contact = True
+    if include_contact:
+        # Get allocations
+        print(datetime.datetime.now(), "Getting Allocations")
+        allo_cli = allo_client.Client(version=1, session=os_conn.session)
+        allocations = allo_cli.allocations.list(associated_site=my_site,
+                                                )
+        print(datetime.datetime.now(), "allocations", len(allocations))
+        # index allocations by allocation id
+        allocations_dict = {}
+        for allocation in allocations:
+            allocations_dict[allocation.id] = allocation
+
+        # Getting Projects
+        print(datetime.datetime.now(), "Getting Projects")
+        projects = os_conn.list_projects()
+        print(datetime.datetime.now(), "projects", len(projects))
+
+        # index projects by project.id
+        projects_dict = {}
+        for project in projects:
+            projects_dict[project.id] = project
+
     for a in my_aggres:
         if look_for == a.name:
             for h in a.hosts:
                 servers_host = os_conn.list_servers(
                     all_projects=True,
-                    filters={'host':h}
+                    filters={'host': h}
                 )
                 for s in servers_host:
-                    net= ''
+                    net = ''
+                    allo_contact = ''
+                    allo_end_date = ''
                     # one ip for now
                     net_keys = s.addresses.keys()
                     #print(net_keys, list(net_keys)[0])
@@ -601,6 +626,13 @@ def server_in_aggregate(os_conn, look_for):
                         net = s.addresses[list(net_keys)[0]][0]['addr']
                     else:
                         net = ''
+                    if hasattr(projects_dict[s.project_id], 'allocation_id'):
+                        if hasattr(allocations_dict[projects_dict[s.project_id].allocation_id], 'contact_email'):
+                            allo_contact = allocations_dict[projects_dict[s.project_id].allocation_id].contact_email
+                        else:
+                            allo_contact = "No_contact_email_on_allocation_" + projects_dict[s.project_id].allocation_id
+                        allo_end_date = allocations_dict[projects_dict[s.project_id].allocation_id].end_date
+
                     print(
                         h,
                         s.project_id,
@@ -609,6 +641,8 @@ def server_in_aggregate(os_conn, look_for):
                         s.status,
                         s.flavor.name,
                         net,
+                        allo_contact,
+                        allo_end_date,
                     )
                     if s.flavor.name in my_flavors.keys():
                         my_flavors[s.flavor.name] += 1
@@ -1014,7 +1048,8 @@ def main():
     if look_in == "s":
         sleep(1)
     elif look_in == "sia":
-        server_in_aggregate(os_conn, look_for)
+        my_site = input("Site :")
+        server_in_aggregate(os_conn, look_for, my_site)
     elif look_in == "sd":
         server_det_obj(look_for, nv_client)
     elif look_in == "p":
