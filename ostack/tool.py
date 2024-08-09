@@ -590,8 +590,7 @@ def server_in_aggregate(os_conn, look_for, my_site=''):
         # Get allocations
         print(datetime.datetime.now(), "Getting Allocations")
         allo_cli = allo_client.Client(version=1, session=os_conn.session)
-        allocations = allo_cli.allocations.list(associated_site=my_site,
-                                                )
+        allocations = allo_cli.allocations.list(associated_site=my_site,)
         print(datetime.datetime.now(), "allocations", len(allocations))
         # index allocations by allocation id
         allocations_dict = {}
@@ -627,11 +626,14 @@ def server_in_aggregate(os_conn, look_for, my_site=''):
                     else:
                         net = ''
                     if hasattr(projects_dict[s.project_id], 'allocation_id'):
-                        if hasattr(allocations_dict[projects_dict[s.project_id].allocation_id], 'contact_email'):
-                            allo_contact = allocations_dict[projects_dict[s.project_id].allocation_id].contact_email
+                        if projects_dict[s.project_id].allocation_id in allocations_dict.keys():
+                            if hasattr(allocations_dict[projects_dict[s.project_id].allocation_id], 'contact_email'):
+                                allo_contact = allocations_dict[projects_dict[s.project_id].allocation_id].contact_email
+                            else:
+                                allo_contact = "No_contact_email_on_allocation_" + projects_dict[s.project_id].allocation_id
+                            allo_end_date = allocations_dict[projects_dict[s.project_id].allocation_id].end_date
                         else:
-                            allo_contact = "No_contact_email_on_allocation_" + projects_dict[s.project_id].allocation_id
-                        allo_end_date = allocations_dict[projects_dict[s.project_id].allocation_id].end_date
+                            allo_contact = "Allocation " + projects_dict[s.project_id].allocation_id + " Not in aggregate " + my_site
 
                     print(
                         h,
