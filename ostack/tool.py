@@ -200,7 +200,7 @@ def prj_net_det(os_conn, my_prj):
                   )
 
     print("List of VMs")
-    svrs = os_conn.qrvers(all_projects=True, filters={'project_id':project.id})
+    svrs = os_conn.list_servers(all_projects=True, filters={'project_id':project.id})
     for s in svrs:
         svr_adds = ""
         is_leg = False
