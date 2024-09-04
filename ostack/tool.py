@@ -199,7 +199,7 @@ def prj_net_det(os_conn, my_prj):
                   i.port_id,
                   )
 
-    print("List of VMs")
+    print("List of VMs on Legacy Network")
     svrs = os_conn.list_servers(all_projects=True, filters={'project_id':project.id})
     for s in svrs:
         svr_adds = ""
