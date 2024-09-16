@@ -678,7 +678,7 @@ def flavor_aggregate(os_conn, look_for):
     for a in my_aggres:
         if a.availability_zone:
             # print(a.name, a.availability_zone)
-            if look_for in a.name:
+            if look_for in a.availability_zone:
                 if a.metadata:
                     if 'flavor' in a.metadata.keys():
                         if a.metadata['flavor'] in aggregate_classname.keys():
@@ -1035,7 +1035,7 @@ def main():
           "(r) user role assignment, \n"
           "(ur) User resources, \n"
           "(f) Flavors, \n"
-          "(fagr) Flavors on aggregates, \n"
+          "(fagr) Flavors on aggregates per availability zone, \n"
           "(fa) Flavor accessed by a Project-id, \n"
           "(fun) Flavor unset projects on a flavor \n"
           "(ai) allocation brief by allocation id\n"
