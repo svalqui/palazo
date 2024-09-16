@@ -118,8 +118,8 @@ def main():
         # line = " " + server.id + ", " + server.name + ", " + server.status + ", "
         # print(line)
 
-        if target_host != '':
-            target_host = random.choice(target_host)
+#        if target_host != '':
+#            target_host = random.choice(target_host)
         print ("---v ", idx+1 ," of ", n_servers)
         if server.status == "ACTIVE": # If active migrate
             print ("Migrating ", server.id, server.name, " from: ", source_host, " to ", target_host)

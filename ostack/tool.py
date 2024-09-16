@@ -201,6 +201,12 @@ def prj_net_det(os_conn, my_prj):
 
     print("List of VMs on Legacy Network")
     svrs = os_conn.list_servers(all_projects=True, filters={'project_id':project.id})
+    print("servers", len(svrs))
+    print()
+    print(dir(svrs[0]))
+    print()
+    print(svrs[0])
+    print("servers in legacy Network: ")
     for s in svrs:
         svr_adds = ""
         is_leg = False
@@ -671,7 +677,8 @@ def flavor_aggregate(os_conn, look_for):
     aggregate_classname = {}
     for a in my_aggres:
         if a.availability_zone:
-            if look_for in a.availability_zone:
+            # print(a.name, a.availability_zone)
+            if look_for in a.name:
                 if a.metadata:
                     if 'flavor' in a.metadata.keys():
                         if a.metadata['flavor'] in aggregate_classname.keys():

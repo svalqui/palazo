@@ -10,11 +10,11 @@ def main():
 
     servers_host = os_conn.list_servers(
         all_projects=True,
-        filters={'host': source_host}
+        # filters={"host": source_host}
+        filters={"hypervisor_hostname": source_host}
     )
-
     n_servers = len(servers_host)
-    print(n_servers)
+    print("Num of Servers on host", source_host, len(servers_host))
     for idx, server in enumerate(servers_host):
         print ("---v ", idx+1 ," of ", n_servers)
         if server.status == "ACTIVE": # If active migrate
