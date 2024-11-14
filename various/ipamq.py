@@ -180,6 +180,9 @@ def q_ip_records(my_ip, my_connector):
                       my_obj['view'],
                       my_obj['ptrdname'],
                       )
+                print(dir(my_obj)) # Not IP here
+                print(my_obj.items()) # Not IP here
+                print(my_obj.values()) # Not IP here, where is the IP?
                 # my_ptr = objects.PtrRecord.search(my_connector,
                 #                                   ipv4addr=my_ip,
                 #                                   ptrdname=my_obj['ptrdname'],
@@ -207,11 +210,8 @@ def q_ip_records(my_ip, my_connector):
 def next_ip(my_cidr, my_connection):
     print("my cidr", my_cidr)
 
-
     my_next = objects.IPAllocation.next_available_ip_from_cidr('internal', my_cidr)
     print(my_next)
-
-    ips_on_cidr = ipaddress.IPv4Network.
 
     new_ip = objects.IP.create(ip=my_next)
     print(new_ip)
@@ -223,9 +223,6 @@ def next_ip(my_cidr, my_connection):
                                       view='internal',
                                       )
     print(a_record)
-
-    objects.IPAllocation.
-
 
 def main():
     """Testing infoblox_client"""
