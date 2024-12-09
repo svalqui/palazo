@@ -1,0 +1,5 @@
+# https://stackoverflow.com/questions/39819378/ansible-get-current-target-hosts-ip-address
+---
+- hosts: localhost
+  tasks:
+    - debug: var=hostvars[inventory_hostname]['ansible_default_ipv4']['address']
