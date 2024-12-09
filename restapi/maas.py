@@ -23,8 +23,47 @@ def main():
 
     client = maas.client.connect( maas_url, apikey=maas_apikey)
 
+    for m in client.machines.list():
+        # print(dir(m))
+        # print(m.architecture)
+        # print(m.boot_disk)
+        # print(m.node_type)
+        # print(m.power_state)
+        # print(m.cpus)
+        # print(m.memory)
+        # print("power_type", m.power_type)
+
+        # print(m.get_details())
+        # dict_keys(['lldp', 'lshw'])
+        # print(m.get_details()['lldp'])
+        # print(m.get_details()['lshw'])
+        m_details = m.get_details()
+        # print(m_details['lshw'])
+        # print(type(m_details['lshw'].decode()))
+        if "qh2-rc" not in m.hostname:
+            if m.status.name == "DEPLOYED":
+#                if m.distro_series != "jammy":
+                if m.distro_series == "jammy":
+                    print(m.fqdn,
+                          # m.hostname,
+                          m.distro_series,
+                          m.power_type,
+                          m.cpus,
+                          m.memory,
+                          # m.zone,
+                          #m.pool,
+                          m.ip_addresses,
+                          )
+                    # print(type(m.status))
+
+
+
+
 # Get a reference to self.
     myself = client.users.whoami()
+
+
+
     print(myself)
     assert myself.is_admin, "%s is not an admin" % myself.username
 
