@@ -333,6 +333,10 @@ def find_users_by_mobile(base, connection, look_for):
     response = find_generic(base, connection, query)
     return response  # List of list of class Ld,
 
+def find_users_by_mail(base, connection, look_for):
+    query = '(&(objectClass=user)(objectCategory=person)(proxyAddresses=*' + look_for + '*))'
+    response = find_generic(base, connection, query)
+    return response  # List of list of class Ld,
 
 def find_users_brief(base, connection, look_for, fields):
     query = '(&(objectClass=user)(objectCategory=person)(|(cn=*' + look_for + '*)(displayName=*' + look_for + '*)))'
@@ -437,8 +441,13 @@ def main():
 
     # Query
     if proceed:
-        look_in = input("Users (u), Users Brief (us), "
-                        "Groups (g), Groups Without Members (gnm), delete(delete) , test mod (tm):")
+        look_in = input("Users (u), \n"
+                        "Users Brief (us), \n"
+                        "Users my email (ue)\n"
+                        "Groups (g), \n"
+                        "Groups Without Members (gnm), \n"
+                        "delete(delete) ,\n"
+                        "test mod (tm):")
         look_for = input("Search AD for :")
 
 
@@ -472,7 +481,7 @@ def main():
 
                 for base in domains:
                     print(">>>-------------->DOMAIN BASE : ", base, domains)
-                    if look_in == "u":
+                    if look_in == "u": #  Search User
                         my_list = find_users(base, connection, look_for)
                         print(" ------       search concluded... printing ", len(my_list))
                         for i in my_list:
@@ -491,8 +500,27 @@ def main():
                                 print(i)
                                 print(i.header, i.content)
 
-                    if look_in == "p":
+                    if look_in == "p": #  Search user by mobile
                         my_list = find_users_by_mobile(base, connection, look_for)
+                        print(" ------       search concluded... printing ", len(my_list))
+                        for i in my_list:
+                            if isinstance(i, list):
+                                for j in i:
+                                    if j.header == "memberOf":
+                                        print()
+                                        print("memberOf")
+                                        for k in j.content:
+                                            print(k)
+                                        print()
+                                    elif j.header != "msExchUMSpokenName":
+                                        print(j.header, j.content)
+                                print()
+                            else:
+                                print(i)
+                                print(i.header, i.content)
+
+                    if look_in == "ue": #  Search user by email
+                        my_list = find_users_by_mail(base, connection, look_for)
                         print(" ------       search concluded... printing ", len(my_list))
                         for i in my_list:
                             if isinstance(i, list):
