@@ -27,7 +27,7 @@ new_uac = str(int(Current_UserAccountControl_as_str) | 2)
 
 """
 import sys
-import getpass
+# import getpass
 import configparser
 import pathlib
 import datetime
