@@ -23,11 +23,26 @@ def main():
         soup = BeautifulSoup(page.content, "html.parser")
         # content is html Doctype
 
-        print("Soup contents:", len(soup.contents), "type ",)
+        print("Soup contents:", len(soup.contents), "type ", type(soup.contents[0]),
+              type(soup.contents[1]),
+              type(soup.contents[2]),
+              )
 
-        table = soup.find(lambda tag: tag.name=='table' and tag.has_attr('id') and tag['id']=="DataTables_Table_0")
+        table1 = soup.find(lambda tag: tag.name=='table' and tag.has_attr('id') and tag['id']=="DataTables_Table_0")
 
-        print(table)
+        print(table1)
+
+        table2 = soup.find_all('table')
+
+        print("t2", len(table2))
+
+        my_divs = soup.find_all("div", class_="dl-desk-view")
+
+        print(len(my_divs))
+
+        for d in my_divs:
+            print(d)
+
         sys.exit()
 
         for c in soup.contents:
