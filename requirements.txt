@@ -1,5 +1,7 @@
 # python3   -m pip install SomePackage
 
+configparser
+
 # Networks and ssh
 netmiko~=4.2
 
