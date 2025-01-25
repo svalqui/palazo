@@ -203,13 +203,13 @@ def prj_net_det(os_conn, my_prj):
     svrs = os_conn.list_servers(all_projects=True, filters={'project_id':project.id})
     print("servers", len(svrs))
     print()
-    print(dir(svrs[0]))
+    # print(dir(svrs[0]))
     print()
     print(svrs[0])
     print("servers in legacy Network: ")
     for s in svrs:
         svr_adds = ""
-        is_leg = False
+        is_leg = True
         for net in s.addresses.keys():
             svr_adds += net + " "
             if net in net_leg_names:
@@ -217,7 +217,15 @@ def prj_net_det(os_conn, my_prj):
             for ips in s.addresses[net]:
                 svr_adds += ips['addr'] + " "
         if is_leg:
-            print(s.id, s.name, svr_adds)
+            print(s.id, s.name, s.image, s.image_id, svr_adds)
+            if s.image.id:
+                print("    ", s.image.id)
+                my_img = os_conn.get_image_by_id(s.image.id)
+                print()
+                print(my_img.name)
+
+                print("$$$$")
+                print ("    ",)
 
     return
 
