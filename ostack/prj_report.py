@@ -22,7 +22,7 @@ sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 def main():
     """ CLI implementation temporal for fast trial while developing
     """
-    mmy_prj = input("Project_id: ")
+    my_prj = input("Project_id: ")
     print(datetime.datetime.now(), "about to connect...", )
     os_conn = openstack.connect(cloud='envvars')
 
@@ -77,14 +77,14 @@ def main():
         else:
             prj_flavors[s.flavor.original_name] = 1
 
-        if "uom.general" in s.flavor.original_name:
+        if "general" in s.flavor.original_name:
             if ".v3" in s.flavor.original_name:
                 cpu_genoa += s.flavor.vcpus
             else:
                 cpu_milan += s.flavor.vcpus
-        elif "uom.rcp.bigmem" in s.flavor.original_name:
+        elif "bigmem" in s.flavor.original_name:
             cpu_bigmem += s.flavor.vcpus
-        elif "uom.vgpu." in s.flavor.original_name:
+        elif "vgpu." in s.flavor.original_name:
             cpu_gpu += s.flavor.vcpus
         else:
             cpu_other += s.flavor.vcpus
@@ -114,7 +114,7 @@ def main():
     print()
     print("Break out of VMs per flavor")
 
-    flavor_sorted = OrderedDict(sorted(prj_flavors.items(), key=itemgetter(1)))
+    flavor_sorted = OrderedDict(sorted(prj_flavors.items(), key=itemgetter(0)))
 
     for i, v in flavor_sorted.items():
         print (i, v)
