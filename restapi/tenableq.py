@@ -24,6 +24,7 @@ def main():
     print(cidr_obj)
 
 #    results = tio.exports.vulns(plugin_id=plugin_ids, cidr_range=config.TARGET_CIDR)
+    # https://pytenable.readthedocs.io/en/1.4.7/api/io/exports.html
     results = tio.exports.vulns(cidr_range=cidr)
 
     for r in results:

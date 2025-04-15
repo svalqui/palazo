@@ -66,4 +66,4 @@ python-libmaas>=0.6.8
 infoblox-client
 
 fqdn~=1.5.1
-openstacksdk~=4.0.0
+openstacksdk>=4.0.0
