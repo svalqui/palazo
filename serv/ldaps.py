@@ -25,6 +25,17 @@ Calculation computer disabled via UserAccountControl attribute
 Binary or of 2, from documentation ADS_UF_ACCOUNTDISABLE = 0x0002
 new_uac = str(int(Current_UserAccountControl_as_str) | 2)
 
+https://jackstromberg.com/2013/01/useraccountcontrol-attributeflag-values/
+UserAccountControl
+Disabled Account 	0x0202 	514
+Disabled, Password Not Required 	0x0222 	546
+Disabled, Password Doesn't Expire 	0x10202 	66050
+Disabled, Password Doesn't Expire & Not Required 	0x10222 	66082
+Disabled, Smartcard Required 	0x40202 	262658
+Disabled, Smartcard Required, Password Not Required 	0x40222 	262690
+Disabled, Smartcard Required, Password Doesn't Expire 	0x50202 	328194
+Disabled, Smartcard Required, Password Doesn't Expire & Not Required 	0x50222 	328226
+
 """
 import sys
 # import getpass
