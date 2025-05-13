@@ -40,15 +40,23 @@ def machine_list_ipmi(client):
 def machine_list_virsh(client):
     for m in client.machines.list():
         if m.power_type == 'virsh':
+            # det = m.get_details()
             print(m.fqdn,
+                  m.osystem,
                   m.distro_series,
                   m.power_type,
                   m.cpus,
                   m.memory,
                   m.power_state,
                   m.ip_addresses,
+                  m.pool.name,
+                  m.status,
+                  m.zone.name,
+                  m._data['pod']['name'],
                   )
 
+def none_attr():
+    print("  is None")
 
 def main():
     file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
@@ -64,6 +72,22 @@ def main():
 
     client = maas.client.connect( maas_url, apikey=maas_apikey)
 
+    kvms = client.pods.list()
+
+    print(kvms)
+
+    print(dir(kvms[0]))
+    print(kvms[0])
+
+    for i in dir(kvms[0]):
+        print(i)
+        if i == "_data":
+            print(getattr(kvms[0],i))
+
+    print()
+
+    for k in kvms:
+        print(k.name)
 
     print(" select what to do: \n"
           "(a) list all machines \n"
