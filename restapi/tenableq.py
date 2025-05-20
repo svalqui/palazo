@@ -45,10 +45,20 @@ def main():
         if r['plugin']['bid'][0] in my_pids:
             my_pids[r['plugin']['bid'][0]][0] += 1
         else:
-            my_pids[r['plugin']['bid'][0]] = [1, r['plugin']['name'], r['asset']['last_scan_target'] ]
+            my_pids[r['plugin']['bid'][0]] = [1, r['plugin']['name'], r['asset']['last_scan_target'], r['port'] ]
 
+    print("ten_id, occurrences, ten_name, example_host, port")
     for k in my_pids.keys():
-        print(k, my_pids[k])
+        print(k,
+              ",",
+              my_pids[k][0],
+              ",",
+              my_pids[k][1],
+              ",",
+              my_pids[k][2],
+              ",",
+              my_pids[k][3],
+              )
 
 
 if __name__ == '__main__':
