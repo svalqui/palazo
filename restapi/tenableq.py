@@ -28,6 +28,8 @@ def main():
     # results = tio.exports.vulns(plugin_id=[149334,], cidr_range=cidr)
     results = tio.exports.vulns(severity=["critical", ], cidr_range=cidr)
 
+    my_pids = {}
+
     for r in results:
         if 'fqdn' in r['asset'].keys():
             print('fqdn: ', r['asset']['fqdn'])
@@ -40,6 +42,13 @@ def main():
         print(r)
         print("-----------------")
         print()
+        if r['plugin']['bid'][0] in my_pids:
+            my_pids[r['plugin']['bid'][0]][0] += 1
+        else:
+            my_pids[r['plugin']['bid'][0]] = [1, r['plugin']['name'], r['asset']['last_scan_target'] ]
+
+    for k in my_pids.keys():
+        print(k, my_pids[k])
 
 
 if __name__ == '__main__':
