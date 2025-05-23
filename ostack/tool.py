@@ -539,6 +539,27 @@ def server_list_per_prjid(my_session, prj_id):
     return ()
 
 
+def server_by_ip(svr_ip, os_conn):
+    my_filter = {'ip': svr_ip}
+    p = os_conn.list_ports(filters={'fixed_ips': ['ip_address='+svr_ip]})
+#    print(len(p))
+#    print(p)
+    print("port device_id: ", p[0].device_id)
+    print("port project_id: ", p[0].project_id)
+    print("port security_groups_ids: ", p[0].security_group_ids)
+#    svr = os_conn.get_server(name_or_id=p[0].device_id, all_projects=True) #  needs filtering by project id
+
+    for sec_group_id in p[0].security_group_ids:
+        print("    ", sec_group_id)
+
+        sg = os_conn.get_security_group(name_or_id=sec_group_id, filters={'project_id': p[0].project_id })
+
+        for i in sg['security_group_rules']:
+     #       print("   ", i)
+            if i['direction'] == 'ingress' and  i['remote_ip_prefix'] == '0.0.0.0/0':
+                print("       ", i['remote_ip_prefix'], i['direction'],i['port_range_min'], i['port_range_max'])
+
+
 def server_status(svr_id, nv_client):
     my_svr = nv_client.servers.get(svr_id)
     # print_structure(my_svr)
@@ -725,8 +746,6 @@ def flavor_unset(my_os_conn, my_flavor):
         print(fa['flavor_id'], fa['tenant_id'])
 
 
-
-
 def flavor_prjs(my_session, prj_id):
     """Lists of active flavors for the given project."""
     #
@@ -894,8 +913,6 @@ def allo_per_prj_name(my_session, prj_name):
     return ()
 
 
-
-
 def allo_brief(my_session, allo_id):
     """Allocation brief by allocation ID."""
     allo_cli = allo_client.Client(version=1, session=my_session)
@@ -936,6 +953,7 @@ def quota_brief(nv_client, cin_client, prj_id):
     print("instances", my_nv_quota.instances)
     print("ram", my_nv_quota.ram)
     print()
+
 
 def sec_per_svrid(my_session, svr_id):
     """Security groups per project id"""
@@ -1036,6 +1054,7 @@ def main():
     print("(s) Servers, look for server names matching \n"
           "(sia) Server in an aggregate\n"
           "(sd) Server details by server id, all obj att \n"
+          "(sip) Server by IP\n"
           "(p) Projects, look for project names matching \n"
           "(pd) prj det, show project details for the given project name \n"
           "(pbip) Project and Server Details by list of VM IPs ([ip1,ip2....]) \n"
@@ -1069,6 +1088,9 @@ def main():
         server_in_aggregate(os_conn, look_for, my_site)
     elif look_in == "sd":
         server_det_obj(look_for, nv_client)
+    elif look_in == "sip":
+        svr = server_by_ip(look_for, os_conn)
+        print(svr)
     elif look_in == "p":
         sleep(1)
     elif look_in == "pd":
