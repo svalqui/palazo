@@ -9,6 +9,55 @@ sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 import maas.client
 
 from tools.util_obj import print_structure_det
+
+
+def machine_list_all(client):
+    for m in client.machines.list():
+        print(m.fqdn,
+              # m.hostname,
+              m.distro_series,
+              m.power_type,
+              m.cpus,
+              m.memory,
+              # m.zone,
+              # m.pool,
+              m.power_state,
+              m.ip_addresses,
+              )
+
+def machine_list_ipmi(client):
+    for m in client.machines.list():
+        if m.power_type == 'ipmi':
+            print(m.fqdn,
+                  m.distro_series,
+                  m.power_type,
+                  m.cpus,
+                  m.memory,
+                  m.power_state,
+                  m.ip_addresses,
+                  )
+
+def machine_list_virsh(client):
+    for m in client.machines.list():
+        if m.power_type == 'virsh':
+            # det = m.get_details()
+            print(m.fqdn,
+                  m.osystem,
+                  m.distro_series,
+                  m.power_type,
+                  m.cpus,
+                  m.memory,
+                  m.power_state,
+                  m.ip_addresses,
+                  m.pool.name,
+                  m.status,
+                  m.zone.name,
+                  m._data['pod']['name'],
+                  )
+
+def none_attr():
+    print("  is None")
+
 def main():
     file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
     print('file_conf_dir', file_conf_dir)
@@ -23,25 +72,79 @@ def main():
 
     client = maas.client.connect( maas_url, apikey=maas_apikey)
 
-# Get a reference to self.
-    myself = client.users.whoami()
-    print(myself)
-    assert myself.is_admin, "%s is not an admin" % myself.username
+    kvms = client.pods.list()
+
+    print(kvms)
+
+    print(dir(kvms[0]))
+    print(kvms[0])
+
+    for i in dir(kvms[0]):
+        print(i)
+        if i == "_data":
+            print(getattr(kvms[0],i))
+
+    print()
+
+    for k in kvms:
+        print(k.name)
+
+    print(" select what to do: \n"
+          "(a) list all machines \n"
+          "(ipmi) list all ipimi machines \n"
+          "(virsh) list all virtual machine \n")
+
+    option = input("select your option: ")
+
+    if option == 'a':
+        machine_list_all(client)
+    elif option == 'ipmi':
+        machine_list_ipmi(client)
+    elif option == 'virsh':
+        machine_list_virsh(client)
+
+    exit()
+
 
     for m in client.machines.list():
-        print(repr(m))
-        print("To print structure detailed")
-        print()
-        print(m.hostname)
-        print(m.zone)
-        print(m.zone.name)
-        print(m.zone.virtualblockdevice_set)
-        for i in m.zone:
-            print (i)
-        #print_structure_det(m, True)
+        # print(dir(m))
+        # print(m.architecture)
+        # print(m.boot_disk)
+        # print(m.node_type)
+        # print(m.power_state)
+        # print(m.cpus)
+        # print(m.memory)
+        # print("power_type", m.power_type)
 
-        break
+        # print(m.get_details())
+        # dict_keys(['lldp', 'lshw'])
+        # print(m.get_details()['lldp'])
+        # print(m.get_details()['lshw'])
+        m_details = m.get_details()
+        # print(m_details['lshw'])
+        # print(type(m_details['lshw'].decode()))
+        if "qh2-rc" not in m.hostname:
+            if m.status.name == "DEPLOYED":
+#                if m.distro_series != "jammy":
+                if m.distro_series == "jammy":
+                    print(m.fqdn,
+                          # m.hostname,
+                          m.distro_series,
+                          m.power_type,
+                          m.cpus,
+                          m.memory,
+                          # m.zone,
+                          #m.pool,
+                          m.ip_addresses,
+                          )
+                    # print(type(m.status))
 
+
+# Get a reference to self.
+    myself = client.users.whoami()
+
+    print(myself)
+    assert myself.is_admin, "%s is not an admin" % myself.username
 
 
 if __name__ == '__main__':

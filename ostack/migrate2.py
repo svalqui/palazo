@@ -10,17 +10,18 @@ def main():
 
     servers_host = os_conn.list_servers(
         all_projects=True,
-        filters={'host': source_host}
+        # filters={"host": source_host}
+        filters={"hypervisor_hostname": source_host}
     )
-
     n_servers = len(servers_host)
-    print(n_servers)
+    print("Num of Servers on host", source_host, len(servers_host))
     for idx, server in enumerate(servers_host):
         print ("---v ", idx+1 ," of ", n_servers)
         if server.status == "ACTIVE": # If active migrate
-            print(datetime.datetime.time.now(), "Migrating ", server.id, server.name, " from: ", source_host, )
+            print(datetime.datetime.now(), "Migrating ", server.id, server.name, " from: ", source_host, )
 
-            server.live_migrate(session=os_conn.session, host=None, force=None, block_migration='auto')
+            #server.live_migrate(session=os_conn.session, host=None, force=None, block_migration='auto')
+            server.migrate()
 
             my_svr_state = getattr(server, "OS-EXT-STS:vm_state")
             my_svr_host = getattr(server, "OS-EXT-SRV-ATTR:host")
