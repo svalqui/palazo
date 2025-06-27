@@ -556,7 +556,8 @@ def server_by_ip(svr_ip, os_conn):
 
         for i in sg['security_group_rules']:
      #       print("   ", i)
-            if i['direction'] == 'ingress' and  i['remote_ip_prefix'] == '0.0.0.0/0':
+#            if i['direction'] == 'ingress' and  i['remote_ip_prefix'] == '0.0.0.0/0':
+            if i['direction'] == 'ingress':
                 print("       ", i['remote_ip_prefix'], i['direction'],i['port_range_min'], i['port_range_max'])
 
 
