@@ -36,7 +36,8 @@ def main():
     # https://pytenable.readthedocs.io/en/1.4.7/api/io/exports.html
     # results = tio.exports.vulns(plugin_id=[149334,], cidr_range=cidr)
     # results = tio.exports.vulns(severity=["critical", ], cidr_range=cidr)
-    results = tio.exports.vulns(plugin_id=[201456, 201420, 201351], cidr_range=cidr)
+    results = tio.exports.vulns(severity=["critical","high", "medium", ], cidr_range=cidr)
+    # results = tio.exports.vulns(plugin_id=[201456, 201420, 201351], cidr_range=cidr)
 
     my_pids = {}
     sorted_by_pid = {}
@@ -78,7 +79,7 @@ def main():
                 print(r['plugin']['bid'][0], r['plugin']['name'])
                 p_1 = False
             print(r['asset']['ipv4'], r['asset']['last_scan_target'], r['state'], r['port'])
-            server_by_ip(r['asset']['last_scan_target'], os_conn)
+            # server_by_ip(r['asset']['last_scan_target'], os_conn)
         print()
 
 
