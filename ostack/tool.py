@@ -1009,6 +1009,8 @@ def cin_metrics(my_session, host_name):
 def main():
     """ CLI implementation temporal for fast trial while developing
     """
+#p_volumes = os_conn.block_storage.volumes(all_projects=True,
+#                                              project_id=project_id)  # Generator
     print(os.environ['OS_AUTH_URL'])
     print(os.environ['OS_USERNAME'])
 
