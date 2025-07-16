@@ -3,13 +3,22 @@
 
 import json
 from os import path
+from urllib.parse import urlparse
+
 import requests
+
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import sys
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
 API_ENDPOINT = "https://"
 BASELINES_SRV = "/api/UpdateService/Baselines"
+COMPLIANCE_SRV = "/api/UpdateService/Baselines(14)/DeviceComplianceReports"
+COMPLIANCE = "/api/UpdateService/Baselines(14)/DeviceComplianceReports({})/ComponentComplianceReports"
+# "/api/UpdateService/Baselines(99)/DeviceComplianceReports(9999999)/ComponentComplianceReports"
+
 
 def authenticate(ome_ip_address: str, ome_username: str, ome_password: str) -> dict:
     """
@@ -75,7 +84,7 @@ def get_data(authenticated_headers: dict, url: str, odata_filter: str = None, ma
 
         if count_data.status_code == 400:
             print("Received an error while retrieving data from %s:" % url + '?$filter=' + odata_filter)
-            pprint(count_data.json()['error'])
+            print(count_data.json()['error'])
             return {}
 
         count_data = count_data.json()
@@ -128,19 +137,77 @@ def get_data(authenticated_headers: dict, url: str, odata_filter: str = None, ma
 
     return data
 
+def p_data(data, my_indexes):
+    for record in data:
+        line = ""
+        for i in my_indexes:
+            if i in record:
+                line += str(record[i]) + ","
+        print(line)
+
+
+def get_device_ids(data):
+    ids = {}
+    for record in data:
+        ids[record["Id"]] = [record["ServiceTag"], record["DeviceName"]]
+    return ids
+
+
+def get_bios_record(data):
+    my_rec = {}
+    for record in data:
+        if "Path" in record:
+            if "BIOS" in record["Path"]:
+                return record
+
+    return my_rec
+
 
 def main():
     ome_address = input("OME address: ")
     ome_u = input("OME user: ")
-    ome_p = input("OME pass")
+    ome_p = input("OME pass: ")
 
     auth_header = authenticate(ome_address, ome_u, ome_p)
 
-    url = API_ENDPOINT + ome_address + BASELINES_SRV
+    print("(1) print hosts id on baseline")
+    print("(2) print compliance of host id")
+    print("(3) print BIOS for all devices")
 
-    base_lines = get_data(auth_header, url ,None,1000)
-    for d in base_lines:
-        print(d)
+    my_option = input("Option?: ")
+
+    if my_option == "1":
+        url = API_ENDPOINT + ome_address + COMPLIANCE_SRV
+        data = get_data(auth_header, url ,None,1000)
+        p_data(data, ["Id", "DeviceId", "ServiceTag", "DeviceName", "ComplianceStatus"])
+
+    elif my_option == "2":
+        dev_id = input("Device ID: ")
+        url = API_ENDPOINT + ome_address + COMPLIANCE
+        url = url.format(dev_id)
+        print(url)
+        data = get_data(auth_header, url ,None,1000)
+        p_data(data, ["Name", "CurrentVersion", "Version"])
+
+    elif my_option == "3":
+        url = API_ENDPOINT + ome_address + COMPLIANCE_SRV
+        data = get_data(auth_header, url ,None,1000)
+
+        for rep in data:
+            com = get_bios_record(rep['ComponentComplianceReports'])
+            print(rep['Id'], ",",
+                  rep['DeviceId'],",",
+                  rep['ServiceTag'],",",
+                  rep['DeviceName'],",",
+                  rep['DeviceModel'],",",
+                  com['Id'],",",
+                  com['CurrentVersion'],",",
+                  com['Version'],",",
+                  com['Path'],",",
+                  com['Name'],",",
+                  )
+    else:
+        print("Option not valid")
 
 
 if __name__ == '__main__':
