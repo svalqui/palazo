@@ -17,6 +17,7 @@ API_ENDPOINT = "https://"
 BASELINES_SRV = "/api/UpdateService/Baselines"
 COMPLIANCE_SRV = "/api/UpdateService/Baselines(14)/DeviceComplianceReports"
 COMPLIANCE = "/api/UpdateService/Baselines(14)/DeviceComplianceReports({})/ComponentComplianceReports"
+WARRANTY_SVR="/api/WarrantyService/Warranties"
 # "/api/UpdateService/Baselines(99)/DeviceComplianceReports(9999999)/ComponentComplianceReports"
 
 
