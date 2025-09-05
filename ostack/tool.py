@@ -136,7 +136,10 @@ def prj_net_det(os_conn, my_prj):
         if project.tags:
             if 'legacy-networking' in project.tags:
                 print("Project:", project.name, "is legacy")
+    print("Project :", project.id)
+    print("Looking for Networks...")
     nets = os_conn.network.networks(is_router_external=False, project_id=project.id)
+    n_nets = 0
     for n in nets:
         if n.provider_network_type == 'midonet':
             if n.name not in net_leg_names:
@@ -148,12 +151,18 @@ def prj_net_det(os_conn, my_prj):
         for s in n.subnet_ids:
             sub = os_conn.get_subnet(s)
             print("   ", sub.resource_key, sub.id, sub.name, sub.cidr)
+        n_nets += 1
+
+    print("  Networks on Project: ", n_nets)
 
     # nets_mido = os_conn.network.networks(provider_network_type='midonet')
     # for n in nets_mido:
     #    print(n.name,)
 
+    print("Looking for routers...")
     rtrs = os_conn.network.routers(tenant_id=project.id)
+    n_rtrs = 0
+
     for r in rtrs:
 
         my_info = ''
@@ -169,15 +178,23 @@ def prj_net_det(os_conn, my_prj):
                 for ip in r.external_gateway_info[i]:
                     # print(ip)
                     print("        external_fixed_ips", ip['ip_address'])
+        n_rtrs += 1
+    print("    routers on project: ", n_rtrs)
 
+    print("Looking for LoadBalancers...")
     lbs = os_conn.load_balancer.load_balancers(project_id=project.id)
+    n_lbs = 0
     for l in lbs:
         if is_mido(os_conn, l.vip_network_id):
             print("Legacy", l.resource_key, l.name, l.vip_address, l.vip_network_id)
         else:
             print(l.resource_key, l.name, l.vip_address, l.vip_network_id)
+        n_lbs += 1
+    print("    lbs on project: ", n_lbs)
 
+    print("Looking for Network IPs")
     ips = os_conn.network.ips(project_id=project.id)
+    n_ips = 0
     for i in ips:
         if is_mido(os_conn, i.floating_network_id):
             print("Legacy",
@@ -198,15 +215,13 @@ def prj_net_det(os_conn, my_prj):
                   "Port",
                   i.port_id,
                   )
+        n_ips += 1
+    print("    IPs on project: ", n_ips)
 
-    print("List of VMs on Legacy Network")
+    print("List of VMs")
     svrs = os_conn.list_servers(all_projects=True, filters={'project_id':project.id})
     print("servers", len(svrs))
-    print()
-    # print(dir(svrs[0]))
-    print()
-    print(svrs[0])
-    print("servers in legacy Network: ")
+    print("servers: ")
     for s in svrs:
         svr_adds = ""
         is_leg = True
@@ -217,15 +232,10 @@ def prj_net_det(os_conn, my_prj):
             for ips in s.addresses[net]:
                 svr_adds += ips['addr'] + " "
         if is_leg:
-            print(s.id, s.name, s.image, s.image_id, svr_adds)
+            print(s.id, s.name, svr_adds)
             if s.image.id:
-                print("    ", s.image.id)
                 my_img = os_conn.get_image_by_id(s.image.id)
-                print()
-                print(my_img.name)
-
-                print("$$$$")
-                print ("    ",)
+                print("    ", s.image.id, my_img.name)
 
     return
 
