@@ -560,6 +560,34 @@ def server_by_ip(svr_ip, os_conn):
             if i['direction'] == 'ingress':
                 print("       ", i['remote_ip_prefix'], i['direction'],i['port_range_min'], i['port_range_max'])
 
+def contact_by_ip_two(svr_ip, os_conn):
+    my_result = ""
+    my_filter = {'ip': svr_ip}
+    p = os_conn.list_ports(filters={'fixed_ips': ['ip_address='+svr_ip]})
+    print("port device_id: ", p[0].device_id)
+    # print("port project_id: ", p[0].project_id)
+    my_vm = os_conn.get_server_by_id(p[0].device_id)
+
+    print(my_vm.metadata)
+
+    my_result = "VM IP: " + svr_ip + "\n"
+    my_result += "VN Name: " + my_vm.name + "\n"
+    if "allow_user" in my_vm.metadata:
+        my_result += "Allowed user: \n  " + my_vm.metadata["allow_user"] + "\n"
+    if "users0" in my_vm.metadata:
+        my_list = my_vm.metadata["users0"].split(",")
+        if len(my_list) >= 1:
+            my_result += "Other users: \n  "
+            for e in my_list:
+                e = e.lstrip().replace('"', '')
+                if e[:2] == "ST":
+                    e = e[8:] + "@student.unimelb.edu.au"
+                elif e[:2] == "UN":
+                    e = e[8:] + "@unimelb.edu.au"
+                my_result += e + "\n  "
+
+    return my_result
+
 
 def server_status(svr_id, nv_client):
     my_svr = nv_client.servers.get(svr_id)
@@ -1058,6 +1086,7 @@ def main():
           "(sia) Server in an aggregate\n"
           "(sd) Server details by server id, all obj att \n"
           "(sip) Server by IP\n"
+          "(cip2) Contact by IP Case 2\n"
           "(p) Projects, look for project names matching \n"
           "(pd) prj det, show project details for the given project name \n"
           "(pbip) Project and Server Details by list of VM IPs ([ip1,ip2....]) \n"
@@ -1094,6 +1123,9 @@ def main():
     elif look_in == "sip":
         svr = server_by_ip(look_for, os_conn)
         print(svr)
+    elif look_in == "cip2":
+        my_txt = contact_by_ip_two(look_for, os_conn)
+        print(my_txt)
     elif look_in == "p":
         sleep(1)
     elif look_in == "pd":
