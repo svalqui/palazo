@@ -15,10 +15,25 @@ def main():
 
     my_fd = API('dhdnectar.freshdesk.com', my_api_key)
 
-    # my_t = my_fd.tickets.get_ticket(224658)
-    # print(my_t)
-    # print(my_t.id, my_t.group_id, my_t.status)
-    # print(dir(my_t))
+
+    a_ticket = my_fd.tickets.get_ticket()
+    print(a_ticket)
+    print(dir(a_ticket))
+    print("id", a_ticket.id)
+    print("sub",a_ticket.subject)
+    print("responder", a_ticket.responder_id)
+    print("requester_id", a_ticket.requester_id)
+    print("group", a_ticket.group_id)
+    print("tags", a_ticket.tags)
+    print("type", a_ticket.type)
+    print("status", a_ticket.status)
+    print("cc-emails", a_ticket.cc_emails)
+    print("to-emails", a_ticket.to_emails)
+    print("email-conf-id", a_ticket.email_config_id)
+    print("support-email", a_ticket.support_email)
+    print("association-type", a_ticket.association_type)
+    print("custom-fields", a_ticket.custom_fields)
+    print()
 
 
     for t in my_fd.tickets.list_tickets():
@@ -32,6 +47,7 @@ def main():
         a = input()
 
     print("====")
+
 
 
 
