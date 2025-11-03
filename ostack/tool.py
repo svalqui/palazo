@@ -738,8 +738,8 @@ def flavor_det(nv_client):
         print(f.name, f.id, f.vcpus, f.ram)
     return ()
 
-def flavor_aggregate(os_conn, look_for):
-    """List flavors on aggregates"""
+def flavor_aggregate_av(os_conn, look_for):
+    """List flavors on aggregates per availability zone"""
     my_flavs = os_conn.list_flavors()
     my_aggres = os_conn.list_aggregates()
     aggregate_classname = {}
@@ -774,6 +774,56 @@ def flavor_aggregate(os_conn, look_for):
                 for f in flavor_classname[cn]:
                     print("    ", f.name)
             print()
+
+def flavor_on_aggregate(os_conn, look_for):
+    """List flavors on an aggregate"""
+    my_flavs = os_conn.list_flavors()
+    my_aggre = os_conn.get_aggregate(look_for)
+
+    aggregate_classname = {}
+    if my_aggre.metadata:
+        if 'flavor' in my_aggre.metadata.keys():
+            aggregate_classname[my_aggre.metadata['flavor']] = [my_aggre]
+
+    flavor_classname = {}
+    for f in my_flavs:
+        if "flavor_class:name" in f.extra_specs.keys():
+            if f.extra_specs['flavor_class:name'] in aggregate_classname.keys():
+                if f.extra_specs['flavor_class:name'] in flavor_classname.keys():
+                    flavor_classname[f.extra_specs['flavor_class:name']].append(f)
+                else:
+                    flavor_classname[f.extra_specs['flavor_class:name']] = [f]
+
+        if "aggregate_instance_extra_specs:flavor" in f.extra_specs.keys():
+            if f.extra_specs['aggregate_instance_extra_specs:flavor'] in aggregate_classname.keys():
+                if f.extra_specs['aggregate_instance_extra_specs:flavor'] in flavor_classname.keys():
+                    flavor_classname[f.extra_specs['aggregate_instance_extra_specs:flavor']].append(f)
+                else:
+                    flavor_classname[f.extra_specs['aggregate_instance_extra_specs:flavor']] = [f]
+
+    for cn in aggregate_classname.keys():
+        for a in aggregate_classname[cn]:
+            my_flavors = {}
+            print("Aggregate:", a.name)
+            print("Hosts:")
+            for h in a.hosts:
+                print("    ",h)
+                my_svrs = os_conn.list_servers(all_projects=True, filters={'compute_host': h})
+                for vm in my_svrs:
+                    if vm.flavor.name in my_flavors.keys():
+                        my_flavors[vm.flavor.name] += 1
+                    else:
+                        my_flavors[vm.flavor.name] = 1
+            print("Flavors from aggregate ", look_for, ":")
+            if cn in flavor_classname.keys():
+                for f in flavor_classname[cn]:
+                    print("    ", f.name)
+            print()
+
+            print("Flavors from VMs on aggregate", look_for, ": ")
+            for f in my_flavors.keys():
+                print("    ", f, my_flavors[f])
+
 
 def flavor_unset(my_os_conn, my_flavor):
     """Unset all projects of a given flavor."""
@@ -1105,6 +1155,7 @@ def main():
           "(ur) User resources, \n"
           "(f) Flavors, \n"
           "(fagr) Flavors on aggregates per availability zone, \n"
+          "(fona) Flavors on aggregate, \n"
           "(fa) Flavor accessed by a Project-id, \n"
           "(fun) Flavor unset projects on a flavor \n"
           "(ai) allocation brief by allocation id\n"
@@ -1149,7 +1200,9 @@ def main():
     elif look_in == "f": # flavor details
         flavor_det(nv_client)
     elif look_in == "fagr":  # flavor per aggregate
-        flavor_aggregate(os_conn, look_for)
+        flavor_aggregate_av(os_conn, look_for)
+    elif look_in == "fona":  # flavor on aggregate
+        flavor_on_aggregate(os_conn, look_for)
     elif look_in == "fa":  # Flavor Accessed by Project-id
         flavor_prjs(my_session, look_for)
     elif look_in == "fun":  # Flavor unset projects on flavor
