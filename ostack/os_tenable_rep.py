@@ -1,7 +1,12 @@
+
+# https://pytenable.readthedocs.io/en/stable/api/io/exports.html
+
 import ipaddress
 import os
 import sys
 from os import path
+
+import arrow
 from tenable.io import TenableIO
 
 from prettytable import PrettyTable
@@ -59,6 +64,7 @@ def main():
     cidr_obj = ipaddress.ip_network(cidr)
 
     results = tio.exports.vulns(severity=["critical","high", "medium", ], cidr_range=cidr)
+    my_assets = tio.exports.assets(updated_at=int(arrow.now().shift(days=-7).timestamp()))
 
     by_prj_id = {}
 
@@ -108,6 +114,15 @@ def main():
         'last_found',
     ]
     render_table(by_prj_id,columns, 'Vulnerabilities','prj_id')
+
+    print()
+    for a in my_assets:
+        print(a)
+
+    print()
+    for k in my_assets[0]:
+        print(k, my_assets[0][k])
+
 
 
 if __name__ == '__main__':

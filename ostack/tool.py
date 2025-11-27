@@ -233,9 +233,9 @@ def prj_net_det(os_conn, my_prj):
                 svr_adds += ips['addr'] + " "
         if is_leg:
             print(s.id, s.name, svr_adds)
-            if s.image.id:
-                my_img = os_conn.get_image_by_id(s.image.id)
-                print("    ", s.image.id, my_img.name)
+ #           if s.image.id:
+ #               my_img = os_conn.get_image_by_id(s.image.id)
+ #               print("    ", s.image.id, my_img.name)
 
     return
 
@@ -246,6 +246,7 @@ def net_all(os_conn):
     rtrs = os_conn.network.routers(tenant_id=project.id)
     lbs = os_conn.load_balancer.load_balancers(project_id=project.id)
     ips = os_conn.network.ips(project_id=project.id)
+    fips = os_conn.network
 
 
 def ip_to_lb(os_conn, my_ip):
@@ -257,9 +258,6 @@ def ip_to_lb(os_conn, my_ip):
 
     lbs = os_conn.load_balancer.amphorae()
     print(dir(lbs))
-
-
-
 
     for l in lbs:
         print(l)
@@ -932,8 +930,6 @@ def allo_all_active(my_session):
                 )
     return ()
 
-
-
 def allo_per_approver(my_session, my_email):
     """Allocation report per a approver email"""
     allo_cli = allo_client.Client(version=1, session=my_session)
@@ -1107,6 +1103,7 @@ def main():
 
     # Latest module
     os_conn = openstack.connect(cloud='envvars')
+
 
     # Create a keystone client interface
     # https://docs.openstack.org/python-keystoneclient/latest/api/keystoneclient.v3.html#module-keystoneclient.v3.client
