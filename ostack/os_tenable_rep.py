@@ -42,7 +42,11 @@ def get_instance_by_ip(svr_ip, os_conn):
 
 def get_prj_id_by_ip(svr_ip, os_conn):
     my_ports = os_conn.list_ports(filters={'fixed_ips': ['ip_address=' + svr_ip]})
-    return my_ports[0].project_id
+    if len(my_ports) > 0 :
+        prj_id = my_ports[0].project_id
+    else:
+        prj_id = ''
+    return prj_id
 
 
 def main():
@@ -87,7 +91,7 @@ def main():
                   # r['asset']['last_scan_target'],
                   r['severity'],
                   r['severity_id'],
-                  r['plugin']['bid'][0],
+                  r['plugin']['id'],
                   r['plugin']['name'],
                   r['state'],
                   r['last_found'],
@@ -117,7 +121,13 @@ def main():
 
     print()
     for a in my_assets:
-        print(a)
+        print(a['id'],
+              a['has_agent'],
+              a['has_plugin_results'],
+              a['last_seen'],
+              a['ipv4s'],
+              a['fqdns'],
+              )
 
     print()
     for k in my_assets[0]:
