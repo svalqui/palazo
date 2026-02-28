@@ -174,6 +174,7 @@ def main():
     print("(1) print hosts id on baseline")
     print("(2) print compliance of host id")
     print("(3) print BIOS for all devices")
+    print("(4) print warranty for all devices")
 
     my_option = input("Option?: ")
 
@@ -207,6 +208,10 @@ def main():
                   com['Path'],",",
                   com['Name'],",",
                   )
+    elif my_option == "4":
+        url = API_ENDPOINT + ome_address + WARRANTY_SVR
+        data = get_data(auth_header, url ,None,1000)
+        p_data(data, ["DeviceId", "DeviceIdentifier" , "DeviceName", "EndDate"])
     else:
         print("Option not valid")
 

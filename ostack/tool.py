@@ -671,7 +671,7 @@ def server_in_aggregate(os_conn, look_for, my_site=''):
 
         # Getting Projects
         print(datetime.datetime.now(), "Getting Projects")
-        projects = os_conn.list_prqqojects()
+        projects = os_conn.list_projects()
         print(datetime.datetime.now(), "projects", len(projects))
 
         # index projects by project.id
