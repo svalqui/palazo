@@ -10,7 +10,7 @@ import yfinance as yf
 
 
 def main():
-    file_conf_dir = pathlib.Path(__file__).absolute().parents[2]
+    file_conf_dir = pathlib.Path.home()
     print('file_conf_dir', file_conf_dir)
     file_conf_name = pathlib.Path(file_conf_dir) / 'palazo.ini'
     print('file_conf_name', file_conf_name)
