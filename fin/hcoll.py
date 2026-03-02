@@ -35,9 +35,19 @@ def main():
 
     else:
         print("Download:", ticket)
-        cia_his = yf.download(ticket, period="2y")
-        print(hisfile_path)
+        dat = yf.Ticker(ticket)
+        print(dat.info)
+        print(dat.calendar)
+        print(dat.analyst_price_targets)
+        print(dat.quarterly_income_stmt)
+        cia_his = dat.history(period='1mo')
+        #print(dat.option_chain(dat.options[0]).calls)
         cia_his.to_csv(hisfile_path)
+
+
+       # cia_his = yf.download(ticket, period="2y")
+       # print(hisfile_path)
+       # cia_his.to_csv(hisfile_path)
 
 
 if __name__ == '__main__':
