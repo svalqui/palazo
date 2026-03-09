@@ -1,5 +1,6 @@
 # Copyright 2019-2025 by Sergio Valqui. All rights reserved.
 # https://www.zenrows.com/blog/scraping-javascript-rendered-web-pages#extract-html
+# https://www.zenrows.com/blog/selenium-vs-beautifulsoup#selenium-tutorial
 import json
 
 import bs4.element
