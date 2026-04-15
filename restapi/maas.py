@@ -39,24 +39,24 @@ def machine_list_ipmi(client):
                   m.power_state,
                   m.ip_addresses,
                   m.status,
-                  m._data['pod']['name'],
+                  m._data['pod'],
                   )
 
 def machine_list_virsh(client):
     for m in client.machines.list():
         if m.power_type == 'virsh':
             # det = m.get_details()
-            print(m.fqdn,
-                  m.osystem,
-                  m.distro_series,
-                  m.power_type,
-                  m.cpus,
-                  m.memory,
-                  m.power_state,
-                  m.ip_addresses,
-                  m.pool.name,
-                  m.status,
-                  m.zone.name,
+            print(m.fqdn, "; ",
+                  m.osystem, "; ",
+                  m.distro_series, "; ",
+                  m.power_type, "; ",
+                  m.cpus, "; ",
+                  m.memory, "; ",
+                  m.power_state, "; ",
+                  m.ip_addresses, "; ",
+                  m.pool.name, "; ",
+                  m.status, "; ",
+                  m.zone.name, "; ",
                   m._data['pod']['name'],
                   )
 
