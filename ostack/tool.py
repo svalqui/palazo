@@ -775,8 +775,13 @@ def flavor_aggregate_av(os_conn, look_for):
 
 def flavor_on_aggregate(os_conn, look_for):
     """List flavors on an aggregate"""
+    print("Listing flavors on aggregate " + look_for)
     my_flavs = os_conn.list_flavors()
+    print(len(my_flavs))
+    print()
     my_aggre = os_conn.get_aggregate(look_for)
+    print(my_aggre)
+    print()
 
     aggregate_classname = {}
     if my_aggre.metadata:
@@ -784,6 +789,8 @@ def flavor_on_aggregate(os_conn, look_for):
             aggregate_classname[my_aggre.metadata['flavor']] = [my_aggre]
 
     flavor_classname = {}
+    print(my_flavs[0])
+    print()
     for f in my_flavs:
         if "flavor_class:name" in f.extra_specs.keys():
             if f.extra_specs['flavor_class:name'] in aggregate_classname.keys():
@@ -798,6 +805,7 @@ def flavor_on_aggregate(os_conn, look_for):
                     flavor_classname[f.extra_specs['aggregate_instance_extra_specs:flavor']].append(f)
                 else:
                     flavor_classname[f.extra_specs['aggregate_instance_extra_specs:flavor']] = [f]
+    print("flavor_clasname", len(flavor_classname))
 
     for cn in aggregate_classname.keys():
         for a in aggregate_classname[cn]:
