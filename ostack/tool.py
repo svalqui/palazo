@@ -1097,6 +1097,13 @@ def cin_metrics(my_session, host_name):
         print('Number of Volumes', len(vols))
         print()
 
+def volume_detail(my_os_conn, vol_id):
+    my_vol = my_os_conn.get_volume(vol_id)
+
+    print(my_vol)
+    print(dir(my_vol))
+    print(my_vol.cluster_name)
+
 
 def main():
     """ CLI implementation temporal for fast trial while developing
@@ -1170,7 +1177,8 @@ def main():
           "(paz) projects per availability zone\n"
           "(pnd) project network details\n"
           "(sec) security groups per srv_id\n"
-          "(lip) load balancers per ip\n")
+          "(lip) load balancers per ip\n"
+          "(vd) volume details by vol_id\n")
 
     look_in = input(" your choice: ")
     look_for = input("Search for :")
@@ -1232,6 +1240,8 @@ def main():
         cin_metrics(my_session, look_for)
     elif look_in =='lip':
         ip_to_lb(os_conn, look_for)
+    elif look_in =='vd':
+        volume_detail(os_conn, look_for)
 
     else:
         print("No option available")
