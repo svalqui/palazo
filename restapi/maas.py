@@ -25,7 +25,7 @@ def machine_list_all(client):
               m.power_state,
               m.ip_addresses,
               m.status,
-              m._data['pod']['name'],
+              m._data['pod'],
               )
 
 def machine_list_ipmi(client):
