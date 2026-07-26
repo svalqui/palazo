@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 import os
 import time
 
-def click_bottom_dl(my_path, my_url, my_text):
+def click_buttom_dl(my_path, my_url, my_text):
     print(my_path)
     print(my_url)
     print(my_text)

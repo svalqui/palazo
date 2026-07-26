@@ -14,7 +14,7 @@ requests
 selenium
 beautifulsoup4
 urllib3
-
+playwright
 
 #Openstack
 aodhclient
