@@ -46,6 +46,7 @@ def machine_list_virsh(client):
     for m in client.machines.list():
         if m.power_type == 'virsh':
             # det = m.get_details()
+            #print (dir(m))
             print(m.fqdn, "; ",
                   m.osystem, "; ",
                   m.distro_series, "; ",
@@ -57,7 +58,8 @@ def machine_list_virsh(client):
                   m.pool.name, "; ",
                   m.status, "; ",
                   m.zone.name, "; ",
-                  m._data['pod']['name'],
+                  m._data['pod']['name'], "; ",
+                  m._data['storage'],
                   )
 
 def none_attr():

@@ -1,4 +1,4 @@
-crowdstrike-falconpy
+
 # python3   -m pip install SomePackage
 
 configparser
@@ -74,3 +74,6 @@ oauthlib~=3.2.2
 ipaddress~=1.0.23
 # pyTenable~=1.6.0
 prettytable~=3.17.0
+
+# Cyber
+crowdstrike-falconpy
