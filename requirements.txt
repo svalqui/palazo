@@ -73,7 +73,7 @@ openstacksdk>=4.0.0
 oauthlib~=3.2.2
 ipaddress~=1.0.23
 # pyTenable~=1.6.0
-prettytable~=3.17.0
+prettytable~=0.7.2
 
 # Cyber
 crowdstrike-falconpy
