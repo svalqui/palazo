@@ -8,6 +8,17 @@ import sys
 import pandas as pd
 import yfinance as yf
 
+def get_ticker_symbol(code):
+    """
+    Gets ticker symbol given a ticker code
+    """
+    code = str(code).strip().upper()
+
+    if not code.endswith(".AX"):
+        code = f"{code}.AX"
+
+    return code
+
 
 def main():
     file_conf_dir = pathlib.Path.home()
