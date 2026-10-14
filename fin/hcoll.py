@@ -1,66 +1,94 @@
-# Copyright 2019-2023 by Sergio Valqui. All rights reserved.
-
-
+# Copyright 2019-2026 by Sergio Valqui. All rights reserved.
+#python fin/hcoll.py code
+import argparse
 import configparser
 import pathlib
 import sys
+from datetime import datetime, date
 
-import pandas as pd
 import yfinance as yf
 
-def get_ticker_symbol(code):
-    """
-    Gets ticker symbol given a ticker code
-    """
+
+def normalize_asx_code(code):
+    """Convert to standard ASX code."""
+
     code = str(code).strip().upper()
+
+    if not code:
+        raise ValueError("code cannot be empty")
 
     if not code.endswith(".AX"):
         code = f"{code}.AX"
 
     return code
 
+def get_hist(ticker, hisfile_path):
+    print("Downloading:", ticker)
 
-def main():
+    dat = yf.Ticker(ticker)
+
+    cia_his = dat.history(
+        period="5y",
+        interval="1d",
+        auto_adjust=False,
+    )
+
+    if cia_his.empty:
+        raise RuntimeError(
+            f"No data returned for {ticker}"
+        )
+
+    cia_his.to_csv(hisfile_path)
+
+    print(f"Saved {len(cia_his)} rows to {hisfile_path}")
+
+
+def main(code):
     file_conf_dir = pathlib.Path.home()
-    print('file_conf_dir', file_conf_dir)
-    file_conf_name = pathlib.Path(file_conf_dir) / 'palazo.ini'
-    print('file_conf_name', file_conf_name)
+    print("file_conf_dir:", file_conf_dir)
 
-    # Reading configuration
-    config = configparser.ConfigParser()
-    config.read(str(file_conf_name))
-    main_path = config['fin']['homedir']
-    his_path = pathlib.Path(main_path) / 'hist'
-    print(his_path)
+    his_path = file_conf_dir/ "ASX" / "hist"
+    print("his_path:", his_path)
+    his_path.mkdir(parents=True, exist_ok=True)
 
-    ticket = input("T? :")
-    print("getting :", ticket)
-    # If file exist get the latest date
-    hisfile_path = his_path / ticket
-    print("Histfile path :",hisfile_path)
-    if hisfile_path.expanduser().exists():
-        print("File exists")
-        # get most recent date
-        cur_hist = pd.read_csv(hisfile_path, index_col=['Date'], parse_dates=['Date'])
-        cur_hist.info()
+    # Convert code to AX code for yfinance
+    ticker = normalize_asx_code(code)
 
+    hisfile_path = his_path / ticker
+
+    print("Getting:", ticker)
+    print("Histfile path:", hisfile_path)
+
+    if hisfile_path.exists():
+        modified_date = datetime.fromtimestamp(
+            hisfile_path.stat().st_mtime
+        ).date()
+
+        if modified_date != date.today():
+            print("File is not from today; downloading it.")
+            get_hist(ticker, hisfile_path)
+        else:
+            print("File is from today; skipping download.")
+            return 0
     else:
-        print("Download:", ticket)
-        dat = yf.Ticker(ticket)
-        print(dat.info)
-        print(dat.calendar)
-        print(dat.analyst_price_targets)
-        print(dat.quarterly_income_stmt)
-        cia_his = dat.history(period='1mo')
-        #print(dat.option_chain(dat.options[0]).calls)
-        cia_his.to_csv(hisfile_path)
+        print("File does not exist; downloading it.")
+        get_hist(ticker, hisfile_path)
+    return 1
 
 
-       # cia_his = yf.download(ticket, period="2y")
-       # print(hisfile_path)
-       # cia_his.to_csv(hisfile_path)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Download data"
+    )
+
+    parser.add_argument(
+        "code",
+        help="Give it a code",
+    )
+
+    args = parser.parse_args()
+
+    sys.exit(main(args.code))
 
 
-if __name__ == '__main__':
-    sys.exit(main())
 

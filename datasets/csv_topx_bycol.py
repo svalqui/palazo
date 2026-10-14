@@ -34,6 +34,6 @@ def print_top_x_by_col(csv_file, how_many, col_name):
         .drop(columns=["_col_numeric"])
     )
 
-    print(top_x.to_string(index=False))
+    #print(top_x.to_string(index=False, header=False))
 
-    return top_x
+    return top_x.values.tolist()
