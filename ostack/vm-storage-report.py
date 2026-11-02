@@ -47,6 +47,8 @@ def main():
                     projects_dict[vm.project_id] = project
                     prj_name = project.name
 
+                instance_name = getattr(vm,'OS-EXT-SRV-ATTR:instance_name', None)
+
                 locked_compose = ""
                 if vm.is_locked:
                     locked_compose = "LOCKED " + vm.locked_reason
