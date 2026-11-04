@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
 import os
-from falconpy import Hosts
+from falconpy import Hosts, SpotlightVulnerabilities
 import sys
 
 def main():
@@ -54,6 +54,109 @@ def main():
             error_code = error["code"]
             error_message = error["message"]
             print(f"[Error {error_code}] {error_message}")
+
+    # query hosts by subnet
+
+    hosts_in_subnet = hosts.query_devices_by_filter(filter="local_ip:'45.113.232.0/22'",
+                                                    limit=5000,
+                                                    offset=0)
+    print(type(hosts_in_subnet))
+    print()
+
+    # Extract asset IDs
+    asset_ids = hosts_in_subnet["body"]["resources"]
+
+    print(f"Found {len(asset_ids)} assets")
+
+    # Query vulnerabilities
+
+    # Initialise the Spotlight client
+    vul_client = SpotlightVulnerabilities(
+        client_id=os.getenv("FALCON_CLIENT_ID"),
+        client_secret=os.getenv("FALCON_CLIENT_SECRET"),
+        base_url=os.getenv("FALCON_API_URL"),
+    )
+
+    print("---- Vulnerabilities")
+
+    # Query all vulnerabilities first
+    facet = {"cve", "host_info", "remediation", "evaluation_logic"}
+
+    # Base filters
+    base_filter = "status:!'closed'+last_seen_within:'3'+cve.exprt_rating:['CRITICAL']+host_info.internet_exposure:'Yes'"
+    # print(asset_ids[0])
+
+    # Build aid filter with array
+    aid_list = ",".join([f"'{aid}'" for aid in asset_ids])
+    aid_filter = f"aid:[{aid_list}]"
+
+    SEARCH_FILTER_TEST = f"{base_filter}+{aid_filter}"
+
+    vul_results = vul_client.query_vulnerabilities_combined(
+        filter=SEARCH_FILTER_TEST,
+        facet=facet,
+        limit=400
+    )
+
+    vulnerabilities = vul_results["body"]["resources"]
+    print(f"Total vulnerabilities: {len(vulnerabilities)}")
+
+    # Get all unique AIDs in the vulnerabilities
+    vuln_aids = set(vuln.get("aid") for vuln in vulnerabilities)
+
+    print(f"AIDs in vulnerabilities: {len(vuln_aids)}")
+    print(f"AIDs in asset_ids: {len(asset_ids)}")
+    print()
+
+    # Group by asset
+    vulns_by_asset = {}
+    for vuln in vulnerabilities:
+        aid = vuln.get("aid")
+        if aid not in vulns_by_asset:
+            vulns_by_asset[aid] = []
+        vulns_by_asset[aid].append(vuln)
+
+    # Print vulnerabilities per asset
+    for asset_id in asset_ids:
+        count = len(vulns_by_asset.get(asset_id, []))
+        print(f"{asset_id}: {count} vulnerabilities")
+
+#    # Check the structure of a sample vulnerability
+#    if vulnerabilities:
+#        print("\nSample vulnerability structure:")
+##        print(vulnerabilities[0].keys())
+        print(f"\naid value: {vulnerabilities[0].get('aid')}")
+
+    print(f"Total vulnerabilities: {len(vulnerabilities)}")
+    print(f"Total assets: {len(asset_ids)}\n")
+
+    # Group vulnerabilities by aid (asset ID)
+    vulns_by_asset = {}
+
+    for vuln in vulnerabilities:
+        aid = vuln.get("aid")
+        if aid not in vulns_by_asset:
+            vulns_by_asset[aid] = []
+        vulns_by_asset[aid].append(vuln)
+
+    # Print vulnerabilities per asset
+    for asset_id in asset_ids:
+        if asset_id in vulns_by_asset:
+            print(f"\n{'=' * 60}")
+            print(f"Asset ID: {asset_id}")
+            print(f"{'=' * 60}")
+
+            vulns = vulns_by_asset[asset_id]
+            print(f"Total vulnerabilities: {len(vulns)}\n")
+
+            for idx, vuln in enumerate(vulns, 1):
+                print(f"  {idx}. CVE: {vuln.get('vulnerability_id')} Status: {vuln.get('status')}")
+                print(f"     Risk Score: {vuln.get('risk_score')}")
+                print(f"     Exploitability: {vuln.get('exploitability')}")
+
+        else:
+            print("No vulnerabilities found for this asset\n")
+
 
 if __name__ == '__main__':
     sys.exit(main())
