@@ -67,6 +67,9 @@ def main():
     asset_ids = hosts_in_subnet["body"]["resources"]
 
     print(f"Found {len(asset_ids)} assets")
+    print()
+    print(asset_ids[0])
+    print()
 
     # Query vulnerabilities
 
@@ -83,7 +86,7 @@ def main():
     facet = {"cve", "host_info", "remediation", "evaluation_logic"}
 
     # Base filters
-    base_filter = "status:!'closed'+last_seen_within:'3'+cve.exprt_rating:['CRITICAL']+host_info.internet_exposure:'Yes'"
+    base_filter = "status:!'closed'+last_seen_within:'3'+cve.exprt_rating:['CRITICAL']+cve.severity:['CRITICAL']+host_info.internet_exposure:'Yes'"
     # print(asset_ids[0])
 
     # Build aid filter with array
@@ -150,9 +153,15 @@ def main():
             print(f"Total vulnerabilities: {len(vulns)}\n")
 
             for idx, vuln in enumerate(vulns, 1):
-                print(f"  {idx}. CVE: {vuln.get('vulnerability_id')} Status: {vuln.get('status')}")
-                print(f"     Risk Score: {vuln.get('risk_score')}")
-                print(f"     Exploitability: {vuln.get('exploitability')}")
+                # Get CVE description and clean it
+                cve_data = vuln.get("cve", {})
+                description = cve_data.get("description", "N/A")
+
+                # Replace newlines with spaces and trim to 30 characters
+                description_clean = description.replace("\n", " ")[:120]
+
+                print(f"  {idx}. CVE: {vuln.get('vulnerability_id')} Status: {vuln.get('status')} Risk Score: {vuln.get('risk_score')}  Exploitability: {vuln.get('exploitability')}")
+                print(f"     Description: {description_clean}")
 
         else:
             print("No vulnerabilities found for this asset\n")
