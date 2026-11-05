@@ -109,13 +109,42 @@ def main():
 
     SEARCH_FILTER = f"{base_filter}+{aid_filter}"
 
-    vul_results = vul_client.query_vulnerabilities_combined(
-        filter=SEARCH_FILTER,
-        facet=facet,
-        limit=400
-    )
 
-    vulnerabilities = vul_results["body"]["resources"]
+
+    all_vulnerabilities = []
+    offset = 0
+    limit = 400
+
+    while True:
+        vul_results = vul_client.query_vulnerabilities_combined(
+            filter=SEARCH_FILTER,
+            facet=facet,
+            limit=limit,
+            offset=offset
+        )
+
+        vulnerabilities = vul_results["body"]["resources"]
+
+        if not vulnerabilities:
+            break
+
+        all_vulnerabilities.extend(vulnerabilities)
+
+        print(f"Retrieved {len(all_vulnerabilities)} vulnerabilities so far...")
+
+        # Check if we've got all results
+        total = vul_results["body"]["meta"]["pagination"]["total"]
+        if len(all_vulnerabilities) >= total:
+            break
+
+        offset += limit
+
+    print(f"\nTotal vulnerabilities retrieved: {len(all_vulnerabilities)}")
+
+    # Now use all_vulnerabilities instead of vul_results["body"]["resources"]
+    vulnerabilities = all_vulnerabilities
+
+
     print(f"Total vulnerabilities: {len(vulnerabilities)}")
 
     # Get all unique AIDs in the vulnerabilities
