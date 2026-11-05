@@ -12,7 +12,7 @@ def main():
     """ CLI implementation temporal for fast trial while developing
     """
 
-    hosts = Hosts(client_id=os.getenv("FALCON_CLIENT_ID"),
+    hosts_client = Hosts(client_id=os.getenv("FALCON_CLIENT_ID"),
                   client_secret=os.getenv("FALCON_CLIENT_SECRET"),
                   base_url=os.getenv("FALCON_API_URL"),
                   )
@@ -20,7 +20,7 @@ def main():
     SEARCH_FILTER = "s-l-z"
 
     # Retrieve a list of hosts that have a hostname that matches our search filter
-    hosts_search_result = hosts.query_devices_by_filter(filter=f"hostname:*'*{SEARCH_FILTER}*'")
+    hosts_search_result = hosts_client.query_devices_by_filter(filter=f"hostname:*'*{SEARCH_FILTER}*'")
 
     # Confirm we received a success response back from the CrowdStrike API
     if hosts_search_result["status_code"] == 200:
@@ -30,7 +30,7 @@ def main():
         # Confirm our search produced results
         if hosts_found:
             # Retrieve the details for all matches
-            hosts_detail = hosts.get_device_details(ids=hosts_found)["body"]["resources"]  # List of Dict
+            hosts_detail = hosts_client.get_device_details(ids=hosts_found)["body"]["resources"]  # List of Dict
             # print('---')
             # print(hosts_detail)
 
@@ -57,12 +57,14 @@ def main():
 
     # query hosts by subnet
 
-    hosts_in_subnet = hosts.query_devices_by_filter(filter="local_ip:'45.113.232.0/22'",
+    my_subnet = input("Subnet: ")
+    my_filter = "local_ip:'"+ my_subnet + "'"
+
+    hosts_in_subnet = hosts_client.query_devices_by_filter(filter=my_filter,
                                                     limit=5000,
                                                     offset=0)
-    print(type(hosts_in_subnet))
-    print()
-
+    #print(type(hosts_in_subnet))
+    #print(hosts_in_subnet)
     # Extract asset IDs
     asset_ids = hosts_in_subnet["body"]["resources"]
 
@@ -70,6 +72,18 @@ def main():
     print()
     print(asset_ids[0])
     print()
+
+    # Get host details
+    host_details_response = hosts_client.get_device_details(ids=asset_ids)
+    host_details_list = host_details_response["body"]["resources"]
+    #print("...Host details list...", type(host_details_list))
+    #print(host_details_list[0])
+
+    # Order host details by device_id
+    host_detail_by_dev_id = {}
+    for host in host_details_list:
+        aid = host.get("device_id")
+        host_detail_by_dev_id[aid] = host
 
     # Query vulnerabilities
 
@@ -93,10 +107,10 @@ def main():
     aid_list = ",".join([f"'{aid}'" for aid in asset_ids])
     aid_filter = f"aid:[{aid_list}]"
 
-    SEARCH_FILTER_TEST = f"{base_filter}+{aid_filter}"
+    SEARCH_FILTER = f"{base_filter}+{aid_filter}"
 
     vul_results = vul_client.query_vulnerabilities_combined(
-        filter=SEARCH_FILTER_TEST,
+        filter=SEARCH_FILTER,
         facet=facet,
         limit=400
     )
@@ -111,7 +125,7 @@ def main():
     print(f"AIDs in asset_ids: {len(asset_ids)}")
     print()
 
-    # Group by asset
+    # Group vulnerabilities by asset id (aid)
     vulns_by_asset = {}
     for vuln in vulnerabilities:
         aid = vuln.get("aid")
@@ -128,25 +142,18 @@ def main():
 #    if vulnerabilities:
 #        print("\nSample vulnerability structure:")
 ##        print(vulnerabilities[0].keys())
-        print(f"\naid value: {vulnerabilities[0].get('aid')}")
+#        print(f"\naid value: {vulnerabilities[0].get('aid')}")
 
     print(f"Total vulnerabilities: {len(vulnerabilities)}")
     print(f"Total assets: {len(asset_ids)}\n")
 
-    # Group vulnerabilities by aid (asset ID)
-    vulns_by_asset = {}
-
-    for vuln in vulnerabilities:
-        aid = vuln.get("aid")
-        if aid not in vulns_by_asset:
-            vulns_by_asset[aid] = []
-        vulns_by_asset[aid].append(vuln)
-
     # Print vulnerabilities per asset
     for asset_id in asset_ids:
         if asset_id in vulns_by_asset:
+            host = host_detail_by_dev_id.get(asset_id, {})
             print(f"\n{'=' * 60}")
-            print(f"Asset ID: {asset_id}")
+            print(f"Asset ID: {asset_id} Hostname: {host.get('hostname', 'N/A')} Local IP: {host.get('local_ip', 'N/A')}")
+            print(f"    OS Version: {host.get('os_version', 'N/A')} Last seen: {host.get('last_seen', 'N/A')}")
             print(f"{'=' * 60}")
 
             vulns = vulns_by_asset[asset_id]
@@ -156,12 +163,15 @@ def main():
                 # Get CVE description and clean it
                 cve_data = vuln.get("cve", {})
                 description = cve_data.get("description", "N/A")
-
                 # Replace newlines with spaces and trim to 30 characters
                 description_clean = description.replace("\n", " ")[:120]
 
+                # get
+                cve_severity = cve_data.get("severity", "N/A")
+                cve_exprt_rating = cve_data.get("exprt_rating", "N/A")
+
                 print(f"  {idx}. CVE: {vuln.get('vulnerability_id')} Status: {vuln.get('status')} Risk Score: {vuln.get('risk_score')}  Exploitability: {vuln.get('exploitability')}")
-                print(f"     Description: {description_clean}")
+                print(f"     Severity: {cve_severity} Rating: {cve_exprt_rating} Description: {description_clean}")
 
         else:
             print("No vulnerabilities found for this asset\n")
