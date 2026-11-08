@@ -77,3 +77,6 @@ prettytable~=0.7.2
 
 # Cyber
 crowdstrike-falconpy
+
+# netbox
+pynetbox
