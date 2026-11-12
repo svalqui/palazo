@@ -6,14 +6,13 @@ from os import path
 from urllib.parse import urlparse
 
 import requests
-
+import os
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import sys
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
-API_ENDPOINT = "https://"
 BASELINES_SRV = "/api/UpdateService/Baselines"
 COMPLIANCE_SRV = "/api/UpdateService/Baselines(14)/DeviceComplianceReports"
 COMPLIANCE = "/api/UpdateService/Baselines(14)/DeviceComplianceReports({})/ComponentComplianceReports"
@@ -37,7 +36,7 @@ def authenticate(ome_ip_address: str, ome_username: str, ome_password: str) -> d
     """
 
     authenticated_headers = {'content-type': 'application/json'}
-    session_url = 'https://%s/api/SessionService/Sessions' % ome_ip_address
+    session_url = '%s/api/SessionService/Sessions' % ome_ip_address
     user_details = {'UserName': ome_username,
                     'Password': ome_password,
                     'SessionType': 'API'}
@@ -165,34 +164,36 @@ def get_bios_record(data):
 
 
 def main():
-    ome_address = input("OME address: ")
-    ome_u = input("OME user: ")
-    ome_p = input("OME pass: ")
+    OME_URL = os.getenv("OME_URL")
+    OME_USER = os.getenv("OME_USER")
+    OME_PASS = os.getenv("OME_PASS")
 
-    auth_header = authenticate(ome_address, ome_u, ome_p)
+    auth_header = authenticate(OME_URL, OME_USER, OME_PASS)
 
     print("(1) print hosts id on baseline")
-    print("(2) print compliance of host id")
+    print("(2) print compliance by OME system id")
     print("(3) print BIOS for all devices")
     print("(4) print warranty for all devices")
+    print("(9) print baselines")
 
     my_option = input("Option?: ")
 
     if my_option == "1":
-        url = API_ENDPOINT + ome_address + COMPLIANCE_SRV
+        url = OME_URL + COMPLIANCE_SRV
         data = get_data(auth_header, url ,None,1000)
         p_data(data, ["Id", "DeviceId", "ServiceTag", "DeviceName", "ComplianceStatus"])
 
     elif my_option == "2":
-        dev_id = input("Device ID: ")
-        url = API_ENDPOINT + ome_address + COMPLIANCE
+        dev_id = input("OME System ID: ")
+        url = OME_URL + COMPLIANCE
         url = url.format(dev_id)
         print(url)
         data = get_data(auth_header, url ,None,1000)
         p_data(data, ["Name", "CurrentVersion", "Version"])
 
+
     elif my_option == "3":
-        url = API_ENDPOINT + ome_address + COMPLIANCE_SRV
+        url = OME_URL + COMPLIANCE_SRV
         data = get_data(auth_header, url ,None,1000)
 
         for rep in data:
@@ -209,10 +210,19 @@ def main():
                   com['Name'],",",
                   )
     elif my_option == "4":
-        url = API_ENDPOINT + ome_address + WARRANTY_SVR
+        url = OME_URL + WARRANTY_SVR
         data = get_data(auth_header, url ,None,1000)
-        p_data(data, ["DeviceId", "DeviceIdentifier" , "DeviceName", "EndDate"])
+        #print(data[0])
+        p_data(data, ["DeviceId", "DeviceIdentifier" , "DeviceName", "State", "EndDate"])
+
+    elif my_option == "9":
+        url = OME_URL + BASELINES_SRV
+        data = get_data(auth_header, url ,None,1000)
+        print(data[0])
+        p_data(data, ["Name", "Id", "LastRun", "ComplianceStatus"])
+
     else:
+
         print("Option not valid")
 
 
