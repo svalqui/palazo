@@ -174,6 +174,7 @@ def main():
     print("(2) print compliance by OME system id")
     print("(3) print BIOS for all devices")
     print("(4) print warranty for all devices")
+    print("(5) print compliance by host name")
     print("(9) print baselines")
 
     my_option = input("Option?: ")
@@ -190,7 +191,6 @@ def main():
         print(url)
         data = get_data(auth_header, url ,None,1000)
         p_data(data, ["Name", "CurrentVersion", "Version"])
-
 
     elif my_option == "3":
         url = OME_URL + COMPLIANCE_SRV
@@ -214,6 +214,21 @@ def main():
         data = get_data(auth_header, url ,None,1000)
         #print(data[0])
         p_data(data, ["DeviceId", "DeviceIdentifier" , "DeviceName", "State", "EndDate"])
+
+    elif my_option == "5":
+        hostname = input("Enter hostname: ")
+        url = OME_URL + COMPLIANCE_SRV
+
+        # Add OData filter to the URL
+        url = f"{url}?$filter=DeviceName eq '{hostname}'"
+
+        data = get_data(auth_header, url, None, 1000)
+
+        if data:
+            p_data(data, ["Id", "DeviceId", "ServiceTag", "DeviceName", "ComplianceStatus"])
+        else:
+            print(f"No devices found with hostname: {hostname}")
+
 
     elif my_option == "9":
         url = OME_URL + BASELINES_SRV
