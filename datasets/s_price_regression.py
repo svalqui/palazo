@@ -2,6 +2,126 @@ from pathlib import Path
 
 import pandas as pd
 
+import numpy as np
+
+def find_triangle_breakout_followups(
+    csv_files,
+    pattern_records=20,
+    lookahead_records=15,
+    min_contraction=0.70,
+    breakout_buffer=0.0,
+    flat_slope_pct=0.01,
+):
+    """
+    Find bullish triangle breakouts and return following rows whose Close
+    is higher than the breakout row's Close.
+
+    A triangle is approximated by converging regression lines fitted to
+    High and Low over the preceding `pattern_records` rows.
+
+    breakout_buffer=0.0 means Close must be strictly above resistance.
+    Set, for example, to 0.002 for a 0.2% breakout margin.
+    """
+    results = []
+
+    for csv_file in csv_files:
+        df = pd.read_csv(csv_file)
+
+        required = ["Date", "High", "Low", "Close"]
+        missing = [col for col in required if col not in df.columns]
+        if missing:
+            raise ValueError(f"{csv_file}: missing required columns {missing}")
+
+        df["Date"] = pd.to_datetime(df["Date"], utc=True, errors="coerce")
+        for col in ["High", "Low", "Close"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        df = (
+            df.dropna(subset=["Date", "High", "Low", "Close"])
+              .sort_values("Date")
+              .reset_index(drop=True)
+        )
+
+        if len(df) <= pattern_records:
+            continue
+
+        for i in range(pattern_records, len(df)):
+            history = df.iloc[i - pattern_records:i]
+            x = np.arange(pattern_records, dtype=float)
+
+            # Fit the upper and lower triangle boundaries from prior records.
+            upper_slope, upper_intercept = np.polyfit(
+                x, history["High"].to_numpy(), 1
+            )
+            lower_slope, lower_intercept = np.polyfit(
+                x, history["Low"].to_numpy(), 1
+            )
+
+            upper_line = upper_slope * x + upper_intercept
+            lower_line = lower_slope * x + lower_intercept
+            widths = upper_line - lower_line
+
+            # Require a positive, narrowing range.
+            if np.any(widths <= 0):
+                continue
+            if widths[-1] > widths[0] * min_contraction:
+                continue
+
+            typical_price = history["Close"].median()
+            if not np.isfinite(typical_price) or typical_price <= 0:
+                continue
+
+            # Classify the converging triangle using total line movement.
+            upper_change = upper_slope * (pattern_records - 1)
+            lower_change = lower_slope * (pattern_records - 1)
+            flat_limit = typical_price * flat_slope_pct
+
+            upper_flat = abs(upper_change) <= flat_limit
+            lower_flat = abs(lower_change) <= flat_limit
+
+            if upper_flat and lower_slope > 0:
+                triangle_type = "ascending"
+            elif lower_flat and upper_slope < 0:
+                triangle_type = "descending"
+            elif upper_slope < 0 and lower_slope > 0:
+                triangle_type = "symmetrical"
+            else:
+                continue
+
+            # Project resistance to the current row. The current row is not
+            # included in the regression used to construct the triangle.
+            prior_resistance = upper_slope * (pattern_records - 1) + upper_intercept
+            current_resistance = upper_slope * pattern_records + upper_intercept
+
+            previous_close = df.iloc[i - 1]["Close"]
+            signal_close = df.iloc[i]["Close"]
+
+            crossed_above = (
+                previous_close <= prior_resistance * (1 + breakout_buffer)
+                and signal_close > current_resistance * (1 + breakout_buffer)
+            )
+            if not crossed_above:
+                continue
+
+            # Inspect only the next N records; return those closing above signal.
+            end = min(i + 1 + lookahead_records, len(df))
+            future = df.iloc[i + 1:end]
+            higher_rows = future[future["Close"] > signal_close].copy()
+
+            for future_index, row in higher_rows.iterrows():
+                result = row.to_dict()
+                result.update({
+                    "source_file": str(csv_file),
+                    "signal_date": df.iloc[i]["Date"],
+                    "signal_close": signal_close,
+                    "triangle_type": triangle_type,
+                    "records_after_signal": future_index - i,
+                })
+                results.append(result)
+
+    return pd.DataFrame(results)
+
+
 
 def find_shooting_star_followups(
     paths,
