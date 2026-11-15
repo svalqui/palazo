@@ -4,12 +4,15 @@
 from pathlib import Path
 
 import pandas as pd
+import os
 import streamlit as st
 
 st.set_page_config(page_title="Historical share prices", layout="wide")
 st.title("Historical share prices")
 
-directory = st.text_input("Folder containing CSV files", value="./prices")
+HIST = os.environ["HIST"]
+
+directory = st.text_input("Folder containing CSV files", value=HIST)
 
 date_options = ["Date", "date", ]
 #price_options = ["Close", "close", "Adj Close", "adj_close"]
@@ -21,7 +24,7 @@ if st.button("Load charts"):
     if not folder.is_dir():
         st.error(f"Folder not found: {folder}")
     else:
-        files = sorted(folder.glob("*.csv"))
+        files = sorted(folder.glob("*.AX"))
 
         if not files:
             st.warning("No CSV files found in that folder.")
@@ -41,7 +44,7 @@ if st.button("Load charts"):
                         continue
 
                     chart_data = df[[date_col, price_col]].copy()
-                    chart_data[date_col] = pd.to_datetime(chart_data[date_col], errors="coerce")
+                    chart_data[date_col] = pd.to_datetime(chart_data[date_col], errors="coerce" , utc=True)
                     chart_data[price_col] = pd.to_numeric(chart_data[price_col], errors="coerce")
                     
                     chart_data = (
