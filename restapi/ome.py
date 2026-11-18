@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # https://github.com/dell/OpenManage-Enterprise/blob/main/docs/python_library_code.md#interact-with-an-api-resource
+#https://github.com/dell/OpenManage-Enterprise/blob/main/docs/API.md
 
 import json
 from os import path
@@ -163,6 +164,30 @@ def get_bios_record(data):
     return my_rec
 
 
+def create_compliance_task(auth_header, ome_url, device_id, baseline_id):
+    """
+    Create a compliance task to upgrade a device to a baseline
+    """
+    url = ome_url + "/api/v2/ComplianceTasks"
+
+    payload = {
+        "BaselineId": baseline_id,
+        "DeviceIds": [device_id],
+        "TaskName": f"Compliance Update - Device {device_id}"
+    }
+
+    headers = auth_header
+    headers["Content-Type"] = "application/json"
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, verify=False)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error creating compliance task: {e}")
+        return None
+
+
 def main():
     OME_URL = os.getenv("OME_URL")
     OME_USER = os.getenv("OME_USER")
@@ -175,6 +200,7 @@ def main():
     print("(3) print BIOS for all devices")
     print("(4) print warranty for all devices")
     print("(5) print compliance by host name")
+    print("(6) upgrade non-compliant host by hostname")
     print("(9) print baselines")
 
     my_option = input("Option?: ")
@@ -225,7 +251,45 @@ def main():
         data = get_data(auth_header, url, None, 1000)
 
         if data:
+            print(f" Id, DeviceID, ServiceTag, DeviceName, ComplianceStatus")
             p_data(data, ["Id", "DeviceId", "ServiceTag", "DeviceName", "ComplianceStatus"])
+
+            for r in data[0]['ComponentComplianceReports']:
+                #print(r)
+                print(f"{r['Name'][0:20]}, {r['CurrentVersion']}, {r['Version']}, {r['ComplianceStatus']}, {r['RebootRequired']}")
+
+        else:
+            print(f"No devices found with hostname: {hostname}")
+
+
+    elif my_option == "6":
+        hostname = input("Enter hostname: ")
+        baseline_id = input("Enter Baseline ID: ")
+
+        url = OME_URL + COMPLIANCE_SRV
+        url = f"{url}?$filter=DeviceName eq '{hostname}'"
+
+        data = get_data(auth_header, url, None, 1000)
+
+        if data:
+            device = data[0]
+
+            # Check if non-compliant
+            if device.get("ComplianceStatus") != "Compliant":
+                print(
+                    f"Device {device['DeviceName']} is non-compliant. Starting upgrade...")
+
+                # FIXED: Pass baseline_id to the function
+                result = create_compliance_task(auth_header, OME_URL,
+                                                device['DeviceId'], int(baseline_id))
+
+                if result:
+                    print(f"Upgrade task created successfully!")
+                    print(f"Task ID: {result.get('Id')}")
+                else:
+                    print("Failed to create upgrade task")
+            else:
+                print(f"Device {device['DeviceName']} is already compliant")
         else:
             print(f"No devices found with hostname: {hostname}")
 
