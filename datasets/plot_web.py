@@ -4,6 +4,8 @@
 from pathlib import Path
 
 import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import os
 import streamlit as st
 
@@ -22,6 +24,10 @@ volume_options = ["Volume", "volume"]
 folder = Path(directory).expanduser()
 
 if st.button("Load charts"):
+    st.session_state["load_charts"] = True
+
+if st.session_state.get("load_charts", False):
+
     if not folder.is_dir():
         st.error(f"Folder not found: {folder}")
     else:
@@ -57,7 +63,24 @@ if st.button("Load charts"):
                     for days in (5, 20, 50):
                         chart_data[f"MA {days}"] = chart_data[price_col].rolling(window=days).mean()
 
+                    range_label = st.selectbox(
+                        "Show",
+                        ["All history", "1 year", "6 months", "3 months"],
+                        key=f"range_{file.stem}",  # unique control for each ticker
+                    )
 
+                    periods = {
+                        "1 year": pd.DateOffset(years=1),
+                        "6 months": pd.DateOffset(months=6),
+                        "3 months": pd.DateOffset(months=3),
+                    }
+
+                    if range_label == "All history":
+                        plot_data = chart_data
+                    else:
+                        latest_date = chart_data[date_col].max()
+                        cutoff = latest_date - periods[range_label]
+                        plot_data = chart_data.loc[chart_data[date_col] >= cutoff]
 
                     fig = make_subplots(
                         rows=2,
@@ -69,8 +92,8 @@ if st.button("Load charts"):
                     
                     fig.add_trace(
                         go.Scatter(
-                            x=chart_data[date_col],
-                            y=chart_data[price_col],
+                            x=plot_data[date_col],
+                            y=plot_data[price_col],
                             name="Closing price",
                         ),
                         row=1,
@@ -80,8 +103,8 @@ if st.button("Load charts"):
                     for days in (5, 20, 50):
                         fig.add_trace(
                             go.Scatter(
-                                x=chart_data[date_col],
-                                y=chart_data[f"MA {days}"],
+                                x=plot_data[date_col],
+                                y=plot_data[f"MA {days}"],
                                 name=f"{days}-day MA",
                             ),
                             row=1,
@@ -90,8 +113,8 @@ if st.button("Load charts"):
                     
                     fig.add_trace(
                         go.Bar(
-                            x=chart_data[date_col],
-                            y=chart_data[volume_col],
+                            x=plot_data[date_col],
+                            y=plot_data[volume_col],
                             name="Volume",
                         ),
                         row=2,
