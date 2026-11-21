@@ -110,11 +110,17 @@ if st.session_state.get("load_charts", False):
                             row=1,
                             col=1,
                         )
+
+                    colors = [
+                        "green" if close > open_ else "red" if close < open_ else "gray"
+                        for open_, close in zip(df["Open"], df["Close"])
+                    ]
                     
                     fig.add_trace(
                         go.Bar(
                             x=plot_data[date_col],
                             y=plot_data[volume_col],
+                            marker={"color":colors},
                             name="Volume",
                         ),
                         row=2,
