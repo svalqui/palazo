@@ -13,13 +13,17 @@ st.set_page_config(page_title="Historical share prices", layout="wide")
 st.title("Historical share prices")
 
 HIST = os.environ["HIST"]
+CIA = os.environ["CIA"]
+
+companies = pd.read_csv(CIA, dtype={"ASX code": str})
+companies["ASX code"] = companies["ASX code"].str.strip()
+companies = companies.set_index("ASX code")
 
 directory = st.text_input("Folder containing CSV files", value=HIST)
 
 date_options = ["Date", "date", ]
 price_options = ["Adj Close",]
 volume_options = ["Volume", "volume"]
-
 
 folder = Path(directory).expanduser()
 
@@ -52,7 +56,6 @@ if st.session_state.get("load_charts", False):
                         )
                         continue
 
-
                     chart_data = df[[date_col, price_col, volume_col]].copy()
                     chart_data[date_col] = pd.to_datetime(chart_data[date_col], errors="coerce", utc=True)
                     chart_data[price_col] = pd.to_numeric(chart_data[price_col], errors="coerce")
@@ -63,10 +66,18 @@ if st.session_state.get("load_charts", False):
                     for days in (5, 20, 50):
                         chart_data[f"MA {days}"] = chart_data[price_col].rolling(window=days).mean()
 
-                    range_label = st.selectbox(
+                    # range_label = st.selectbox(
+                    #    "Show",
+                    #    ["All history", "1 year", "6 months", "3 months"],
+                    #    key=f"range_{file.stem}",  # unique control for each ticker
+                    #)
+
+                    range_label = st.radio(
                         "Show",
                         ["All history", "1 year", "6 months", "3 months"],
-                        key=f"range_{file.stem}",  # unique control for each ticker
+                        key=f"range_{file.stem}",
+                        horizontal=True,
+                        label_visibility="collapsed",
                     )
 
                     periods = {
@@ -95,6 +106,7 @@ if st.session_state.get("load_charts", False):
                             x=plot_data[date_col],
                             y=plot_data[price_col],
                             name="Closing price",
+                            line={"color": "black"}
                         ),
                         row=1,
                         col=1,
@@ -126,9 +138,18 @@ if st.session_state.get("load_charts", False):
                         row=2,
                         col=1,
                     )
-                    
+
+                    my_title = file.stem.strip()
+
+                    if my_title in companies.index:
+                        company = companies.loc[my_title]
+                        company_name = company["Company name"]
+                        industry = company["GICs industry group"]
+                        rank = company["Rank"]
+                        my_title = f"{my_title} -Name: {company_name[:35]} -Ind: {industry[:35]} Rank: {rank}"
+
                     fig.update_layout(
-                        title=file.stem,
+                        title=my_title,
                         height=650,
                         xaxis2_title="Date",
                         yaxis_title="Price",
@@ -136,7 +157,6 @@ if st.session_state.get("load_charts", False):
                         legend=dict(orientation="h"),
                     )
 
-                    
                     st.plotly_chart(fig, use_container_width=True)
 
 
