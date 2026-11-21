@@ -157,7 +157,7 @@ if st.session_state.get("load_charts", False):
                         legend=dict(orientation="h"),
                     )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
 
 
                 except Exception as exc:
