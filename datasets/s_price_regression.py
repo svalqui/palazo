@@ -1448,3 +1448,98 @@ def find_ma_crossover_followups(
 
    matches = pd.DataFrame(results)
    return matches, not matches.empty
+
+def grid_search_ma_returns(
+    csv_files,
+    fast_periods=range(5, 21),
+    slow_periods=range(20, 101, 5),
+    date_col="Date",
+    price_col="Adj Close",
+    fee_bps=0.0,
+):
+    """
+    Test fast/slow SMA combinations on each CSV.
+
+    Returns a DataFrame with one row per file and MA-period pair,
+    sorted by total strategy return within each file.
+
+    Strategy: long when fast SMA > slow SMA; otherwise cash.
+    """
+    if isinstance(csv_files, (str, Path)):
+        csv_files = [csv_files]
+
+    fast_periods = sorted(set(fast_periods))
+    slow_periods = sorted(set(slow_periods))
+    pairs = [
+        (fast, slow)
+        for fast in fast_periods
+        for slow in slow_periods
+        if fast < slow
+    ]
+    if not pairs:
+        raise ValueError("Provide at least one pair where fast_period < slow_period")
+
+    fee_rate = fee_bps / 10_000
+    results = []
+
+    for csv_file in csv_files:
+        df = pd.read_csv(csv_file)
+
+        missing = [c for c in [date_col, price_col] if c not in df.columns]
+        if missing:
+            raise ValueError(f"{csv_file}: missing columns {missing}")
+
+        df[date_col] = pd.to_datetime(df[date_col], utc=True, errors="coerce")
+        df[price_col] = pd.to_numeric(df[price_col], errors="coerce")
+        df = (
+            df.dropna(subset=[date_col, price_col])
+              .sort_values(date_col)
+              .drop_duplicates(date_col, keep="last")
+              .reset_index(drop=True)
+        )
+
+        prices = df[price_col]
+        daily_returns = prices.pct_change().fillna(0.0)
+
+        for fast, slow in pairs:
+            fast_ma = prices.rolling(fast, min_periods=fast).mean()
+            slow_ma = prices.rolling(slow, min_periods=slow).mean()
+
+            # Create the signal at a close, then use it for the next record's return.
+            signal = (fast_ma > slow_ma).where(slow_ma.notna(), False).astype(float)
+            position = signal.shift(1).fillna(0.0)
+
+            first_valid = slow_ma.first_valid_index()
+            if first_valid is None:
+                continue
+
+            test_returns = daily_returns.loc[first_valid:]
+            test_position = position.loc[first_valid:]
+
+            # Charge costs when entering or leaving a position.
+            turnover = test_position.diff().abs()
+            if len(turnover):
+                turnover.iloc[0] = abs(test_position.iloc[0])
+            turnover = turnover.fillna(0.0)
+
+            strategy_returns = test_position * test_returns - turnover * fee_rate
+            total_return = (1.0 + strategy_returns).prod() - 1.0
+            buy_hold_return = (1.0 + test_returns).prod() - 1.0
+            entries = int((test_position.diff().fillna(test_position.iloc[0]) > 0).sum())
+
+            results.append({
+                "csv_name": Path(csv_file).name,
+                "fast_period": fast,
+                "slow_period": slow,
+                "total_return": total_return,
+                "buy_hold_return": buy_hold_return,
+                "entries": entries,
+                "records_tested": len(test_returns),
+            })
+
+    return (
+        pd.DataFrame(results)
+        .sort_values(["csv_name", "total_return"], ascending=[True, False])
+        .reset_index(drop=True)
+    )
+
