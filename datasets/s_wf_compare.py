@@ -146,9 +146,11 @@ def _compare_one_file(
 ):
     df = _load_data(path)
     if len(df) <= initial_train:
-        raise ValueError(
-            f"{path}: needs more than {initial_train} rows; has {len(df)}"
+        print(
+            f"Skipping {path}: needs more than {initial_train} rows; has {len(df)}"
+            f"has {len(df)}"
         )
+        return None, None
 
     cost = cost_bps / 10_000
     all_returns = {rule: [] for rule in RULES}
@@ -238,8 +240,15 @@ def compare_csv_files(
             initial_train=initial_train,
             test_size=test_size,
         )
+
+        if summary is None:
+            continue
+
         summaries.append(summary)
         fold_results.append(folds)
+
+    if not summaries:
+        return pd.DataFrame(), pd.DataFrame()
 
     return (
         pd.concat(summaries, ignore_index=True),
