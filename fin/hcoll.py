@@ -43,7 +43,7 @@ def get_hist(ticker, hisfile_path):
     print(f"Saved {len(cia_his)} rows to {hisfile_path}")
 
 
-def main(code):
+def run_hcoll(arg1):
     file_conf_dir = pathlib.Path.home()
     print("file_conf_dir:", file_conf_dir)
 
@@ -52,7 +52,7 @@ def main(code):
     his_path.mkdir(parents=True, exist_ok=True)
 
     # Convert code to AX code for yfinance
-    ticker = normalize_asx_code(code)
+    ticker = normalize_asx_code(arg1)
 
     hisfile_path = his_path / ticker
 
@@ -76,19 +76,9 @@ def main(code):
     return 1
 
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Download data"
-    )
-
-    parser.add_argument(
-        "code",
-        help="Give it a code",
-    )
-
-    args = parser.parse_args()
-
-    sys.exit(main(args.code))
+    run_hcoll(arg1)
 
 
 

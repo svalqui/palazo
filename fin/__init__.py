@@ -40,12 +40,5 @@ Date
     hist = code.history(period="max")
 
 
-def main():
-
-
-if __name__ == '__main__':
-    sys.exit(main())
-
-
 
     
