@@ -111,16 +111,20 @@ def find_triangle_breakout_followups(
             for future_index, row in higher_rows.iterrows():
                 result = row.to_dict()
                 result.update({
-                    "source_file": str(csv_file),
+                    "source_file": Path(csv_file).name,
                     "signal_date": df.iloc[i]["Date"],
                     "signal_close": signal_close,
+                    "pct_change": round(
+                        ((row["Close"] - signal_close) / signal_close) * 100, 2
+                    ),
                     "triangle_type": triangle_type,
                     "records_after_signal": future_index - i,
                 })
                 results.append(result)
 
-    return pd.DataFrame(results)
 
+    matches = pd.DataFrame(results)
+    return matches, not matches.empty
 
 
 def find_shooting_star_followups(
@@ -224,6 +228,7 @@ def find_shooting_star_followups(
                 result["file"] = Path(path).name
                 result["shooting_star_date"] = candle["_parsed_date"]
                 result["shooting_star_close"] = star_close
+                result["pct_change"] = round(((row["Close"] - star_close) / star_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -329,6 +334,7 @@ def find_hammer_followups(
                 result["file"] = Path(path).name
                 result["hammer_date"] = candle["_parsed_date"]
                 result["hammer_close"] = hammer_close
+                result["pct_change"] = round(((row["Close"] - hammer_close) / hammer_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -437,6 +443,7 @@ def find_doji_followups(
                 result["file"] = Path(path).name
                 result["doji_date"] = candle["_parsed_date"]
                 result["doji_close"] = doji_close
+                result["pct_change"] = round(((row["Close"] - doji_close) / doji_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -530,6 +537,7 @@ def find_piercing_line_followups(
                 result["pattern_start_date"] = first["_parsed_date"]
                 result["pattern_end_date"] = second["_parsed_date"]
                 result["pattern_close"] = pattern_close
+                result["pct_change"] = round(((row["Close"] - pattern_close) / pattern_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -647,6 +655,7 @@ def find_harami_followups(
                 result["pattern_start_date"] = first["_parsed_date"]
                 result["pattern_end_date"] = second["_parsed_date"]
                 result["pattern_close"] = pattern_close
+                result["pct_change"] = round(((row["Close"] - pattern_close) / pattern_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -748,6 +757,7 @@ def find_engulfing_followups(
                 result["pattern_start_date"] = previous["_parsed_date"]
                 result["pattern_end_date"] = current["_parsed_date"]
                 result["pattern_close"] = pattern_close
+                result["pct_change"] = round(((row["Close"] - pattern_close) / pattern_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -890,6 +900,7 @@ def find_three_black_crows_followups(
                 result["pattern_start_date"] = candles[0]["_parsed_date"]
                 result["pattern_end_date"] = third_crow["_parsed_date"]
                 result["pattern_close"] = pattern_close
+                result["pct_change"] = round(((row["Close"] - pattern_close) / pattern_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -1034,6 +1045,7 @@ def find_three_white_soldiers_followups(
                 result["pattern_start_date"] = candles[0]["_parsed_date"]
                 result["pattern_end_date"] = third_soldier["_parsed_date"]
                 result["pattern_close"] = pattern_close
+                result["pct_change"] = round(((row["Close"] - pattern_close) / pattern_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -1152,6 +1164,7 @@ def find_evening_star_followups(
                 result["pattern_start_date"] = first["_parsed_date"]
                 result["pattern_end_date"] = third["_parsed_date"]
                 result["pattern_close"] = pattern_close
+                result["pct_change"] = round(((row["Close"] - pattern_close) / pattern_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -1267,6 +1280,7 @@ def find_morning_star_followups(
                 result["pattern_start_date"] = first["_parsed_date"]
                 result["pattern_end_date"] = third["_parsed_date"]
                 result["pattern_close"] = pattern_close
+                result["pct_change"] = round(((row["Close"] - pattern_close) / pattern_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -1359,6 +1373,7 @@ def find_candle_pattern_followups(
                 result["file"] = Path(path).name
                 result["pattern_date"] = last["_parsed_date"]
                 result["pattern_close"] = pattern_close
+                result["pct_change"] = round(((row["Close"] - pattern_close) / pattern_close) * 100, 2)
                 results.append(result)
 
     matches = pd.DataFrame(results)
@@ -1443,6 +1458,7 @@ def find_ma_crossover_followups(
                result["file"] = Path(path).name
                result["signal_date"] = signal_date
                result["signal_adj_close"] = crossed_price
+               result["pct_change"] = round( ((row["Close"] - crossed_price) / crossed_price) * 100, 2)
                result["signal_moving_average"] = moving_average
                results.append(result)
 
